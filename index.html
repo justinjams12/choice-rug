@@ -105,11 +105,13 @@
             <label style="margin-top: 10px;">Area Rug Pad (Loose)</label>
             <select id="padStyle" onchange="updateLiveTotals()">
                 <option value="0" data-width="999">No Pad</option>
-                <option value="1.25" data-width="12">Value Hold (12' width)</option>
-                <option value="2.50" data-width="12">Double Grip (12' width)</option>
-                <option value="3.75" data-width="9">Teebaud (9' width)</option>
+                <option value="1.15" data-width="12">Value Hold ($1.15/sf - 12' max)</option>
+                <option value="2.35" data-width="12">Double Grip ($2.35/sf - 12' max)</option>
+                <option value="3.10" data-width="9">Teebaud ($3.10/sf - 9' max)</option>
             </select>
-            <div id="padError" class="error-text">⚠️ The rug pad selected does not meet the width constrictions.</div>
+            
+            <div id="padError" class="error-text">⚠️ Rug width exceeds pad roll width.</div>
+            <div id="backingConflictError" class="error-text">⚠️ Cannot select both Attached Backing and Rug Pad.</div>
 
             <button class="btn btn-add" id="btnAddRug" onclick="addOrUpdateRoom()">+ Add Rug to Quote</button>
         </div>
@@ -161,21 +163,44 @@
         let w = parseFloat(document.getElementById('wA').value) || 0;
         let l = parseFloat(document.getElementById('lB').value) || 0;
         
+        // Elements
         const padSelect = document.getElementById('padStyle');
+        const backingSelect = document.getElementById('backingStyle');
+        const addButton = document.getElementById('btnAddRug');
+        const padError = document.getElementById('padError');
+        const conflictError = document.getElementById('backingConflictError');
+
+        // Logic variables
         const selectedPad = padSelect.options[padSelect.selectedIndex];
         const maxPadWidth = parseFloat(selectedPad.dataset.width);
-        const errorDiv = document.getElementById('padError');
-        const addButton = document.getElementById('btnAddRug');
+        const hasBacking = parseFloat(backingSelect.value) > 0;
+        const hasPad = parseFloat(padSelect.value) > 0;
 
-        // Width Validation
+        let isValid = true;
+
+        // Validation 1: Width Restriction
         if (w > maxPadWidth) {
-            errorDiv.style.display = 'block';
+            padError.style.display = 'block';
+            isValid = false;
+        } else {
+            padError.style.display = 'none';
+        }
+
+        // Validation 2: Mutual Exclusion
+        if (hasBacking && hasPad) {
+            conflictError.style.display = 'block';
+            isValid = false;
+        } else {
+            conflictError.style.display = 'none';
+        }
+
+        // UI Updates based on validity
+        if (!isValid) {
             addButton.disabled = true;
             addButton.style.opacity = '0.4';
             document.getElementById('displayTotal').innerText = "---";
             return;
         } else {
-            errorDiv.style.display = 'none';
             addButton.disabled = false;
             addButton.style.opacity = '1';
         }
@@ -195,10 +220,10 @@
         const sqFt = w * l;
         const linearFt = (w * 2) + (l * 2);
 
-        let totalCost = (sqFt * CARPET_SQFT_PRICE); // Base Material
-        totalCost += (linearFt * edgeRate);         // Edge (Bind/Serge)
-        totalCost += (sqFt * backingRate);          // Attached Backing
-        totalCost += (sqFt * padRate);              // Loose Pad
+        let totalCost = (sqFt * CARPET_SQFT_PRICE); 
+        totalCost += (linearFt * edgeRate);         
+        totalCost += (sqFt * backingRate);          
+        totalCost += (sqFt * padRate); // Now calculates using the selected pad price per sf
 
         return { sqFt, linearFt, totalCost };
     }
