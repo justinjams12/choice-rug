@@ -53,7 +53,7 @@
         .dim-badge { background: var(--choice-blue); padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; color: white; margin-right: 5px; }
         
         .error-text { color: var(--danger); font-size: 0.75rem; font-weight: 700; margin-top: -5px; margin-bottom: 10px; display: none; }
-        .validation-msg { color: #64748b; font-size: 0.7rem; text-align: center; margin-top: 8px; font-style: italic; }
+        .validation-msg { color: #64748b; font-size: 0.7rem; text-align: center; margin-top: 8px; font-style: italic; border: 1px dashed #cbd5e1; padding: 8px; border-radius: 8px; }
         
         #pdf-template { position: absolute; left: -9999px; width: 800px; background: white; color: #1e293b; padding: 50px; font-family: 'Inter', sans-serif; }
         .pdf-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid var(--choice-blue); padding-bottom: 20px; margin-bottom: 30px; }
@@ -78,26 +78,26 @@
 
     <div id="workspace" class="view active">
         <div class="live-result">
-            <div id="projectHeader" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; opacity: 0.9; margin-bottom: 5px;">Customer Required</div>
+            <div id="projectHeader" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; opacity: 0.9; margin-bottom: 5px;">All Fields Required</div>
             <div id="displayTotal" style="font-size: 2.2rem; font-weight: 900;">$0.00</div>
             <div id="displaySub" style="font-size: 0.85rem; font-weight: 600; color: var(--choice-green);">0 SqFt | 0 LF Edge</div>
         </div>
 
-        <div class="card">
-            <div class="section-title">Customer Contact (Required)</div>
+        <div class="card" id="contactCard">
+            <div class="section-title">Customer Contact (All Required)</div>
             <div class="grid-2">
                 <input type="text" id="custFirst" placeholder="First Name *" oninput="updateLiveTotals()">
                 <input type="text" id="custLast" placeholder="Last Name *" oninput="updateLiveTotals()">
             </div>
             <div class="grid-2">
                 <input type="tel" id="custPhone" placeholder="Phone Number *" oninput="updateLiveTotals()">
-                <input type="email" id="custEmail" placeholder="Email Address">
+                <input type="email" id="custEmail" placeholder="Email Address *" oninput="updateLiveTotals()">
             </div>
-            <input type="text" id="custStreet" placeholder="Street Address">
+            <input type="text" id="custStreet" placeholder="Street Address *" oninput="updateLiveTotals()">
             <div class="grid-3">
-                <input type="text" id="custCity" placeholder="City">
-                <input type="text" id="custState" placeholder="ST" maxlength="2">
-                <input type="text" id="custZip" placeholder="Zip">
+                <input type="text" id="custCity" placeholder="City *" oninput="updateLiveTotals()">
+                <input type="text" id="custState" placeholder="ST *" maxlength="2" oninput="updateLiveTotals()">
+                <input type="text" id="custZip" placeholder="Zip *" oninput="updateLiveTotals()">
             </div>
         </div>
 
@@ -153,7 +153,7 @@
             <div id="backingConflictError" class="error-text">⚠️ Cannot select both backing and pad.</div>
             
             <button class="btn btn-add" id="btnAddRug" disabled onclick="addOrUpdateRug()">+ Add Rug to Quote</button>
-            <div id="lockMessage" class="validation-msg">Please enter Customer Name & Phone to add rugs.</div>
+            <div id="lockMessage" class="validation-msg">Complete all Customer fields to unlock.</div>
         </div>
 
         <div class="card" id="roomListCard" style="display:none;">
@@ -212,10 +212,18 @@
     }
 
     function updateLiveTotals() {
-        // Customer Validation
+        // Customer Required Fields Array
+        const requiredFields = [
+            'custFirst', 'custLast', 'custPhone', 
+            'custEmail', 'custStreet', 'custCity', 
+            'custState', 'custZip'
+        ];
+        
+        // Check if every single field has a value
+        const allFilled = requiredFields.every(id => document.getElementById(id).value.trim() !== "");
+        
         const fName = document.getElementById('custFirst').value.trim();
         const lName = document.getElementById('custLast').value.trim();
-        const phone = document.getElementById('custPhone').value.trim();
         
         // Rug Input Values
         const w = parseFloat(document.getElementById('wA').value) || 0;
@@ -226,36 +234,36 @@
         const installVal = parseFloat(document.getElementById('installSelect').value) || 0;
         const maxW = parseFloat(padS.options[padS.selectedIndex].dataset.width);
         
-        // Logic Checks
-        let customerReady = (fName !== "" && lName !== "" && phone !== "");
         let dimensionsValid = (w > 0 && l > 0 && w <= maxW);
         let backingConflict = (parseFloat(backS.value) > 0 && parseFloat(padS.value) > 0);
 
         // Update Project Header
-        document.getElementById('projectHeader').innerText = customerReady ? `${fName} ${lName}` : "Customer Required";
+        document.getElementById('projectHeader').innerText = (fName && lName) ? `${fName} ${lName}` : "Complete Info Required";
 
-        // Handle Button State
+        // Handle Button State & Lock Message
         const addBtn = document.getElementById('btnAddRug');
         const lockMsg = document.getElementById('lockMessage');
         
-        if (!customerReady) {
+        if (!allFilled) {
             addBtn.disabled = true;
             lockMsg.style.display = 'block';
-            lockMsg.innerText = "Please enter Customer Name & Phone to add rugs.";
+            lockMsg.innerHTML = "🚫 <b>Complete all 8 Customer Contact fields</b> to unlock rug tools.";
+            lockMsg.style.borderColor = "#cbd5e1";
         } else if (backingConflict) {
             addBtn.disabled = true;
             lockMsg.style.display = 'block';
-            lockMsg.innerText = "⚠️ Cannot select both backing and pad.";
+            lockMsg.innerHTML = "⚠️ <b>Warning:</b> Cannot select both backing and pad.";
+            lockMsg.style.borderColor = "var(--danger)";
         } else {
             addBtn.disabled = false;
             lockMsg.style.display = 'none';
         }
 
-        // Error visibility
+        // Specific Error Display
         document.getElementById('padError').style.display = (w > maxW) ? 'block' : 'none';
         document.getElementById('backingConflictError').style.display = backingConflict ? 'block' : 'none';
 
-        // Calculation
+        // Live Total Calculation
         let rugTotal = 0;
         if (dimensionsValid && !backingConflict) {
             let res = calculateRugLogic(w, l);
