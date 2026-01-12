@@ -38,8 +38,10 @@
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .grid-3 { display: grid; grid-template-columns: 2fr 1fr 1.2fr; gap: 10px; }
 
-        .btn { width: 100%; padding: 16px; border-radius: 10px; border: none; font-weight: 800; cursor: pointer; transition: opacity 0.2s; }
+        .btn { width: 100%; padding: 16px; border-radius: 10px; border: none; font-weight: 800; cursor: pointer; transition: all 0.2s; }
         .btn-add { background: var(--choice-blue); color: white; }
+        .btn-add:disabled { background: #cbd5e1; cursor: not-allowed; opacity: 0.7; }
+        
         .btn-save { background: var(--choice-green); color: white; margin-top: 10px; }
         .btn-pdf { background: #334155; color: white; margin-top: 10px; }
         
@@ -49,7 +51,9 @@
         
         .room-tag { background: var(--choice-blue-light); padding: 12px; border-radius: 10px; margin-bottom: 8px; border-left: 4px solid var(--choice-green); display: flex; justify-content: space-between; align-items: center;}
         .dim-badge { background: var(--choice-blue); padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; color: white; margin-right: 5px; }
+        
         .error-text { color: var(--danger); font-size: 0.75rem; font-weight: 700; margin-top: -5px; margin-bottom: 10px; display: none; }
+        .validation-msg { color: #64748b; font-size: 0.7rem; text-align: center; margin-top: 8px; font-style: italic; }
         
         #pdf-template { position: absolute; left: -9999px; width: 800px; background: white; color: #1e293b; padding: 50px; font-family: 'Inter', sans-serif; }
         .pdf-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid var(--choice-blue); padding-bottom: 20px; margin-bottom: 30px; }
@@ -74,19 +78,19 @@
 
     <div id="workspace" class="view active">
         <div class="live-result">
-            <div id="projectHeader" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; opacity: 0.9; margin-bottom: 5px;">New Rug Project</div>
+            <div id="projectHeader" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; opacity: 0.9; margin-bottom: 5px;">Customer Required</div>
             <div id="displayTotal" style="font-size: 2.2rem; font-weight: 900;">$0.00</div>
             <div id="displaySub" style="font-size: 0.85rem; font-weight: 600; color: var(--choice-green);">0 SqFt | 0 LF Edge</div>
         </div>
 
         <div class="card">
-            <div class="section-title">Customer Contact</div>
+            <div class="section-title">Customer Contact (Required)</div>
             <div class="grid-2">
-                <input type="text" id="custFirst" placeholder="First Name" oninput="updateJobHeader()">
-                <input type="text" id="custLast" placeholder="Last Name" oninput="updateJobHeader()">
+                <input type="text" id="custFirst" placeholder="First Name *" oninput="updateLiveTotals()">
+                <input type="text" id="custLast" placeholder="Last Name *" oninput="updateLiveTotals()">
             </div>
             <div class="grid-2">
-                <input type="tel" id="custPhone" placeholder="Phone Number">
+                <input type="tel" id="custPhone" placeholder="Phone Number *" oninput="updateLiveTotals()">
                 <input type="email" id="custEmail" placeholder="Email Address">
             </div>
             <input type="text" id="custStreet" placeholder="Street Address">
@@ -147,7 +151,9 @@
 
             <div id="padError" class="error-text">⚠️ Width exceeds pad roll width.</div>
             <div id="backingConflictError" class="error-text">⚠️ Cannot select both backing and pad.</div>
-            <button class="btn btn-add" id="btnAddRug" onclick="addOrUpdateRug()">+ Add Rug to Quote</button>
+            
+            <button class="btn btn-add" id="btnAddRug" disabled onclick="addOrUpdateRug()">+ Add Rug to Quote</button>
+            <div id="lockMessage" class="validation-msg">Please enter Customer Name & Phone to add rugs.</div>
         </div>
 
         <div class="card" id="roomListCard" style="display:none;">
@@ -197,12 +203,6 @@
     let editingRugIndex = null;
     const CARPET_SQFT_PRICE = 5.00; 
 
-    function updateJobHeader() {
-        let f = document.getElementById('custFirst').value;
-        let l = document.getElementById('custLast').value;
-        document.getElementById('projectHeader').innerText = (f || l) ? `${f} ${l}` : "New Rug Project";
-    }
-
     function switchTab(tabId) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -212,27 +212,52 @@
     }
 
     function updateLiveTotals() {
-        let w = parseFloat(document.getElementById('wA').value) || 0;
-        let l = parseFloat(document.getElementById('lB').value) || 0;
+        // Customer Validation
+        const fName = document.getElementById('custFirst').value.trim();
+        const lName = document.getElementById('custLast').value.trim();
+        const phone = document.getElementById('custPhone').value.trim();
+        
+        // Rug Input Values
+        const w = parseFloat(document.getElementById('wA').value) || 0;
+        const l = parseFloat(document.getElementById('lB').value) || 0;
         const padS = document.getElementById('padStyle');
         const backS = document.getElementById('backingStyle');
         const deliveryVal = parseFloat(document.getElementById('deliverySelect').value) || 0;
         const installVal = parseFloat(document.getElementById('installSelect').value) || 0;
         const maxW = parseFloat(padS.options[padS.selectedIndex].dataset.width);
         
-        let valid = true;
-        if (w > maxW) { document.getElementById('padError').style.display = 'block'; valid = false; } 
-        else { document.getElementById('padError').style.display = 'none'; }
+        // Logic Checks
+        let customerReady = (fName !== "" && lName !== "" && phone !== "");
+        let dimensionsValid = (w > 0 && l > 0 && w <= maxW);
+        let backingConflict = (parseFloat(backS.value) > 0 && parseFloat(padS.value) > 0);
+
+        // Update Project Header
+        document.getElementById('projectHeader').innerText = customerReady ? `${fName} ${lName}` : "Customer Required";
+
+        // Handle Button State
+        const addBtn = document.getElementById('btnAddRug');
+        const lockMsg = document.getElementById('lockMessage');
         
-        if (parseFloat(backS.value) > 0 && parseFloat(padS.value) > 0) { 
-            document.getElementById('backingConflictError').style.display = 'block'; valid = false; 
-        } else { document.getElementById('backingConflictError').style.display = 'none'; }
+        if (!customerReady) {
+            addBtn.disabled = true;
+            lockMsg.style.display = 'block';
+            lockMsg.innerText = "Please enter Customer Name & Phone to add rugs.";
+        } else if (backingConflict) {
+            addBtn.disabled = true;
+            lockMsg.style.display = 'block';
+            lockMsg.innerText = "⚠️ Cannot select both backing and pad.";
+        } else {
+            addBtn.disabled = false;
+            lockMsg.style.display = 'none';
+        }
 
-        document.getElementById('btnAddRug').disabled = !valid;
-        document.getElementById('btnAddRug').style.opacity = valid ? '1' : '0.4';
+        // Error visibility
+        document.getElementById('padError').style.display = (w > maxW) ? 'block' : 'none';
+        document.getElementById('backingConflictError').style.display = backingConflict ? 'block' : 'none';
 
+        // Calculation
         let rugTotal = 0;
-        if (w > 0 && l > 0 && valid) {
+        if (dimensionsValid && !backingConflict) {
             let res = calculateRugLogic(w, l);
             rugTotal = res.totalCost;
         }
@@ -287,7 +312,6 @@
 
     function finalizeJob() {
         let f = document.getElementById('custFirst').value;
-        if(!f) { alert("Please enter at least a First Name"); return; }
         let hist = JSON.parse(localStorage.getItem('choiceRugHistory') || '[]');
         let job = { 
             f, l: document.getElementById('custLast').value,
@@ -334,7 +358,7 @@
         document.getElementById('deliverySelect').value = h.delivery || 0;
         document.getElementById('installSelect').value = h.install || 0;
         currentJobRugs = [...h.rugs];
-        updateJobHeader(); updateRugList(); switchTab('workspace');
+        updateLiveTotals(); updateRugList(); switchTab('workspace');
     }
 
     function deleteJob(idx) {
