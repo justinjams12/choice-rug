@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Choice Floors - Custom Rug Pro</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root {
             --choice-blue: #2b6291; 
@@ -39,11 +41,16 @@
         .btn { width: 100%; padding: 16px; border-radius: 10px; border: none; font-weight: 800; cursor: pointer; transition: opacity 0.2s; }
         .btn-add { background: var(--choice-blue); color: white; }
         .btn-save { background: var(--choice-green); color: white; margin-top: 10px; }
+        .btn-pdf { background: #334155; color: white; margin-top: 10px; }
+        .btn-edit { background: var(--choice-blue-light); color: var(--choice-blue); font-size: 0.7rem; padding: 6px 12px; margin-left: 5px; border-radius: 5px; }
         
-        .room-tag { background: var(--choice-blue-light); padding: 12px; border-radius: 10px; margin-bottom: 8px; border-left: 4px solid var(--choice-green); }
+        .room-tag { background: var(--choice-blue-light); padding: 12px; border-radius: 10px; margin-bottom: 8px; border-left: 4px solid var(--choice-green); display: flex; justify-content: space-between; align-items: center;}
         .dim-badge { background: var(--choice-blue); padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; color: white; margin-right: 5px; }
         
         .error-text { color: var(--danger); font-size: 0.75rem; font-weight: 700; margin-top: -5px; margin-bottom: 10px; display: none; }
+        
+        /* PDF Template - hidden from view */
+        #pdf-template { position: absolute; left: -9999px; width: 600px; padding: 40px; background: white; color: #000; }
     </style>
 </head>
 <body>
@@ -72,10 +79,8 @@
         </div>
 
         <div class="card">
-            <div class="section-title">Customer Info</div>
+            <div class="section-title" id="formActionTitle">Rug Specifications</div>
             <input type="text" id="jobName" placeholder="Customer Name" oninput="updateJobHeader()">
-            
-            <div class="section-title" style="margin-top:15px;">Rug Specifications</div>
             <input type="text" id="roomName" placeholder="Rug Location (e.g. Dining Room)">
             
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
@@ -87,39 +92,40 @@
                 <div>
                     <label>Edge Finish</label>
                     <select id="edgeStyle" onchange="updateLiveTotals()">
-                        <option value="2.50">Bind ($2.50/lf)</option>
-                        <option value="6.00">Serge ($6.00/lf)</option>
+                        <option value="2.50" data-label="Bind">Bind ($2.50/lf)</option>
+                        <option value="6.00" data-label="Serge">Serge ($6.00/lf)</option>
                     </select>
                 </div>
                 <div>
                     <label>Attached Backing</label>
                     <select id="backingStyle" onchange="updateLiveTotals()">
-                        <option value="0">None</option>
-                        <option value="1.50">Soft Felt ($1.50/sf)</option>
-                        <option value="2.25">Teebaud ($2.25/sf)</option>
-                        <option value="2.00">Quad Back ($2.00/sf)</option>
+                        <option value="0" data-label="None">None</option>
+                        <option value="1.50" data-label="Soft Felt">Soft Felt ($1.50/sf)</option>
+                        <option value="2.25" data-label="Teebaud">Teebaud ($2.25/sf)</option>
+                        <option value="2.00" data-label="Quad Back">Quad Back ($2.00/sf)</option>
                     </select>
                 </div>
             </div>
 
             <label style="margin-top: 10px;">Area Rug Pad (Loose)</label>
             <select id="padStyle" onchange="updateLiveTotals()">
-                <option value="0" data-width="999">No Pad</option>
-                <option value="1.15" data-width="12">Value Hold ($1.15/sf - 12' max)</option>
-                <option value="2.35" data-width="12">Double Grip ($2.35/sf - 12' max)</option>
-                <option value="3.10" data-width="9">Teebaud ($3.10/sf - 9' max)</option>
+                <option value="0" data-width="999" data-label="None">No Pad</option>
+                <option value="1.15" data-width="12" data-label="Value Hold">Value Hold ($1.15/sf)</option>
+                <option value="2.35" data-width="12" data-label="Double Grip">Double Grip ($2.35/sf)</option>
+                <option value="3.10" data-width="9" data-label="Teebaud">Teebaud ($3.10/sf)</option>
             </select>
             
             <div id="padError" class="error-text">⚠️ Rug width exceeds pad roll width.</div>
             <div id="backingConflictError" class="error-text">⚠️ Cannot select both Attached Backing and Rug Pad.</div>
 
-            <button class="btn btn-add" id="btnAddRug" onclick="addOrUpdateRoom()">+ Add Rug to Quote</button>
+            <button class="btn btn-add" id="btnAddRug" onclick="addOrUpdateRug()">+ Add Rug to Quote</button>
         </div>
 
         <div class="card" id="roomListCard" style="display:none;">
             <div class="section-title">Quote Summary</div>
             <div id="currentRooms"></div>
-            <button class="btn btn-save" onclick="finalizeJob()">Finalize Quote</button>
+            <button class="btn btn-save" onclick="finalizeJob()">Finalize & Save Job</button>
+            <button class="btn btn-pdf" onclick="generatePDF()">Download PDF Quote</button>
         </div>
     </div>
 
@@ -128,8 +134,20 @@
     </div>
 </div>
 
+<div id="pdf-template">
+    <h1 style="color:#2b6291; border-bottom: 2px solid #9dbb4c;">Choice Floors Custom Rug Quote</h1>
+    <h3 id="pdf-cust-name"></h3>
+    <p id="pdf-date"></p>
+    <hr>
+    <div id="pdf-item-list"></div>
+    <hr>
+    <h2 style="text-align: right;" id="pdf-total-price"></h2>
+</div>
+
 <script>
     let currentJobRugs = [];
+    let editingHistoryIndex = null;
+    let editingRugIndex = null;
     const CARPET_SQFT_PRICE = 5.00; 
 
     function updateJobHeader() {
@@ -151,7 +169,6 @@
         let scale = 140 / Math.max(w, l, 1);
         let dW = w * scale, dL = l * scale;
         let x = (200 - dW) / 2, y = (200 - dL) / 2;
-
         const rects = [document.getElementById('roomRect'), document.getElementById('bindingRect')];
         rects.forEach(r => {
             r.setAttribute('width', dW); r.setAttribute('height', dL);
@@ -162,47 +179,27 @@
     function updateLiveTotals() {
         let w = parseFloat(document.getElementById('wA').value) || 0;
         let l = parseFloat(document.getElementById('lB').value) || 0;
-        
-        // Elements
         const padSelect = document.getElementById('padStyle');
         const backingSelect = document.getElementById('backingStyle');
         const addButton = document.getElementById('btnAddRug');
         const padError = document.getElementById('padError');
         const conflictError = document.getElementById('backingConflictError');
 
-        // Logic variables
         const selectedPad = padSelect.options[padSelect.selectedIndex];
         const maxPadWidth = parseFloat(selectedPad.dataset.width);
         const hasBacking = parseFloat(backingSelect.value) > 0;
         const hasPad = parseFloat(padSelect.value) > 0;
 
         let isValid = true;
+        if (w > maxPadWidth) { padError.style.display = 'block'; isValid = false; } else { padError.style.display = 'none'; }
+        if (hasBacking && hasPad) { conflictError.style.display = 'block'; isValid = false; } else { conflictError.style.display = 'none'; }
 
-        // Validation 1: Width Restriction
-        if (w > maxPadWidth) {
-            padError.style.display = 'block';
-            isValid = false;
-        } else {
-            padError.style.display = 'none';
-        }
-
-        // Validation 2: Mutual Exclusion
-        if (hasBacking && hasPad) {
-            conflictError.style.display = 'block';
-            isValid = false;
-        } else {
-            conflictError.style.display = 'none';
-        }
-
-        // UI Updates based on validity
         if (!isValid) {
-            addButton.disabled = true;
-            addButton.style.opacity = '0.4';
+            addButton.disabled = true; addButton.style.opacity = '0.4';
             document.getElementById('displayTotal').innerText = "---";
             return;
         } else {
-            addButton.disabled = false;
-            addButton.style.opacity = '1';
+            addButton.disabled = false; addButton.style.opacity = '1';
         }
 
         if (w > 0 && l > 0) {
@@ -213,72 +210,154 @@
     }
 
     function calculateRugLogic(w, l) {
-        const edgeRate = parseFloat(document.getElementById('edgeStyle').value);
-        const backingRate = parseFloat(document.getElementById('backingStyle').value);
-        const padRate = parseFloat(document.getElementById('padStyle').value);
+        const edgeSelect = document.getElementById('edgeStyle');
+        const backingSelect = document.getElementById('backingStyle');
+        const padSelect = document.getElementById('padStyle');
 
         const sqFt = w * l;
         const linearFt = (w * 2) + (l * 2);
 
         let totalCost = (sqFt * CARPET_SQFT_PRICE); 
-        totalCost += (linearFt * edgeRate);         
-        totalCost += (sqFt * backingRate);          
-        totalCost += (sqFt * padRate); // Now calculates using the selected pad price per sf
+        totalCost += (linearFt * parseFloat(edgeSelect.value));         
+        totalCost += (sqFt * parseFloat(backingSelect.value));          
+        totalCost += (sqFt * parseFloat(padSelect.value));
 
-        return { sqFt, linearFt, totalCost };
+        return { 
+            sqFt, linearFt, totalCost,
+            edgeLabel: edgeSelect.options[edgeSelect.selectedIndex].dataset.label,
+            backingLabel: backingSelect.options[backingSelect.selectedIndex].dataset.label,
+            padLabel: padSelect.options[padSelect.selectedIndex].dataset.label
+        };
     }
 
-    function addOrUpdateRoom() {
+    function addOrUpdateRug() {
         let w = parseFloat(document.getElementById('wA').value);
         let l = parseFloat(document.getElementById('lB').value);
         if(!w || !l) return;
         
         let rug = calculateRugLogic(w, l);
-        currentJobRugs.push({
-            name: document.getElementById('roomName').value || "Custom Rug " + (currentJobRugs.length + 1),
-            w, l, cost: rug.totalCost, sqFt: rug.sqFt
-        });
+        let rugData = {
+            name: document.getElementById('roomName').value || "Custom Rug",
+            w, l, cost: rug.totalCost, sqFt: rug.sqFt,
+            edge: rug.edgeLabel, backing: rug.backingLabel, pad: rug.padLabel
+        };
+
+        if(editingRugIndex !== null) {
+            currentJobRugs[editingRugIndex] = rugData;
+            editingRugIndex = null;
+            document.getElementById('btnAddRug').innerText = "+ Add Rug to Quote";
+        } else {
+            currentJobRugs.push(rugData);
+        }
         
         updateRugList();
         ['roomName','wA','lB'].forEach(id => document.getElementById(id).value = "");
         drawBlueprint();
     }
 
+    function editRug(index) {
+        let rug = currentJobRugs[index];
+        editingRugIndex = index;
+        document.getElementById('roomName').value = rug.name;
+        document.getElementById('wA').value = rug.w;
+        document.getElementById('lB').value = rug.l;
+        // Simplified selection matching
+        document.getElementById('btnAddRug').innerText = "Update Rug Details";
+        document.getElementById('formActionTitle').scrollIntoView();
+        updateLiveTotals();
+    }
+
     function updateRugList() {
         let total = currentJobRugs.reduce((s, r) => s + r.cost, 0);
         document.getElementById('currentRooms').innerHTML = currentJobRugs.map((r, i) => `
             <div class="room-tag">
-                <b>${r.name}</b>
-                <div style="margin-top:4px;">
+                <div>
+                    <b>${r.name}</b><br>
                     <span class="dim-badge">${r.w}' × ${r.l}'</span> $${r.cost.toFixed(2)}
                 </div>
+                <button class="btn-edit" onclick="editRug(${i})">Edit</button>
             </div>`).join('');
         
         document.getElementById('roomListCard').style.display = currentJobRugs.length ? 'block' : 'none';
         document.getElementById('displayTotal').innerText = `$${total.toFixed(2)}`;
-        document.getElementById('displaySub').innerText = `${currentJobRugs.length} Rug(s) in Quote`;
     }
 
     function finalizeJob() {
         let name = document.getElementById('jobName').value;
         if(!name) { alert("Please enter Customer Name"); return; }
+        
         let history = JSON.parse(localStorage.getItem('choiceRugHistory') || '[]');
-        history.unshift({ name, rugs: [...currentJobRugs], date: new Date().toLocaleDateString() });
+        let job = { name, rugs: [...currentJobRugs], date: new Date().toLocaleDateString() };
+
+        if(editingHistoryIndex !== null) {
+            history[editingHistoryIndex] = job;
+            editingHistoryIndex = null;
+            alert("Job Updated!");
+        } else {
+            history.unshift(job);
+            alert("New Job Saved!");
+        }
+
         localStorage.setItem('choiceRugHistory', JSON.stringify(history));
         currentJobRugs = [];
         document.getElementById('jobName').value = "";
         updateJobHeader(); updateRugList();
-        alert("Rug Quote Saved to History!");
+        switchTab('history');
+    }
+
+    function editHistoryJob(index) {
+        let history = JSON.parse(localStorage.getItem('choiceRugHistory') || '[]');
+        let job = history[index];
+        editingHistoryIndex = index;
+        document.getElementById('jobName').value = job.name;
+        currentJobRugs = [...job.rugs];
+        updateJobHeader();
+        updateRugList();
+        switchTab('workspace');
     }
 
     function loadHistory() {
         let history = JSON.parse(localStorage.getItem('choiceRugHistory') || '[]');
-        document.getElementById('historyList').innerHTML = history.map(h => `
+        document.getElementById('historyList').innerHTML = history.map((h, i) => `
             <div class="card" style="border-top: 4px solid var(--choice-green);">
-                <div style="font-weight:900; color:var(--choice-blue);">${h.name}</div>
-                <div style="font-size:0.75rem; opacity:0.7; margin-bottom:8px;">${h.date}</div>
-                ${h.rugs.map(r => `<div style="font-size:0.8rem; margin-bottom:2px;">• ${r.name} (${r.w}'x${r.l}') - $${r.cost.toFixed(2)}</div>`).join('')}
+                <div style="display:flex; justify-content:space-between; align-items:start;">
+                    <div>
+                        <div style="font-weight:900; color:var(--choice-blue);">${h.name}</div>
+                        <div style="font-size:0.75rem; opacity:0.7; margin-bottom:8px;">${h.date}</div>
+                    </div>
+                    <button class="btn-edit" onclick="editHistoryJob(${i})">Edit Full Job</button>
+                </div>
+                ${h.rugs.map(r => `<div style="font-size:0.8rem;">• ${r.name} ($${r.cost.toFixed(2)})</div>`).join('')}
             </div>`).join('');
+    }
+
+    async function generatePDF() {
+        const { jsPDF } = window.jspdf;
+        const name = document.getElementById('jobName').value || "Valued Customer";
+        
+        // Fill PDF Template
+        document.getElementById('pdf-cust-name').innerText = "Customer: " + name;
+        document.getElementById('pdf-date').innerText = "Date: " + new Date().toLocaleDateString();
+        
+        let listHtml = currentJobRugs.map(r => `
+            <div style="margin-bottom:15px;">
+                <strong>${r.name} (${r.w}'x${r.l}')</strong><br>
+                Edge: ${r.edge} | Backing: ${r.backing} | Pad: ${r.pad}<br>
+                Price: $${r.cost.toFixed(2)}
+            </div>
+        `).join('');
+        document.getElementById('pdf-item-list').innerHTML = listHtml;
+        document.getElementById('pdf-total-price').innerText = "Total Quote: " + document.getElementById('displayTotal').innerText;
+
+        const canvas = await html2canvas(document.getElementById('pdf-template'));
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const imgProps = pdf.getImageProperties(imgData);
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+        
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        pdf.save(`Rug-Quote-${name.replace(/\s+/g, '-')}.pdf`);
     }
 </script>
 </body>
