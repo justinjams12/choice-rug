@@ -36,13 +36,13 @@
         label { font-size: 0.65rem; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 4px; display: block; }
 
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .grid-3 { display: grid; grid-template-columns: 2fr 1fr 1.2fr; gap: 10px; }
 
         .btn { width: 100%; padding: 16px; border-radius: 10px; border: none; font-weight: 800; cursor: pointer; transition: opacity 0.2s; }
         .btn-add { background: var(--choice-blue); color: white; }
         .btn-save { background: var(--choice-green); color: white; margin-top: 10px; }
         .btn-pdf { background: #334155; color: white; margin-top: 10px; }
         
-        /* Action Buttons */
         .action-group { display: flex; gap: 8px; }
         .btn-edit { background: var(--choice-blue-light); color: var(--choice-blue); font-size: 0.7rem; padding: 8px 12px; border-radius: 8px; border:none; font-weight:700; cursor: pointer; }
         .btn-delete { background: var(--danger-light); color: var(--danger); font-size: 0.7rem; padding: 8px 12px; border-radius: 8px; border:none; font-weight:700; cursor: pointer; }
@@ -51,7 +51,6 @@
         .dim-badge { background: var(--choice-blue); padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; color: white; margin-right: 5px; }
         .error-text { color: var(--danger); font-size: 0.75rem; font-weight: 700; margin-top: -5px; margin-bottom: 10px; display: none; }
         
-        /* PDF STYLING */
         #pdf-template { position: absolute; left: -9999px; width: 800px; background: white; color: #1e293b; padding: 50px; font-family: 'Inter', sans-serif; }
         .pdf-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid var(--choice-blue); padding-bottom: 20px; margin-bottom: 30px; }
         .pdf-branding { display: flex; align-items: center; gap: 20px; }
@@ -86,9 +85,16 @@
                 <input type="text" id="custFirst" placeholder="First Name" oninput="updateJobHeader()">
                 <input type="text" id="custLast" placeholder="Last Name" oninput="updateJobHeader()">
             </div>
-            <input type="tel" id="custPhone" placeholder="Phone Number">
-            <input type="email" id="custEmail" placeholder="Email Address">
-            <input type="text" id="custAddress" placeholder="Home Address">
+            <div class="grid-2">
+                <input type="tel" id="custPhone" placeholder="Phone Number">
+                <input type="email" id="custEmail" placeholder="Email Address">
+            </div>
+            <input type="text" id="custStreet" placeholder="Street Address">
+            <div class="grid-3">
+                <input type="text" id="custCity" placeholder="City">
+                <input type="text" id="custState" placeholder="ST" maxlength="2">
+                <input type="text" id="custZip" placeholder="Zip">
+            </div>
         </div>
 
         <div class="card">
@@ -153,7 +159,8 @@
     <div style="margin-bottom: 40px;">
         <h3 style="margin:0 0 5px 0; color:var(--choice-blue); text-transform:uppercase; font-size:12px;">Bill To:</h3>
         <p id="pdf-cust-full" style="margin:0; font-size: 18px; font-weight: bold;"></p>
-        <p id="pdf-cust-address" style="margin:2px 0; font-size: 14px; color:#475569;"></p>
+        <p id="pdf-cust-street" style="margin:2px 0; font-size: 14px; color:#475569;"></p>
+        <p id="pdf-cust-cityline" style="margin:2px 0; font-size: 14px; color:#475569;"></p>
         <p id="pdf-cust-contact" style="margin:2px 0; font-size: 14px; color:#475569;"></p>
     </div>
     <table class="pdf-table">
@@ -264,7 +271,10 @@
             f, l: document.getElementById('custLast').value,
             ph: document.getElementById('custPhone').value,
             em: document.getElementById('custEmail').value,
-            ad: document.getElementById('custAddress').value,
+            street: document.getElementById('custStreet').value,
+            city: document.getElementById('custCity').value,
+            state: document.getElementById('custState').value,
+            zip: document.getElementById('custZip').value,
             rugs: [...currentJobRugs], date: new Date().toLocaleDateString() 
         };
         if(editingHistoryIndex !== null) hist[editingHistoryIndex] = job; else hist.unshift(job);
@@ -291,9 +301,12 @@
         editingHistoryIndex = idx;
         document.getElementById('custFirst').value = h.f;
         document.getElementById('custLast').value = h.l;
-        document.getElementById('custPhone').value = h.ph;
-        document.getElementById('custEmail').value = h.em;
-        document.getElementById('custAddress').value = h.ad;
+        document.getElementById('custPhone').value = h.ph || '';
+        document.getElementById('custEmail').value = h.em || '';
+        document.getElementById('custStreet').value = h.street || '';
+        document.getElementById('custCity').value = h.city || '';
+        document.getElementById('custState').value = h.state || '';
+        document.getElementById('custZip').value = h.zip || '';
         currentJobRugs = [...h.rugs];
         updateJobHeader(); updateRugList(); switchTab('workspace');
     }
@@ -311,7 +324,8 @@
         const { jsPDF } = window.jspdf;
         document.getElementById('pdf-date').innerText = new Date().toLocaleDateString();
         document.getElementById('pdf-cust-full').innerText = document.getElementById('custFirst').value + " " + document.getElementById('custLast').value;
-        document.getElementById('pdf-cust-address').innerText = document.getElementById('custAddress').value;
+        document.getElementById('pdf-cust-street').innerText = document.getElementById('custStreet').value;
+        document.getElementById('pdf-cust-cityline').innerText = `${document.getElementById('custCity').value}, ${document.getElementById('custState').value} ${document.getElementById('custZip').value}`;
         document.getElementById('pdf-cust-contact').innerText = `${document.getElementById('custPhone').value} | ${document.getElementById('custEmail').value}`;
         
         document.getElementById('pdf-item-list').innerHTML = currentJobRugs.map(r => `
