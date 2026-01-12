@@ -120,13 +120,31 @@
                     </select>
                 </div>
             </div>
-            <label style="margin-top: 10px;">Area Rug Pad (Loose)</label>
+            <label>Area Rug Pad (Loose)</label>
             <select id="padStyle" onchange="updateLiveTotals()">
                 <option value="0" data-width="999" data-label="None">No Pad</option>
                 <option value="1.15" data-width="12" data-label="Value Hold">Value Hold ($1.15/sf)</option>
                 <option value="2.35" data-width="12" data-label="Double Grip">Double Grip ($2.35/sf)</option>
                 <option value="3.10" data-width="9" data-label="Teebaud">Teebaud ($3.10/sf)</option>
             </select>
+
+            <div class="grid-2">
+                <div>
+                    <label>Delivery</label>
+                    <select id="deliverySelect" onchange="updateLiveTotals()">
+                        <option value="0">No Delivery</option>
+                        <option value="125">Delivery ($125)</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Installation</label>
+                    <select id="installSelect" onchange="updateLiveTotals()">
+                        <option value="0">No Install</option>
+                        <option value="100">Installation ($100)</option>
+                    </select>
+                </div>
+            </div>
+
             <div id="padError" class="error-text">⚠️ Width exceeds pad roll width.</div>
             <div id="backingConflictError" class="error-text">⚠️ Cannot select both backing and pad.</div>
             <button class="btn btn-add" id="btnAddRug" onclick="addOrUpdateRug()">+ Add Rug to Quote</button>
@@ -164,7 +182,7 @@
         <p id="pdf-cust-contact" style="margin:2px 0; font-size: 14px; color:#475569;"></p>
     </div>
     <table class="pdf-table">
-        <thead><tr><th>Rug Location</th><th>Dimensions</th><th>Specifications</th><th style="text-align: right;">Price</th></tr></thead>
+        <thead><tr><th>Item Description</th><th>Dimensions</th><th>Specifications</th><th style="text-align: right;">Price</th></tr></thead>
         <tbody id="pdf-item-list"></tbody>
     </table>
     <div class="pdf-footer">
@@ -198,6 +216,8 @@
         let l = parseFloat(document.getElementById('lB').value) || 0;
         const padS = document.getElementById('padStyle');
         const backS = document.getElementById('backingStyle');
+        const deliveryVal = parseFloat(document.getElementById('deliverySelect').value) || 0;
+        const installVal = parseFloat(document.getElementById('installSelect').value) || 0;
         const maxW = parseFloat(padS.options[padS.selectedIndex].dataset.width);
         
         let valid = true;
@@ -211,11 +231,14 @@
         document.getElementById('btnAddRug').disabled = !valid;
         document.getElementById('btnAddRug').style.opacity = valid ? '1' : '0.4';
 
+        let rugTotal = 0;
         if (w > 0 && l > 0 && valid) {
             let res = calculateRugLogic(w, l);
-            document.getElementById('displayTotal').innerText = `$${res.totalCost.toFixed(2)}`;
-            document.getElementById('displaySub').innerText = `${res.sqFt} SqFt | ${res.linearFt} LF Edge`;
+            rugTotal = res.totalCost;
         }
+
+        let runningTotal = currentJobRugs.reduce((s, r) => s + r.cost, 0) + rugTotal + deliveryVal + installVal;
+        document.getElementById('displayTotal').innerText = `$${runningTotal.toFixed(2)}`;
     }
 
     function calculateRugLogic(w, l) {
@@ -240,17 +263,16 @@
         
         updateRugList();
         ['roomName','wA','lB'].forEach(id => document.getElementById(id).value = "");
+        updateLiveTotals();
     }
 
     function updateRugList() {
-        let total = currentJobRugs.reduce((s, r) => s + r.cost, 0);
         document.getElementById('currentRooms').innerHTML = currentJobRugs.map((r, i) => `
             <div class="room-tag">
                 <div><b>${r.name}</b><br><span class="dim-badge">${r.w}' × ${r.l}'</span> $${r.cost.toFixed(2)}</div>
                 <button class="btn-edit" style="padding: 6px 12px;" onclick="editRug(${i})">Edit</button>
             </div>`).join('');
         document.getElementById('roomListCard').style.display = currentJobRugs.length ? 'block' : 'none';
-        document.getElementById('displayTotal').innerText = `$${total.toFixed(2)}`;
     }
 
     function editRug(idx) {
@@ -275,6 +297,8 @@
             city: document.getElementById('custCity').value,
             state: document.getElementById('custState').value,
             zip: document.getElementById('custZip').value,
+            delivery: parseFloat(document.getElementById('deliverySelect').value),
+            install: parseFloat(document.getElementById('installSelect').value),
             rugs: [...currentJobRugs], date: new Date().toLocaleDateString() 
         };
         if(editingHistoryIndex !== null) hist[editingHistoryIndex] = job; else hist.unshift(job);
@@ -307,12 +331,14 @@
         document.getElementById('custCity').value = h.city || '';
         document.getElementById('custState').value = h.state || '';
         document.getElementById('custZip').value = h.zip || '';
+        document.getElementById('deliverySelect').value = h.delivery || 0;
+        document.getElementById('installSelect').value = h.install || 0;
         currentJobRugs = [...h.rugs];
         updateJobHeader(); updateRugList(); switchTab('workspace');
     }
 
     function deleteJob(idx) {
-        if(confirm("Are you sure you want to delete this job? This cannot be undone.")) {
+        if(confirm("Are you sure you want to delete this job?")) {
             let hist = JSON.parse(localStorage.getItem('choiceRugHistory') || '[]');
             hist.splice(idx, 1);
             localStorage.setItem('choiceRugHistory', JSON.stringify(hist));
@@ -322,25 +348,33 @@
 
     async function generatePDF() {
         const { jsPDF } = window.jspdf;
+        const del = parseFloat(document.getElementById('deliverySelect').value);
+        const ins = parseFloat(document.getElementById('installSelect').value);
+
         document.getElementById('pdf-date').innerText = new Date().toLocaleDateString();
         document.getElementById('pdf-cust-full').innerText = document.getElementById('custFirst').value + " " + document.getElementById('custLast').value;
         document.getElementById('pdf-cust-street').innerText = document.getElementById('custStreet').value;
         document.getElementById('pdf-cust-cityline').innerText = `${document.getElementById('custCity').value}, ${document.getElementById('custState').value} ${document.getElementById('custZip').value}`;
         document.getElementById('pdf-cust-contact').innerText = `${document.getElementById('custPhone').value} | ${document.getElementById('custEmail').value}`;
         
-        document.getElementById('pdf-item-list').innerHTML = currentJobRugs.map(r => `
+        let rows = currentJobRugs.map(r => `
             <tr>
-                <td><strong>${r.name}</strong></td>
+                <td><strong>Rug: ${r.name}</strong></td>
                 <td>${r.w}' x ${r.l}'</td>
-                <td style="font-size:12px;">Edge: ${r.edge}<br>Backing: ${r.backing}<br>Pad: ${r.pad}</td>
+                <td style="font-size:11px;">Edge: ${r.edge}<br>Backing: ${r.backing}<br>Pad: ${r.pad}</td>
                 <td style="text-align:right; font-weight:bold;">$${r.cost.toFixed(2)}</td>
             </tr>`).join('');
         
+        if(del > 0) rows += `<tr><td><strong>Delivery Service</strong></td><td>-</td><td>Standard Home Delivery</td><td style="text-align:right; font-weight:bold;">$${del.toFixed(2)}</td></tr>`;
+        if(ins > 0) rows += `<tr><td><strong>Installation Service</strong></td><td>-</td><td>Professional Rug Installation</td><td style="text-align:right; font-weight:bold;">$${ins.toFixed(2)}</td></tr>`;
+
+        document.getElementById('pdf-item-list').innerHTML = rows;
         document.getElementById('pdf-total-price').innerText = document.getElementById('displayTotal').innerText;
+        
         const canvas = await html2canvas(document.getElementById('pdf-template'), { scale: 2 });
         const pdf = new jsPDF('p', 'mm', 'a4');
         pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
-        pdf.save(`Rug_Quote_${document.getElementById('custLast').value}.pdf`);
+        pdf.save(`Rug_Estimate_${document.getElementById('custLast').value}.pdf`);
     }
 </script>
 </body>
