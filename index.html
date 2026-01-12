@@ -13,6 +13,7 @@
             --choice-blue-light: #eef4f9;
             --text: #1e293b;
             --danger: #ef4444;
+            --danger-light: #fee2e2;
         }
         body { font-family: 'Inter', system-ui, sans-serif; margin: 0; background: #f1f5f9; color: var(--text); padding-bottom: 60px; }
         .app-shell { width: 100%; max-width: 480px; margin: auto; padding: 15px; box-sizing: border-box; }
@@ -40,7 +41,11 @@
         .btn-add { background: var(--choice-blue); color: white; }
         .btn-save { background: var(--choice-green); color: white; margin-top: 10px; }
         .btn-pdf { background: #334155; color: white; margin-top: 10px; }
-        .btn-edit { background: var(--choice-blue-light); color: var(--choice-blue); font-size: 0.7rem; padding: 6px 12px; border-radius: 5px; border:none; font-weight:700;}
+        
+        /* Action Buttons */
+        .action-group { display: flex; gap: 8px; }
+        .btn-edit { background: var(--choice-blue-light); color: var(--choice-blue); font-size: 0.7rem; padding: 8px 12px; border-radius: 8px; border:none; font-weight:700; cursor: pointer; }
+        .btn-delete { background: var(--danger-light); color: var(--danger); font-size: 0.7rem; padding: 8px 12px; border-radius: 8px; border:none; font-weight:700; cursor: pointer; }
         
         .room-tag { background: var(--choice-blue-light); padding: 12px; border-radius: 10px; margin-bottom: 8px; border-left: 4px solid var(--choice-green); display: flex; justify-content: space-between; align-items: center;}
         .dim-badge { background: var(--choice-blue); padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; color: white; margin-right: 5px; }
@@ -83,7 +88,7 @@
             </div>
             <input type="tel" id="custPhone" placeholder="Phone Number">
             <input type="email" id="custEmail" placeholder="Email Address">
-            <input type="text" id="custAddress" placeholder="Home Address (Street, City, Zip)">
+            <input type="text" id="custAddress" placeholder="Home Address">
         </div>
 
         <div class="card">
@@ -129,7 +134,9 @@
         </div>
     </div>
 
-    <div id="history" class="view"><div id="historyList"></div></div>
+    <div id="history" class="view">
+        <div id="historyList"></div>
+    </div>
 </div>
 
 <div id="pdf-template">
@@ -143,13 +150,11 @@
             <p id="pdf-date" style="margin:5px 0 0 0; color:#64748b;"></p>
         </div>
     </div>
-    <div style="margin-bottom: 40px; display: flex; justify-content: space-between;">
-        <div>
-            <h3 style="margin:0 0 5px 0; color:var(--choice-blue); text-transform:uppercase; font-size:12px;">Bill To:</h3>
-            <p id="pdf-cust-full" style="margin:0; font-size: 18px; font-weight: bold;"></p>
-            <p id="pdf-cust-address" style="margin:2px 0; font-size: 14px; color:#475569;"></p>
-            <p id="pdf-cust-contact" style="margin:2px 0; font-size: 14px; color:#475569;"></p>
-        </div>
+    <div style="margin-bottom: 40px;">
+        <h3 style="margin:0 0 5px 0; color:var(--choice-blue); text-transform:uppercase; font-size:12px;">Bill To:</h3>
+        <p id="pdf-cust-full" style="margin:0; font-size: 18px; font-weight: bold;"></p>
+        <p id="pdf-cust-address" style="margin:2px 0; font-size: 14px; color:#475569;"></p>
+        <p id="pdf-cust-contact" style="margin:2px 0; font-size: 14px; color:#475569;"></p>
     </div>
     <table class="pdf-table">
         <thead><tr><th>Rug Location</th><th>Dimensions</th><th>Specifications</th><th style="text-align: right;">Price</th></tr></thead>
@@ -235,7 +240,7 @@
         document.getElementById('currentRooms').innerHTML = currentJobRugs.map((r, i) => `
             <div class="room-tag">
                 <div><b>${r.name}</b><br><span class="dim-badge">${r.w}' × ${r.l}'</span> $${r.cost.toFixed(2)}</div>
-                <button class="btn-edit" onclick="editRug(${i})">Edit</button>
+                <button class="btn-edit" style="padding: 6px 12px;" onclick="editRug(${i})">Edit</button>
             </div>`).join('');
         document.getElementById('roomListCard').style.display = currentJobRugs.length ? 'block' : 'none';
         document.getElementById('displayTotal').innerText = `$${total.toFixed(2)}`;
@@ -264,16 +269,19 @@
         };
         if(editingHistoryIndex !== null) hist[editingHistoryIndex] = job; else hist.unshift(job);
         localStorage.setItem('choiceRugHistory', JSON.stringify(hist));
-        location.reload(); // Simple clear
+        location.reload(); 
     }
 
     function loadHistory() {
         let hist = JSON.parse(localStorage.getItem('choiceRugHistory') || '[]');
         document.getElementById('historyList').innerHTML = hist.map((h, i) => `
             <div class="card" style="border-top: 4px solid var(--choice-green);">
-                <div style="display:flex; justify-content:space-between;">
+                <div style="display:flex; justify-content:space-between; align-items:start;">
                     <div><b>${h.f} ${h.l}</b><br><small>${h.date}</small></div>
-                    <button class="btn-edit" onclick="editHistoryJob(${i})">Edit Job</button>
+                    <div class="action-group">
+                        <button class="btn-edit" onclick="editHistoryJob(${i})">Edit</button>
+                        <button class="btn-delete" onclick="deleteJob(${i})">Delete</button>
+                    </div>
                 </div>
             </div>`).join('');
     }
@@ -288,6 +296,15 @@
         document.getElementById('custAddress').value = h.ad;
         currentJobRugs = [...h.rugs];
         updateJobHeader(); updateRugList(); switchTab('workspace');
+    }
+
+    function deleteJob(idx) {
+        if(confirm("Are you sure you want to delete this job? This cannot be undone.")) {
+            let hist = JSON.parse(localStorage.getItem('choiceRugHistory') || '[]');
+            hist.splice(idx, 1);
+            localStorage.setItem('choiceRugHistory', JSON.stringify(hist));
+            loadHistory();
+        }
     }
 
     async function generatePDF() {
