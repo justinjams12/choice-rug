@@ -10,7 +10,6 @@
         :root {
             --choice-blue: #2b6291; 
             --choice-green: #9dbb4c;
-            --choice-green-dark: #8aa642;
             --choice-blue-light: #eef4f9;
             --text: #1e293b;
             --danger: #ef4444;
@@ -49,14 +48,24 @@
         
         .error-text { color: var(--danger); font-size: 0.75rem; font-weight: 700; margin-top: -5px; margin-bottom: 10px; display: none; }
         
-        /* PDF Template - hidden from view */
-        #pdf-template { position: absolute; left: -9999px; width: 600px; padding: 40px; background: white; color: #000; }
+        /* HIDDEN PDF TEMPLATE STYLING */
+        #pdf-template { 
+            position: absolute; left: -9999px; width: 800px; 
+            background: white; color: #1e293b; padding: 50px; 
+            font-family: 'Inter', sans-serif;
+        }
+        .pdf-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid var(--choice-blue); padding-bottom: 20px; margin-bottom: 30px; }
+        .pdf-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .pdf-table th { background: #f8fafc; text-align: left; padding: 12px; border-bottom: 2px solid #e2e8f0; color: var(--choice-blue); text-transform: uppercase; font-size: 12px; }
+        .pdf-table td { padding: 15px 12px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+        .pdf-footer { margin-top: 40px; text-align: right; border-top: 2px solid #e2e8f0; padding-top: 20px; }
     </style>
 </head>
 <body>
+
 <div class="app-shell">
     <header style="text-align:center; padding: 10px 0 20px 0;">
-        <img src="choice-floors-logo.png" style="max-height: 50px; width: auto;" alt="Choice Floors">
+        <img id="appLogo" src="choice-floors-logo.png" style="max-height: 50px; width: auto;" alt="Choice Floors">
     </header>
 
     <div class="tabs">
@@ -135,13 +144,35 @@
 </div>
 
 <div id="pdf-template">
-    <h1 style="color:#2b6291; border-bottom: 2px solid #9dbb4c;">Choice Floors Custom Rug Quote</h1>
-    <h3 id="pdf-cust-name"></h3>
-    <p id="pdf-date"></p>
-    <hr>
-    <div id="pdf-item-list"></div>
-    <hr>
-    <h2 style="text-align: right;" id="pdf-total-price"></h2>
+    <div class="pdf-header">
+        <img id="pdfLogo" src="choice-floors-logo.png" style="max-height: 80px; width: auto;">
+        <div style="text-align: right;">
+            <h1 style="margin:0; color:var(--choice-blue); font-size: 28px;">Estimate</h1>
+            <p id="pdf-date" style="margin:5px 0 0 0; color:#64748b;"></p>
+        </div>
+    </div>
+
+    <div style="margin-bottom: 40px;">
+        <h3 style="margin:0 0 5px 0;">Bill To:</h3>
+        <p id="pdf-cust-name" style="margin:0; font-size: 18px; font-weight: bold;"></p>
+    </div>
+
+    <table class="pdf-table">
+        <thead>
+            <tr>
+                <th>Rug Location</th>
+                <th>Dimensions</th>
+                <th>Edge / Backing / Pad</th>
+                <th style="text-align: right;">Price</th>
+            </tr>
+        </thead>
+        <tbody id="pdf-item-list"></tbody>
+    </table>
+
+    <div class="pdf-footer">
+        <p style="margin:0; font-size: 14px; color: #64748b;">Total Estimated Cost</p>
+        <h1 id="pdf-total-price" style="margin:5px 0 0 0; color: var(--choice-blue); font-size: 32px;"></h1>
+    </div>
 </div>
 
 <script>
@@ -213,10 +244,8 @@
         const edgeSelect = document.getElementById('edgeStyle');
         const backingSelect = document.getElementById('backingStyle');
         const padSelect = document.getElementById('padStyle');
-
         const sqFt = w * l;
         const linearFt = (w * 2) + (l * 2);
-
         let totalCost = (sqFt * CARPET_SQFT_PRICE); 
         totalCost += (linearFt * parseFloat(edgeSelect.value));         
         totalCost += (sqFt * parseFloat(backingSelect.value));          
@@ -234,14 +263,12 @@
         let w = parseFloat(document.getElementById('wA').value);
         let l = parseFloat(document.getElementById('lB').value);
         if(!w || !l) return;
-        
         let rug = calculateRugLogic(w, l);
         let rugData = {
             name: document.getElementById('roomName').value || "Custom Rug",
             w, l, cost: rug.totalCost, sqFt: rug.sqFt,
             edge: rug.edgeLabel, backing: rug.backingLabel, pad: rug.padLabel
         };
-
         if(editingRugIndex !== null) {
             currentJobRugs[editingRugIndex] = rugData;
             editingRugIndex = null;
@@ -249,7 +276,6 @@
         } else {
             currentJobRugs.push(rugData);
         }
-        
         updateRugList();
         ['roomName','wA','lB'].forEach(id => document.getElementById(id).value = "");
         drawBlueprint();
@@ -261,7 +287,6 @@
         document.getElementById('roomName').value = rug.name;
         document.getElementById('wA').value = rug.w;
         document.getElementById('lB').value = rug.l;
-        // Simplified selection matching
         document.getElementById('btnAddRug').innerText = "Update Rug Details";
         document.getElementById('formActionTitle').scrollIntoView();
         updateLiveTotals();
@@ -271,13 +296,9 @@
         let total = currentJobRugs.reduce((s, r) => s + r.cost, 0);
         document.getElementById('currentRooms').innerHTML = currentJobRugs.map((r, i) => `
             <div class="room-tag">
-                <div>
-                    <b>${r.name}</b><br>
-                    <span class="dim-badge">${r.w}' × ${r.l}'</span> $${r.cost.toFixed(2)}
-                </div>
+                <div><b>${r.name}</b><br><span class="dim-badge">${r.w}' × ${r.l}'</span> $${r.cost.toFixed(2)}</div>
                 <button class="btn-edit" onclick="editRug(${i})">Edit</button>
             </div>`).join('');
-        
         document.getElementById('roomListCard').style.display = currentJobRugs.length ? 'block' : 'none';
         document.getElementById('displayTotal').innerText = `$${total.toFixed(2)}`;
     }
@@ -285,19 +306,10 @@
     function finalizeJob() {
         let name = document.getElementById('jobName').value;
         if(!name) { alert("Please enter Customer Name"); return; }
-        
         let history = JSON.parse(localStorage.getItem('choiceRugHistory') || '[]');
         let job = { name, rugs: [...currentJobRugs], date: new Date().toLocaleDateString() };
-
-        if(editingHistoryIndex !== null) {
-            history[editingHistoryIndex] = job;
-            editingHistoryIndex = null;
-            alert("Job Updated!");
-        } else {
-            history.unshift(job);
-            alert("New Job Saved!");
-        }
-
+        if(editingHistoryIndex !== null) { history[editingHistoryIndex] = job; editingHistoryIndex = null; } 
+        else { history.unshift(job); }
         localStorage.setItem('choiceRugHistory', JSON.stringify(history));
         currentJobRugs = [];
         document.getElementById('jobName').value = "";
@@ -311,9 +323,7 @@
         editingHistoryIndex = index;
         document.getElementById('jobName').value = job.name;
         currentJobRugs = [...job.rugs];
-        updateJobHeader();
-        updateRugList();
-        switchTab('workspace');
+        updateJobHeader(); updateRugList(); switchTab('workspace');
     }
 
     function loadHistory() {
@@ -321,13 +331,9 @@
         document.getElementById('historyList').innerHTML = history.map((h, i) => `
             <div class="card" style="border-top: 4px solid var(--choice-green);">
                 <div style="display:flex; justify-content:space-between; align-items:start;">
-                    <div>
-                        <div style="font-weight:900; color:var(--choice-blue);">${h.name}</div>
-                        <div style="font-size:0.75rem; opacity:0.7; margin-bottom:8px;">${h.date}</div>
-                    </div>
-                    <button class="btn-edit" onclick="editHistoryJob(${i})">Edit Full Job</button>
+                    <div><div style="font-weight:900; color:var(--choice-blue);">${h.name}</div><div style="font-size:0.75rem; opacity:0.7;">${h.date}</div></div>
+                    <button class="btn-edit" onclick="editHistoryJob(${i})">Edit Job</button>
                 </div>
-                ${h.rugs.map(r => `<div style="font-size:0.8rem;">• ${r.name} ($${r.cost.toFixed(2)})</div>`).join('')}
             </div>`).join('');
     }
 
@@ -335,29 +341,31 @@
         const { jsPDF } = window.jspdf;
         const name = document.getElementById('jobName').value || "Valued Customer";
         
-        // Fill PDF Template
-        document.getElementById('pdf-cust-name').innerText = "Customer: " + name;
-        document.getElementById('pdf-date').innerText = "Date: " + new Date().toLocaleDateString();
+        document.getElementById('pdf-cust-name').innerText = name;
+        document.getElementById('pdf-date').innerText = new Date().toLocaleDateString();
         
         let listHtml = currentJobRugs.map(r => `
-            <div style="margin-bottom:15px;">
-                <strong>${r.name} (${r.w}'x${r.l}')</strong><br>
-                Edge: ${r.edge} | Backing: ${r.backing} | Pad: ${r.pad}<br>
-                Price: $${r.cost.toFixed(2)}
-            </div>
+            <tr>
+                <td><strong>${r.name}</strong></td>
+                <td>${r.w}' x ${r.l}'<br><small>${r.sqFt} SqFt</small></td>
+                <td style="font-size: 13px;">Edge: ${r.edge}<br>Backing: ${r.backing}<br>Pad: ${r.pad}</td>
+                <td style="text-align: right; font-weight: bold;">$${r.cost.toFixed(2)}</td>
+            </tr>
         `).join('');
+        
         document.getElementById('pdf-item-list').innerHTML = listHtml;
-        document.getElementById('pdf-total-price').innerText = "Total Quote: " + document.getElementById('displayTotal').innerText;
+        document.getElementById('pdf-total-price').innerText = document.getElementById('displayTotal').innerText;
 
-        const canvas = await html2canvas(document.getElementById('pdf-template'));
+        const container = document.getElementById('pdf-template');
+        const canvas = await html2canvas(container, { scale: 2, useCORS: true });
         const imgData = canvas.toDataURL('image/png');
+        
         const pdf = new jsPDF('p', 'mm', 'a4');
-        const imgProps = pdf.getImageProperties(imgData);
         const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
         
         pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-        pdf.save(`Rug-Quote-${name.replace(/\s+/g, '-')}.pdf`);
+        pdf.save(`ChoiceFloors_RugQuote_${name.replace(/\s+/g, '_')}.pdf`);
     }
 </script>
 </body>
