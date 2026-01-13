@@ -64,7 +64,6 @@
         .pdf-body { padding: 40px 60px; }
         .pdf-label { font-size: 10px; font-weight: 900; color: var(--choice-blue); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; }
         
-        /* Updated Table List Style */
         .pdf-table { width: 100%; border-collapse: collapse; margin: 25px 0; }
         .pdf-table th { text-align: left; padding: 14px; background: #f8fafc; border-bottom: 2px solid #e2e8f0; font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 800; }
         .pdf-table td { padding: 14px; border-bottom: 1px solid #f1f5f9; font-size: 13px; vertical-align: top; }
@@ -201,8 +200,7 @@
                 <p id="pdf-client-address" style="margin:6px 0 3px 0; color: #475569; line-height: 1.4; font-size: 14px;"></p>
                 <p id="pdf-client-contact" style="margin:0; color: #475569; font-weight: 500; font-size: 14px;"></p>
             </div>
-            <div style="text-align: right;">
-                </div>
+            <div style="text-align: right;"></div>
         </div>
 
         <table class="pdf-table">
@@ -253,7 +251,6 @@
     let isManualTax = false;
     let editingJobId = null;
 
-    // Functions to handle logic same as previous version but with PDF spec list update
     function newQuote() { if(confirm("Clear current work?")) location.reload(); }
 
     function handleMutualExclusion(trigger) {
@@ -353,7 +350,6 @@
         document.getElementById('pdf-client-contact').innerText = `${document.getElementById('custPhone').value} | ${document.getElementById('custEmail').value}`;
         document.getElementById('pdf-date').innerText = new Date().toLocaleDateString();
         
-        // List-style mapping for specifications
         let rows = currentRugs.map(r => `
             <tr>
                 <td><b>${r.name}</b></td>
@@ -390,7 +386,13 @@
             id: editingJobId || Date.now(), 
             name: `${document.getElementById('custLast').value}, ${document.getElementById('custFirst').value}`, 
             fName: document.getElementById('custFirst').value, lName: document.getElementById('custLast').value, phone: document.getElementById('custPhone').value, email: document.getElementById('custEmail').value, street: document.getElementById('custStreet').value, city: document.getElementById('custCity').value, state: document.getElementById('custState').value, zip: document.getElementById('custZip').value, 
-            rugs: [...currentRugs], taxRate: currentTaxRate, total: document.getElementById('displayTotal').innerText, date: new Date().toLocaleDateString() 
+            rugs: [...currentRugs], 
+            taxRate: currentTaxRate, 
+            isManual: isManualTax,
+            delivery: document.getElementById('delv').value,
+            install: document.getElementById('inst').value,
+            total: document.getElementById('displayTotal').innerText, 
+            date: new Date().toLocaleDateString() 
         };
 
         if (editingJobId) {
@@ -402,7 +404,6 @@
         
         localStorage.setItem('rugJobsMaster', JSON.stringify(savedJobs)); 
         alert("Success: Saved to history.");
-        editingJobId = job.id;
     }
 
     function switchTab(t) {
@@ -423,8 +424,29 @@
         const j = savedJobs.find(item => item.id === id);
         if(!j) return;
         editingJobId = j.id;
-        document.getElementById('custFirst').value = j.fName; document.getElementById('custLast').value = j.lName; document.getElementById('custPhone').value = j.phone; document.getElementById('custEmail').value = j.email; document.getElementById('custStreet').value = j.street; document.getElementById('custCity').value = j.city; document.getElementById('custState').value = j.state; document.getElementById('custZip').value = j.zip;
-        currentTaxRate = j.taxRate || 0; currentRugs = [...j.rugs]; renderRugs(); updateLiveTotals(); switchTab('workspace');
+        
+        // Restore Customer Data
+        document.getElementById('custFirst').value = j.fName; 
+        document.getElementById('custLast').value = j.lName; 
+        document.getElementById('custPhone').value = j.phone; 
+        document.getElementById('custEmail').value = j.email; 
+        document.getElementById('custStreet').value = j.street; 
+        document.getElementById('custCity').value = j.city; 
+        document.getElementById('custState').value = j.state; 
+        document.getElementById('custZip').value = j.zip;
+        
+        // Restore Quote Logic
+        currentTaxRate = j.taxRate || 0; 
+        isManualTax = j.isManual || false;
+        currentRugs = [...j.rugs]; 
+        
+        // Restore Delivery/Install
+        document.getElementById('delv').value = j.delivery || "0";
+        document.getElementById('inst').value = j.install || "0";
+        
+        renderRugs(); 
+        updateLiveTotals(); 
+        switchTab('workspace');
     }
 
     function deleteJob(id) { if(confirm("Permanently delete?")) { savedJobs = savedJobs.filter(j => j.id !== id); localStorage.setItem('rugJobsMaster', JSON.stringify(savedJobs)); renderHistory(); } }
