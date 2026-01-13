@@ -18,7 +18,6 @@
         body { font-family: 'Inter', system-ui, sans-serif; margin: 0; background: #f1f5f9; color: var(--text); padding-bottom: 60px; }
         .app-shell { width: 100%; max-width: 480px; margin: auto; padding: 15px; box-sizing: border-box; }
         
-        /* Tab Navigation - Dynamic Green Highlight */
         .tabs { display: flex; background: var(--choice-blue); padding: 6px; border-radius: 12px; margin-bottom: 20px; }
         .tab-btn { flex: 1; padding: 12px; border: none; background: none; color: white; font-weight: 700; cursor: pointer; border-radius: 8px; opacity: 0.7; transition: all 0.2s; }
         .tab-btn.active { background: var(--choice-green); opacity: 1; color: white; }
@@ -45,17 +44,14 @@
         .btn-save { background: var(--choice-green); color: white; margin-top: 10px; }
         .btn-pdf { background: #334155; color: white; margin-top: 10px; }
 
-        /* History Actions */
-        .history-card { border-left: 5px solid var(--choice-green); position: relative; }
-        .history-actions { display: flex; gap: 8px; margin-top: 10px; }
-        .btn-small { flex: 1; padding: 8px; border-radius: 6px; font-size: 0.75rem; border: none; font-weight: 700; cursor: pointer; }
-        .btn-edit { background: var(--choice-blue-light); color: var(--choice-blue); }
-        .btn-delete { background: var(--danger-light); color: var(--danger); }
-
-        .sig-container { border: 2px dashed #cbd5e1; border-radius: 12px; background: #fff; margin-bottom: 10px; touch-action: none; }
-        #sig-canvas { width: 100%; height: 120px; cursor: crosshair; }
         .room-tag { background: var(--choice-blue-light); padding: 12px; border-radius: 10px; margin-bottom: 8px; border-left: 4px solid var(--choice-green); display: flex; justify-content: space-between; align-items: center;}
-        .search-input { width: 100%; padding: 14px; border-radius: 12px; border: 2px solid var(--choice-blue); font-size: 1rem; margin-bottom: 15px; }
+        
+        /* PDF Layout & Hidden Signature Area */
+        #pdf-template { position: absolute; left: -9999px; width: 850px; background: white; padding: 50px; color: #1e293b; }
+        .pdf-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .pdf-table th { background: #f1f5f9; text-align: left; padding: 12px; color: var(--choice-blue); }
+        .pdf-table td { padding: 12px; border-bottom: 1px solid #e2e8f0; }
+        .sig-box { border-bottom: 2px solid #000; width: 300px; height: 100px; margin-top: 40px; }
     </style>
 </head>
 <body>
@@ -72,7 +68,7 @@
 
     <div id="workspace" class="view active">
         <div class="live-result">
-            <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; opacity: 0.9; margin-bottom: 5px;">Active Quote</div>
+            <div id="projectHeader" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; opacity: 0.9; margin-bottom: 5px;">Active Quote</div>
             <div id="displayTotal" style="font-size: 2.2rem; font-weight: 900;">$0.00</div>
             <div id="taxInfo" style="font-size: 0.75rem; opacity: 0.8;">Enter Address for Tax...</div>
         </div>
@@ -100,7 +96,7 @@
 
         <div class="card">
             <div class="section-title">Rug Specifications</div>
-            <input type="text" id="roomName" placeholder="Room Location *" oninput="autoCap(this); updateLiveTotals()">
+            <input type="text" id="roomName" placeholder="Room Location (e.g. Dining Room) *" oninput="autoCap(this); updateLiveTotals()">
             <div class="grid-2">
                 <div><label>Width (ft)</label><input type="number" id="wA" oninput="updateLiveTotals()"></div>
                 <div><label>Length (ft)</label><input type="number" id="lB" oninput="updateLiveTotals()"></div>
@@ -110,15 +106,18 @@
                     <option value="2.50" data-label="Bind">Bind ($2.50)</option>
                     <option value="6.00" data-label="Serge">Serge ($6.00)</option>
                 </select></div>
-                <div><label>Backing</label><select id="backingStyle" onchange="updateLiveTotals()">
+                <div><label>Attached Backing</label><select id="backingStyle" onchange="updateLiveTotals()">
                     <option value="0" data-label="None">None</option>
                     <option value="1.50" data-label="Soft Felt">Soft Felt ($1.50/sf)</option>
+                    <option value="2.25" data-label="Teebaud">Teebaud ($2.25/sf)</option>
+                    <option value="2.00" data-label="Quad Back">Quad Back ($2.00/sf)</option>
                 </select></div>
             </div>
-            <label>Loose Pad</label>
+            <label>Area Rug Pad (Loose)</label>
             <select id="padStyle" onchange="updateLiveTotals()">
                 <option value="0" data-label="None">No Pad</option>
                 <option value="1.15" data-label="Value Hold">Value Hold ($1.15/sf)</option>
+                <option value="2.35" data-label="Double Grip">Double Grip ($2.35/sf)</option>
                 <option value="3.10" data-label="Teebaud">Teebaud ($3.10/sf)</option>
             </select>
             <div class="grid-2">
@@ -131,9 +130,8 @@
         <div class="card" id="summaryCard" style="display:none;">
             <div class="section-title">Order Summary</div>
             <div id="roomList"></div>
-            <label style="margin-top:15px;">Customer Approval</label>
-            <div class="sig-container"><canvas id="sig-canvas"></canvas></div>
             <button class="btn btn-save" onclick="saveJob()">Save Order History</button>
+            <button class="btn btn-pdf" onclick="generatePDF()">Download Quote PDF</button>
         </div>
     </div>
 
@@ -143,17 +141,42 @@
     </div>
 </div>
 
+<div id="pdf-template">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <img src="choice-floors-logo.png" style="height:60px;">
+        <h1 style="color:var(--choice-blue); margin:0;">Quote Estimate</h1>
+    </div>
+    <hr>
+    <div style="margin:20px 0;">
+        <h3 id="pdf-client-name"></h3>
+        <p id="pdf-client-address"></p>
+        <p id="pdf-client-contact"></p>
+    </div>
+    <table class="pdf-table">
+        <thead>
+            <tr>
+                <th>Room / Item</th>
+                <th>Dimensions</th>
+                <th>Specifications</th>
+                <th>Price</th>
+            </tr>
+        </thead>
+        <tbody id="pdf-item-rows"></tbody>
+    </table>
+    <div style="text-align:right;">
+        <h2 id="pdf-total-display"></h2>
+    </div>
+    <div style="margin-top:50px;">
+        <p>Customer Approval Signature:</p>
+        <div class="sig-box"></div>
+        <p><small>Date: <span id="pdf-date"></span></small></p>
+    </div>
+</div>
+
 <script>
     let currentRugs = [];
     let savedJobs = JSON.parse(localStorage.getItem('rugJobsMaster')) || [];
     let currentTaxRate = 0.06;
-    let sigCanvas, sigCtx, drawing = false;
-
-    window.onload = () => {
-        sigCanvas = document.getElementById('sig-canvas');
-        if (sigCanvas) sigCtx = sigCanvas.getContext('2d');
-        initSignature();
-    };
 
     function handleZipChange() {
         if(document.getElementById('custZip').value.length === 5) lookupTax();
@@ -185,7 +208,14 @@
         const w = parseFloat(document.getElementById('wA').value), l = parseFloat(document.getElementById('lB').value);
         const e = document.getElementById('edgeStyle'), b = document.getElementById('backingStyle'), p = document.getElementById('padStyle');
         const cost = (w*l*5) + ((w*2+l*2)*parseFloat(e.value)) + (w*l*parseFloat(b.value)) + (w*l*parseFloat(p.value));
-        currentRugs.push({ name: document.getElementById('roomName').value || "Rug", w, l, eVal: e.value, bVal: b.value, pVal: p.value, cost, details: `${e.options[e.selectedIndex].text}/${b.options[b.selectedIndex].text}/${p.options[p.selectedIndex].text}` });
+        currentRugs.push({ 
+            name: document.getElementById('roomName').value || "Rug", 
+            w, l, 
+            edge: e.options[e.selectedIndex].text,
+            backing: b.options[b.selectedIndex].text,
+            pad: p.options[p.selectedIndex].text,
+            cost
+        });
         renderRugs();
         ['roomName','wA','lB'].forEach(id => document.getElementById(id).value = "");
         updateLiveTotals();
@@ -194,95 +224,97 @@
     function renderRugs() {
         document.getElementById('roomList').innerHTML = currentRugs.map((r, i) => `<div class="room-tag"><div><b>${r.name}</b> (${r.w}'x${r.l}')</div><button onclick="removeRug(${i})">X</button></div>`).join('');
         document.getElementById('summaryCard').style.display = currentRugs.length ? 'block' : 'none';
-        initSignature();
     }
 
     function removeRug(i) { currentRugs.splice(i,1); renderRugs(); updateLiveTotals(); }
-    
+
+    async function generatePDF() {
+        const { jsPDF } = window.jspdf;
+        document.getElementById('pdf-client-name').innerText = `${document.getElementById('custFirst').value} ${document.getElementById('custLast').value}`;
+        document.getElementById('pdf-client-address').innerText = `${document.getElementById('custStreet').value}, ${document.getElementById('custCity').value} ${document.getElementById('custState').value}`;
+        document.getElementById('pdf-client-contact').innerText = `${document.getElementById('custPhone').value} | ${document.getElementById('custEmail').value}`;
+        document.getElementById('pdf-date').innerText = new Date().toLocaleDateString();
+        
+        let rows = currentRugs.map(r => `
+            <tr>
+                <td>${r.name}</td>
+                <td>${r.w}' x ${r.l}'</td>
+                <td style="font-size:10px;">${r.edge}, ${r.backing}, ${r.pad}</td>
+                <td>$${r.cost.toFixed(2)}</td>
+            </tr>`).join('');
+        
+        const delVal = parseFloat(document.getElementById('delv').value);
+        const instVal = parseFloat(document.getElementById('inst').value);
+        if(delVal > 0) rows += `<tr><td>Delivery</td><td>-</td><td>Standard</td><td>$${delVal.toFixed(2)}</td></tr>`;
+        if(instVal > 0) rows += `<tr><td>Installation</td><td>-</td><td>Standard</td><td>$${instVal.toFixed(2)}</td></tr>`;
+        
+        document.getElementById('pdf-item-rows').innerHTML = rows;
+        document.getElementById('pdf-total-display').innerText = `Total: ${document.getElementById('displayTotal').innerText}`;
+
+        const canvas = await html2canvas(document.getElementById('pdf-template'), { scale: 2 });
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
+        pdf.save(`Choice_Floors_Quote_${document.getElementById('custLast').value}.pdf`);
+    }
+
     function saveJob() {
         const job = { 
             id: Date.now(),
+            name: `${document.getElementById('custLast').value}, ${document.getElementById('custFirst').value}`, 
             fName: document.getElementById('custFirst').value,
             lName: document.getElementById('custLast').value,
-            name: `${document.getElementById('custLast').value}, ${document.getElementById('custFirst').value}`, 
             phone: document.getElementById('custPhone').value,
             email: document.getElementById('custEmail').value,
             street: document.getElementById('custStreet').value,
             city: document.getElementById('custCity').value,
             state: document.getElementById('custState').value,
             zip: document.getElementById('custZip').value,
-            delVal: document.getElementById('delv').value,
-            instVal: document.getElementById('inst').value,
-            date: new Date().toLocaleDateString(), 
-            rugs: [...currentRugs] 
+            rugs: [...currentRugs],
+            total: document.getElementById('displayTotal').innerText,
+            date: new Date().toLocaleDateString() 
         };
         savedJobs.unshift(job);
         localStorage.setItem('rugJobsMaster', JSON.stringify(savedJobs));
-        alert("Job Saved to History.");
-        location.reload();
-    }
-
-    function renderHistory() {
-        const term = document.getElementById('jobSearch').value.toLowerCase();
-        const filtered = savedJobs.filter(j => j.name.toLowerCase().includes(term));
-        document.getElementById('historyList').innerHTML = filtered.map((j, i) => `
-            <div class="card history-card">
-                <div><b>${j.name}</b><br><small>${j.date} • ${j.rugs.length} Rugs</small></div>
-                <div class="history-actions">
-                    <button class="btn-small btn-edit" onclick="editJob(${j.id})">Load / Edit</button>
-                    <button class="btn-small btn-delete" onclick="deleteJob(${j.id})">Delete</button>
-                </div>
-            </div>`).join('');
-    }
-
-    function deleteJob(id) {
-        if(confirm("Permanently delete this record?")) {
-            savedJobs = savedJobs.filter(j => j.id !== id);
-            localStorage.setItem('rugJobsMaster', JSON.stringify(savedJobs));
-            renderHistory();
-        }
-    }
-
-    function editJob(id) {
-        const j = savedJobs.find(item => item.id === id);
-        if(!j) return;
-        document.getElementById('custFirst').value = j.fName;
-        document.getElementById('custLast').value = j.lName;
-        document.getElementById('custPhone').value = j.phone;
-        document.getElementById('custEmail').value = j.email;
-        document.getElementById('custStreet').value = j.street;
-        document.getElementById('custCity').value = j.city;
-        document.getElementById('custState').value = j.state;
-        document.getElementById('custZip').value = j.zip;
-        document.getElementById('delv').value = j.delVal;
-        document.getElementById('inst').value = j.instVal;
-        currentRugs = [...j.rugs];
-        renderRugs();
-        lookupTax();
-        switchTab('workspace');
+        alert("Job Saved.");
     }
 
     function switchTab(t) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(t).classList.add('active');
-        document.getElementById('tab-' + t).classList.add('active'); // Dynamic green highlight
+        document.getElementById('tab-' + t).classList.add('active');
         if(t === 'history') renderHistory();
     }
 
+    function renderHistory() {
+        const term = document.getElementById('jobSearch').value.toLowerCase();
+        const filtered = savedJobs.filter(j => j.name.toLowerCase().includes(term));
+        document.getElementById('historyList').innerHTML = filtered.map(j => `
+            <div class="card" style="border-left:5px solid var(--choice-green);">
+                <b>${j.name}</b> - ${j.total}<br><small>${j.date}</small>
+                <div style="margin-top:10px; display:flex; gap:5px;">
+                    <button class="btn-small" onclick="loadJob(${j.id})" style="flex:1; background:var(--choice-blue-light); border:none; padding:5px; border-radius:5px;">Edit</button>
+                    <button class="btn-small" onclick="deleteJob(${j.id})" style="flex:1; background:var(--danger-light); color:var(--danger); border:none; padding:5px; border-radius:5px;">Delete</button>
+                </div>
+            </div>`).join('');
+    }
+
+    function loadJob(id) {
+        const j = savedJobs.find(item => item.id === id);
+        if(!j) return;
+        document.getElementById('custFirst').value = j.fName; document.getElementById('custLast').value = j.lName;
+        document.getElementById('custPhone').value = j.phone; document.getElementById('custEmail').value = j.email;
+        document.getElementById('custStreet').value = j.street; document.getElementById('custCity').value = j.city;
+        document.getElementById('custState').value = j.state; document.getElementById('custZip').value = j.zip;
+        currentRugs = [...j.rugs]; renderRugs(); lookupTax(); switchTab('workspace');
+    }
+
+    function deleteJob(id) { if(confirm("Delete?")) { savedJobs = savedJobs.filter(j => j.id !== id); localStorage.setItem('rugJobsMaster', JSON.stringify(savedJobs)); renderHistory(); } }
     function autoCap(el) { el.value = el.value.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '); }
     function formatPhoneNumber(el) {
         let v = el.value.replace(/\D/g,'');
         if(v.length > 6) el.value = `(${v.slice(0,3)}) ${v.slice(3,6)}-${v.slice(6,10)}`;
         else if(v.length > 3) el.value = `(${v.slice(0,3)}) ${v.slice(3)}`;
-    }
-
-    function initSignature() {
-        if (!sigCanvas) return;
-        sigCanvas.width = sigCanvas.offsetWidth; sigCanvas.height = sigCanvas.offsetHeight;
-        sigCanvas.onmousedown = (e) => { drawing = true; sigCtx.beginPath(); sigCtx.moveTo(e.offsetX, e.offsetY); };
-        sigCanvas.onmousemove = (e) => { if(drawing) { sigCtx.lineTo(e.offsetX, e.offsetY); sigCtx.stroke(); } };
-        window.onmouseup = () => drawing = false;
     }
 </script>
 </body>
