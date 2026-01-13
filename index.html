@@ -53,22 +53,22 @@
 
         .error-msg { color: var(--danger); font-size: 0.75rem; font-weight: bold; margin-bottom: 10px; display: none; background: var(--danger-light); padding: 8px; border-radius: 6px; }
 
-        /* VIBRANT BRANDED PDF STYLING */
-        #pdf-template { position: absolute; left: -9999px; width: 850px; background: white; color: #1e293b; padding: 0; }
-        .pdf-hero { background: linear-gradient(135deg, #f8fafc 0%, #eef4f9 100%); padding: 50px 60px; border-bottom: 5px solid var(--choice-green); display: flex; justify-content: space-between; align-items: center; }
-        .pdf-body { padding: 50px 60px; }
-        .pdf-badge { display: inline-block; background: var(--choice-blue-light); color: var(--choice-blue); padding: 5px 12px; border-radius: 20px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
-        .pdf-info-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 40px; margin-bottom: 40px; }
-        .pdf-table { width: 100%; border-collapse: separate; border-spacing: 0; margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
-        .pdf-table th { background: var(--choice-blue); color: white; text-align: left; padding: 16px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
-        .pdf-table td { padding: 18px 16px; border-bottom: 1px solid #f1f5f9; font-size: 13px; }
-        .pdf-table tr:last-child td { border-bottom: none; }
-        .pdf-table tr:nth-child(even) { background-color: #f8fafc; }
-        
-        .summary-card { background: #1e293b; color: white; padding: 35px; border-radius: 15px; margin-top: 30px; display: flex; justify-content: space-between; align-items: center; }
-        .total-amount { font-size: 32px; font-weight: 900; color: var(--choice-green); }
-        .pdf-footer-bar { height: 15px; background: var(--choice-blue); width: 100%; position: absolute; bottom: 0; }
-        .pdf-footer-accent { height: 15px; background: var(--choice-green); width: 30%; position: absolute; bottom: 0; right: 0; }
+        /* REFINED PDF TEMPLATE */
+        #pdf-template { position: absolute; left: -9999px; width: 850px; background: #fff; color: #1e293b; padding: 0; }
+        .pdf-header-block { background: var(--choice-blue); padding: 40px 60px; color: white; position: relative; }
+        .pdf-header-block::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 8px; background: var(--choice-green); }
+        .pdf-header-content { display: flex; justify-content: space-between; align-items: center; }
+        .pdf-logo-white { height: 100px; filter: brightness(0) invert(1); }
+        .pdf-body { padding: 40px 60px; }
+        .pdf-customer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 40px; border-bottom: 1px solid #e2e8f0; padding-bottom: 20px; }
+        .pdf-section-label { font-size: 10px; font-weight: 900; text-transform: uppercase; color: var(--choice-blue); letter-spacing: 1.5px; margin-bottom: 10px; }
+        .pdf-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .pdf-table th { text-align: left; padding: 15px; font-size: 11px; text-transform: uppercase; border-bottom: 2px solid #e2e8f0; color: #64748b; font-weight: 800; }
+        .pdf-table td { padding: 15px; border-bottom: 1px solid #f1f5f9; font-size: 13px; vertical-align: top; }
+        .pdf-table tr:nth-child(even) { background: #fbfcfd; }
+        .pdf-total-container { margin-top: 30px; padding: 30px; background: #f8fafc; border-radius: 12px; display: flex; justify-content: flex-end; }
+        .pdf-total-box { text-align: right; width: 300px; }
+        .pdf-grand-total { font-size: 28px; font-weight: 900; color: var(--choice-blue); margin-top: 10px; border-top: 2px solid #e2e8f0; padding-top: 10px; }
     </style>
 </head>
 <body>
@@ -94,7 +94,7 @@
             </div>
         </div>
 
-        <button class="btn" style="background: #e2e8f0; color: #475569; margin-bottom: 15px; padding: 10px; font-size: 0.8rem;" onclick="newQuote()">↺ Reset New Quote</button>
+        <button class="btn" style="background: #e2e8f0; color: #475569; margin-bottom: 15px; padding: 10px; font-size: 0.8rem;" onclick="newQuote()">↺ Start New Quote</button>
 
         <div class="card">
             <div class="section-title">Customer Contact</div>
@@ -119,7 +119,7 @@
 
         <div class="card">
             <div class="section-title">Rug Specifications</div>
-            <input type="text" id="roomName" placeholder="Room Location (e.g. Living Room) *" oninput="autoCap(this); validateInputs()">
+            <input type="text" id="roomName" placeholder="Room Location (e.g. Dining Room) *" oninput="autoCap(this); validateInputs()">
             <div class="grid-2">
                 <div><label>Width (ft) *</label><input type="number" id="wA" oninput="validateInputs()"></div>
                 <div><label>Length (ft) *</label><input type="number" id="lB" oninput="validateInputs()"></div>
@@ -161,7 +161,7 @@
         <div class="card" id="summaryCard" style="display:none;">
             <div class="section-title">Order Summary</div>
             <div id="roomList"></div>
-            <button class="btn btn-save" onclick="saveJob()">Save / Update History</button>
+            <button class="btn btn-save" onclick="saveJob()">Save Order History</button>
             <button class="btn btn-pdf" onclick="generatePDF()">Download Quote PDF</button>
         </div>
     </div>
@@ -173,66 +173,72 @@
 </div>
 
 <div id="pdf-template">
-    <div class="pdf-hero">
-        <img src="choice-floors-logo.png" style="height:110px; width: auto;">
-        <div style="text-align:right;">
-            <h1 style="margin:0; font-size: 34px; color: var(--choice-blue); font-weight: 900; line-height: 1;">Choice Floors</h1>
-            <p style="margin:8px 0 0 0; color: var(--choice-green); font-weight: 800; font-size: 16px; text-transform: uppercase; letter-spacing: 2px;">Rug Estimate</p>
+    <div class="pdf-header-block">
+        <div class="pdf-header-content">
+            <img src="choice-floors-logo.png" class="pdf-logo-white">
+            <div style="text-align:right;">
+                <h1 style="margin:0; font-size: 32px; font-weight: 900; letter-spacing: -1px;">Rug Estimate</h1>
+                <p style="margin:5px 0 0 0; opacity: 0.8; font-weight: 600;">Date: <span id="pdf-date"></span></p>
+            </div>
         </div>
     </div>
 
     <div class="pdf-body">
-        <div class="pdf-info-grid">
+        <div class="pdf-customer-grid">
             <div>
-                <div class="pdf-badge">Customer Details</div>
-                <h2 id="pdf-client-name" style="margin:0; font-size: 24px; color: #0f172a;"></h2>
-                <p id="pdf-client-address" style="margin:10px 0 4px 0; color: #475569; font-size: 14px; line-height: 1.5;"></p>
-                <p id="pdf-client-contact" style="margin:0; color: #475569; font-size: 14px; font-weight: 500;"></p>
+                <div class="pdf-section-label">Prepared For</div>
+                <h2 id="pdf-client-name" style="margin:0; font-size: 20px;"></h2>
+                <p id="pdf-client-address" style="margin:8px 0 4px 0; color: #475569; line-height: 1.4;"></p>
+                <p id="pdf-client-contact" style="margin:0; color: #475569;"></p>
             </div>
-            <div style="text-align:right;">
-                <div class="pdf-badge">Estimate Profile</div>
-                <p style="margin:0; font-size: 14px; color: #475569;"><b>Date Issued:</b> <span id="pdf-date"></span></p>
-                <p style="margin:4px 0 0 0; font-size: 14px; color: #475569;"><b>Ref Number:</b> #<span id="pdf-est-id"></span></p>
-                <p style="margin:4px 0 0 0; font-size: 14px; color: #475569;"><b>Status:</b> Official Quote</p>
+            <div style="text-align: right;">
+                <div class="pdf-section-label">Estimate Details</div>
+                <p style="margin:0; color: #475569;">Valid for: 30 Days</p>
+                <p style="margin:4px 0 0 0; color: #475569;">Type: Area Rug Fabrication</p>
             </div>
         </div>
 
         <table class="pdf-table">
             <thead>
                 <tr>
-                    <th>Room / Selection</th>
-                    <th>Size</th>
-                    <th>Specifications</th>
-                    <th style="text-align:right;">Price</th>
+                    <th style="width: 25%;">Room Selection</th>
+                    <th style="width: 20%;">Dimensions</th>
+                    <th style="width: 35%;">Specifications</th>
+                    <th style="width: 20%; text-align: right;">Line Total</th>
                 </tr>
             </thead>
             <tbody id="pdf-item-rows"></tbody>
         </table>
 
-        <div class="summary-card">
-            <div>
-                <p style="margin:0; opacity: 0.8; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Estimated Tax (<span id="pdf-tax-rate-pct"></span>%)</p>
-                <p id="pdf-tax-amount" style="margin:5px 0 0 0; font-size: 18px; font-weight: 700;"></p>
-            </div>
-            <div style="text-align:right;">
-                <p style="margin:0; opacity: 0.8; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Final Investment</p>
-                <p id="pdf-total-display" class="total-amount"></p>
+        <div class="pdf-total-container">
+            <div class="pdf-total-box">
+                <div style="display:flex; justify-content:space-between; margin-bottom: 8px; color: #64748b;">
+                    <span>Subtotal</span>
+                    <span id="pdf-subtotal"></span>
+                </div>
+                <div style="display:flex; justify-content:space-between; color: #64748b;">
+                    <span>Tax (<span id="pdf-tax-rate"></span>%)</span>
+                    <span id="pdf-tax-amount"></span>
+                </div>
+                <div class="pdf-grand-total">
+                    <div style="display:flex; justify-content:space-between;">
+                        <span style="font-size: 14px; align-self: center; text-transform: uppercase; letter-spacing: 1px;">Estimated Total</span>
+                        <span id="pdf-total-display"></span>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div style="margin-top: 60px; display: grid; grid-template-columns: 1fr 1fr; gap: 50px; align-items: flex-end;">
-            <div style="font-size: 11px; color: #64748b; line-height: 1.6; border-top: 1px solid #e2e8f0; padding-top: 20px;">
-                <b>Disclaimer:</b> This document serves as a professional estimate based on the specifications provided. Final price may vary upon site inspection and final material selection. Valid for 30 business days.
-            </div>
-            <div style="text-align: left;">
-                <p style="margin:0; font-size: 12px; font-weight: 800; text-transform: uppercase; color: var(--choice-blue);">Approved By</p>
-                <div style="border-bottom: 2px solid #cbd5e1; width: 100%; height: 40px; margin-top: 10px;"></div>
-                <p style="margin:8px 0 0 0; font-size: 10px; color: #94a3b8; text-align: center;">Authorized Signature & Date</p>
+        <div style="margin-top: 50px; display: grid; grid-template-columns: 1.2fr 1fr; gap: 60px; align-items: flex-end;">
+            <p style="font-size: 11px; color: #94a3b8; line-height: 1.6; font-style: italic;">
+                Estimate includes fabrication labor, chosen edging, and selected backing/pad. Final measurements may be verified upon physical carpet selection. 50% deposit required for production.
+            </p>
+            <div>
+                <div style="border-bottom: 2px solid #1e293b; height: 40px;"></div>
+                <p style="font-size: 10px; font-weight: 800; text-transform: uppercase; color: var(--choice-blue); margin-top: 8px;">Authorized Approval / Date</p>
             </div>
         </div>
     </div>
-    <div class="pdf-footer-bar"></div>
-    <div class="pdf-footer-accent"></div>
 </div>
 
 <script>
@@ -242,7 +248,7 @@
     let isManualTax = false;
     let editingJobId = null;
 
-    function newQuote() { if(confirm("Clear current work?")) location.reload(); }
+    function newQuote() { if(confirm("Start a fresh quote?")) location.reload(); }
 
     function handleMutualExclusion(trigger) {
         const b = document.getElementById('backingStyle'), p = document.getElementById('padStyle');
@@ -334,23 +340,23 @@
         document.getElementById('pdf-client-address').innerText = `${document.getElementById('custStreet').value}, ${document.getElementById('custCity').value} ${document.getElementById('custState').value} ${document.getElementById('custZip').value}`;
         document.getElementById('pdf-client-contact').innerText = `${document.getElementById('custPhone').value} | ${document.getElementById('custEmail').value}`;
         document.getElementById('pdf-date').innerText = new Date().toLocaleDateString();
-        document.getElementById('pdf-est-id').innerText = editingJobId || Date.now().toString().slice(-6);
         
-        let rows = currentRugs.map(r => `<tr><td><span style="font-weight:700;">${r.name}</span></td><td>${r.w}' x ${r.l}'</td><td style="font-size:10px; color:#64748b;">Edge: ${r.edge}<br>Backing: ${r.backing}<br>Pad: ${r.pad}</td><td style="text-align:right; font-weight:700; color:var(--choice-blue);">$${r.cost.toFixed(2)}</td></tr>`).join('');
+        let rows = currentRugs.map(r => `<tr><td><b>${r.name}</b></td><td>${r.w}' x ${r.l}'</td><td style="font-size:11px; color:#475569;">Edge: ${r.edge}<br>Backing: ${r.backing}<br>Pad: ${r.pad}</td><td style="text-align:right; font-weight:700;">$${r.cost.toFixed(2)}</td></tr>`).join('');
         const dVal = parseFloat(document.getElementById('delv').value), iVal = parseFloat(document.getElementById('inst').value);
-        if(dVal > 0) rows += `<tr><td><b>Delivery</b></td><td>-</td><td>Standard Service</td><td style="text-align:right; font-weight:700;">$${dVal.toFixed(2)}</td></tr>`;
-        if(iVal > 0) rows += `<tr><td><b>Installation</b></td><td>-</td><td>Professional Service</td><td style="text-align:right; font-weight:700;">$${iVal.toFixed(2)}</td></tr>`;
+        if(dVal > 0) rows += `<tr><td><b>Delivery</b></td><td>-</td><td>Standard</td><td style="text-align:right; font-weight:700;">$${dVal.toFixed(2)}</td></tr>`;
+        if(iVal > 0) rows += `<tr><td><b>Installation</b></td><td>-</td><td>Professional</td><td style="text-align:right; font-weight:700;">$${iVal.toFixed(2)}</td></tr>`;
         
         document.getElementById('pdf-item-rows').innerHTML = rows;
         const sub = currentRugs.reduce((a, b) => a + b.cost, 0) + dVal + iVal;
-        document.getElementById('pdf-tax-rate-pct').innerText = (currentTaxRate * 100).toFixed(2);
+        document.getElementById('pdf-subtotal').innerText = `$${sub.toFixed(2)}`;
+        document.getElementById('pdf-tax-rate').innerText = (currentTaxRate * 100).toFixed(2);
         document.getElementById('pdf-tax-amount').innerText = `$${(sub * currentTaxRate).toFixed(2)}`;
         document.getElementById('pdf-total-display').innerText = document.getElementById('displayTotal').innerText;
         
         const canvas = await html2canvas(document.getElementById('pdf-template'), { scale: 2 });
         const pdf = new jsPDF('p', 'mm', 'a4');
         pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
-        pdf.save(`Choice_Floors_Estimate_${document.getElementById('custLast').value}.pdf`);
+        pdf.save(`Choice_Floors_${document.getElementById('custLast').value}.pdf`);
     }
 
     function saveJob() {
@@ -369,7 +375,7 @@
         }
         
         localStorage.setItem('rugJobsMaster', JSON.stringify(savedJobs)); 
-        alert(editingJobId ? "Job Updated Successfully." : "New Job Saved.");
+        alert(editingJobId ? "History Updated." : "Saved to History.");
         editingJobId = job.id;
     }
 
