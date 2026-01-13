@@ -63,9 +63,14 @@
         .pdf-wave-container { line-height: 0; margin-top: -1px; width: 100%; position: relative; }
         .pdf-body { padding: 40px 60px; }
         .pdf-label { font-size: 10px; font-weight: 900; color: var(--choice-blue); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; }
+        
+        /* Updated Table List Style */
         .pdf-table { width: 100%; border-collapse: collapse; margin: 25px 0; }
         .pdf-table th { text-align: left; padding: 14px; background: #f8fafc; border-bottom: 2px solid #e2e8f0; font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 800; }
-        .pdf-table td { padding: 14px; border-bottom: 1px solid #f1f5f9; font-size: 13px; }
+        .pdf-table td { padding: 14px; border-bottom: 1px solid #f1f5f9; font-size: 13px; vertical-align: top; }
+        .pdf-spec-list { list-style: none; padding: 0; margin: 0; font-size: 11px; color: #475569; }
+        .pdf-spec-list li { margin-bottom: 3px; }
+        
         .pdf-table tr:nth-child(even) { background: #fbfcfd; }
         .pdf-total-row { display: flex; justify-content: flex-end; margin-top: 30px; }
         .pdf-total-card { background: var(--choice-blue-light); padding: 25px; border-radius: 12px; width: 280px; text-align: right; border: 1px solid #dbeafe; }
@@ -183,9 +188,8 @@
 
     <div class="pdf-wave-container">
         <svg viewBox="0 0 850 80" xmlns="http://www.w3.org/2000/svg">
-            <path d="M0,40 C150,10 350,70 550,40 C750,10 850,40 L850,80 L0,80 Z" fill="#9dbb4c" opacity="0.6"/>
-            <path d="M0,50 C150,80 350,20 550,50 C750,80 850,50 L850,80 L0,80 Z" fill="#2b6291"/>
-            <path d="M400,35 C550,65 750,15 850,35 L850,80 L400,80 Z" fill="#9dbb4c" />
+            <path d="M0,40 C200,80 400,0 600,40 C800,80 850,50 850,50 L850,80 L0,80 Z" fill="#9dbb4c" opacity="0.8"/>
+            <path d="M0,50 C200,10 400,90 600,50 C800,10 850,40 850,40 L850,80 L0,80 Z" fill="#2b6291"/>
         </svg>
     </div>
 
@@ -204,9 +208,9 @@
         <table class="pdf-table">
             <thead>
                 <tr>
-                    <th style="width: 30%;">Room / Location</th>
-                    <th style="width: 20%;">Size</th>
-                    <th style="width: 30%;">Specifications</th>
+                    <th style="width: 25%;">Room / Location</th>
+                    <th style="width: 15%;">Size</th>
+                    <th style="width: 40%;">Specifications</th>
                     <th style="width: 20%; text-align: right;">Cost</th>
                 </tr>
             </thead>
@@ -249,6 +253,7 @@
     let isManualTax = false;
     let editingJobId = null;
 
+    // Functions to handle logic same as previous version but with PDF spec list update
     function newQuote() { if(confirm("Clear current work?")) location.reload(); }
 
     function handleMutualExclusion(trigger) {
@@ -310,7 +315,13 @@
         const w = parseFloat(document.getElementById('wA').value), l = parseFloat(document.getElementById('lB').value);
         const e = document.getElementById('edgeStyle'), b = document.getElementById('backingStyle'), p = document.getElementById('padStyle');
         const cost = (w*l*5) + ((w*2+l*2)*parseFloat(e.value)) + (w*l*parseFloat(b.value)) + (w*l*parseFloat(p.value));
-        currentRugs.push({ name: document.getElementById('roomName').value, w, l, edge: e.options[e.selectedIndex].text, edgeVal: e.value, backing: b.options[b.selectedIndex].text, backingVal: b.value, pad: p.options[p.selectedIndex].text, padVal: p.value, cost });
+        currentRugs.push({ 
+            name: document.getElementById('roomName').value, w, l, 
+            edge: e.options[e.selectedIndex].text, edgeVal: e.value, 
+            backing: b.options[b.selectedIndex].text, backingVal: b.value, 
+            pad: p.options[p.selectedIndex].text, padVal: p.value, 
+            cost 
+        });
         renderRugs();
         ['roomName','wA','lB'].forEach(id => document.getElementById(id).value = "");
         b.value = "0"; p.value = "0"; b.disabled = false; p.disabled = false;
@@ -342,10 +353,24 @@
         document.getElementById('pdf-client-contact').innerText = `${document.getElementById('custPhone').value} | ${document.getElementById('custEmail').value}`;
         document.getElementById('pdf-date').innerText = new Date().toLocaleDateString();
         
-        let rows = currentRugs.map(r => `<tr><td><b>${r.name}</b></td><td>${r.w}' x ${r.l}'</td><td style="font-size:11px; color:#475569;">${r.edge}, ${r.backing !== 'None' ? r.backing : 'No Attached Back'}, ${r.pad !== 'No Pad' ? r.pad : 'No Pad'}</td><td style="text-align:right; font-weight:700;">$${r.cost.toFixed(2)}</td></tr>`).join('');
+        // List-style mapping for specifications
+        let rows = currentRugs.map(r => `
+            <tr>
+                <td><b>${r.name}</b></td>
+                <td>${r.w}' x ${r.l}'</td>
+                <td>
+                    <ul class="pdf-spec-list">
+                        <li>• <b>Edge:</b> ${r.edge}</li>
+                        <li>• <b>Backing:</b> ${r.backing !== 'None' ? r.backing : 'N/A'}</li>
+                        <li>• <b>Pad:</b> ${r.pad !== 'No Pad' ? r.pad : 'N/A'}</li>
+                    </ul>
+                </td>
+                <td style="text-align:right; font-weight:700;">$${r.cost.toFixed(2)}</td>
+            </tr>`).join('');
+
         const dVal = parseFloat(document.getElementById('delv').value), iVal = parseFloat(document.getElementById('inst').value);
-        if(dVal > 0) rows += `<tr><td><b>Delivery</b></td><td>-</td><td>Standard Service</td><td style="text-align:right; font-weight:700;">$${dVal.toFixed(2)}</td></tr>`;
-        if(iVal > 0) rows += `<tr><td><b>Installation</b></td><td>-</td><td>Professional Service</td><td style="text-align:right; font-weight:700;">$${iVal.toFixed(2)}</td></tr>`;
+        if(dVal > 0) rows += `<tr><td><b>Delivery</b></td><td>-</td><td>Standard Home Service</td><td style="text-align:right; font-weight:700;">$${dVal.toFixed(2)}</td></tr>`;
+        if(iVal > 0) rows += `<tr><td><b>Installation</b></td><td>-</td><td>Professional Placement</td><td style="text-align:right; font-weight:700;">$${iVal.toFixed(2)}</td></tr>`;
         
         document.getElementById('pdf-item-rows').innerHTML = rows;
         const sub = currentRugs.reduce((a, b) => a + b.cost, 0) + dVal + iVal;
