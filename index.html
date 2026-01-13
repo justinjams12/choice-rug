@@ -47,13 +47,10 @@
 
         .tax-alert { background: #fefce8; border: 1px solid #fef08a; padding: 10px; border-radius: 8px; font-size: 0.75rem; color: #854d0e; margin-bottom: 15px; display: none; }
         
-        .action-group { display: flex; gap: 8px; }
-        .btn-edit { background: var(--choice-blue-light); color: var(--choice-blue); font-size: 0.7rem; padding: 8px 12px; border-radius: 8px; border:none; font-weight:700; cursor: pointer; }
-        .btn-delete { background: var(--danger-light); color: var(--danger); font-size: 0.7rem; padding: 8px 12px; border-radius: 8px; border:none; font-weight:700; cursor: pointer; }
-        
         .room-tag { background: var(--choice-blue-light); padding: 12px; border-radius: 10px; margin-bottom: 8px; border-left: 4px solid var(--choice-green); display: flex; justify-content: space-between; align-items: center;}
-        .dim-badge { background: var(--choice-blue); padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; color: white; margin-right: 5px; }
-        
+        .room-info { flex-grow: 1; }
+        .btn-remove-room { background: var(--danger-light); color: var(--danger); border: none; padding: 8px 12px; border-radius: 8px; font-weight: 700; font-size: 0.7rem; cursor: pointer; margin-left: 10px; }
+
         .validation-msg { color: #64748b; font-size: 0.7rem; text-align: center; margin-top: 8px; font-style: italic; border: 1px dashed #cbd5e1; padding: 8px; border-radius: 8px; }
 
         /* PDF Styles */
@@ -208,13 +205,12 @@
     let currentJobRugs = [];
     const CARPET_SQFT_PRICE = 5.00; 
 
-    // Sales Tax Logic (Zip-based approximation)
     const stateTaxRates = { "PA": 6.0, "NY": 4.0, "NJ": 6.6, "MD": 6.0, "VA": 5.3, "DE": 0.0 };
     function getTaxRate() {
         const state = document.getElementById('custState').value;
         const zip = document.getElementById('custZip').value;
-        let rate = stateTaxRates[state] || 6.0; // Default 6% if state unknown
-        if (state === "PA" && (zip.startsWith("190") || zip.startsWith("191"))) rate = 8.0; // Philly Tax
+        let rate = stateTaxRates[state] || 6.0;
+        if (state === "PA" && (zip.startsWith("190") || zip.startsWith("191"))) rate = 8.0;
         return rate;
     }
 
@@ -239,8 +235,9 @@
     function isValidEmail(email) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); }
 
     function updateLiveTotals() {
-        const fields = ['custFirst', 'custLast', 'custPhone', 'custEmail', 'custStreet', 'custCity', 'custState', 'custZip', 'roomName', 'wA', 'lB'];
-        const allFilled = fields.every(id => document.getElementById(id).value.trim() !== "");
+        const fields = ['custFirst', 'custLast', 'custPhone', 'custEmail', 'custStreet', 'custCity', 'custState', 'custZip'];
+        const allContactFilled = fields.every(id => document.getElementById(id).value.trim() !== "");
+        const rugFilled = document.getElementById('roomName').value.trim() !== "" && document.getElementById('wA').value !== "" && document.getElementById('lB').value !== "";
         const emailValid = isValidEmail(document.getElementById('custEmail').value);
         
         const w = parseFloat(document.getElementById('wA').value) || 0;
@@ -274,7 +271,7 @@
         }
 
         const addBtn = document.getElementById('btnAddRug');
-        addBtn.disabled = !(allFilled && emailValid);
+        addBtn.disabled = !(allContactFilled && rugFilled && emailValid);
         document.getElementById('lockMessage').style.display = addBtn.disabled ? 'block' : 'none';
     }
 
@@ -286,18 +283,28 @@
         const p = document.getElementById('padStyle');
         const cost = (w * l * CARPET_SQFT_PRICE) + (((w*2)+(l*2)) * parseFloat(e.value)) + (w * l * parseFloat(b.value)) + (w * l * parseFloat(p.value));
         
-        currentJobRugs.push({ name: document.getElementById('roomName').value, w, l, cost, spec: `Edge: ${e.options[e.selectedIndex].text}, Backing: ${b.options[b.selectedIndex].text}` });
+        currentJobRugs.push({ name: document.getElementById('roomName').value, w, l, cost });
         
         updateRugList();
         ['roomName', 'wA', 'lB'].forEach(id => document.getElementById(id).value = "");
         updateLiveTotals();
     }
 
+    function removeRug(index) {
+        currentJobRugs.splice(index, 1);
+        updateRugList();
+        updateLiveTotals();
+    }
+
     function updateRugList() {
-        document.getElementById('currentRooms').innerHTML = currentJobRugs.map((r, i) => `
+        const container = document.getElementById('currentRooms');
+        container.innerHTML = currentJobRugs.map((r, i) => `
             <div class="room-tag">
-                <div><b>${r.name}</b> (${r.w}'x${r.l}')</div>
-                <div>$${r.cost.toFixed(2)}</div>
+                <div class="room-info">
+                    <b>${r.name}</b> (${r.w}' x ${r.l}')<br>
+                    <small>$${r.cost.toFixed(2)}</small>
+                </div>
+                <button class="btn-remove-room" onclick="removeRug(${i})">Remove</button>
             </div>`).join('');
         document.getElementById('roomListCard').style.display = currentJobRugs.length ? 'block' : 'none';
     }
@@ -337,6 +344,11 @@
         document.getElementById(t).classList.add('active');
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('tab-'+t).classList.add('active');
+    }
+
+    function finalizeJob() {
+        alert("Job details saved to History.");
+        location.reload();
     }
 </script>
 </body>
