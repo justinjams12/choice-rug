@@ -55,17 +55,14 @@
 
         /* PDF TEMPLATE STYLING */
         #pdf-template { position: absolute; left: -9999px; width: 850px; background: #fff; color: #1e293b; padding: 0; }
-        .pdf-header-wrapper { background: white; padding: 40px 60px 10px 60px; display: flex; justify-content: space-between; align-items: center; }
-        .pdf-logo-img { height: 90px; width: auto; }
-        .pdf-title-block { text-align: right; }
-        .pdf-title-text { color: var(--choice-blue); margin: 0; font-size: 28px; font-weight: 900; text-transform: uppercase; letter-spacing: -0.5px; }
+        .pdf-header-wrapper { background: white; padding: 40px 60px 0 60px; display: flex; justify-content: space-between; align-items: flex-end; }
+        .pdf-logo-img { height: 95px; width: auto; margin-bottom: 10px; }
+        .pdf-title-block { text-align: right; padding-bottom: 15px; }
+        .pdf-title-text { color: var(--choice-blue); margin: 0; font-size: 26px; font-weight: 900; text-transform: uppercase; }
         
-        /* DECORATIVE LINE */
-        .pdf-divider { height: 6px; display: flex; margin: 0 60px 30px 60px; }
-        .div-blue { background: var(--choice-blue); flex: 3; }
-        .div-green { background: var(--choice-green); flex: 1; }
-
-        .pdf-body { padding: 0 60px 40px 60px; }
+        /* FLOWY WAVE DIVIDER */
+        .pdf-wave-container { line-height: 0; margin-top: -1px; width: 100%; }
+        .pdf-body { padding: 40px 60px; }
         .pdf-label { font-size: 10px; font-weight: 900; color: var(--choice-blue); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; }
         .pdf-table { width: 100%; border-collapse: collapse; margin: 25px 0; }
         .pdf-table th { text-align: left; padding: 14px; background: #f8fafc; border-bottom: 2px solid #e2e8f0; font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 800; }
@@ -181,17 +178,20 @@
         <img src="choice-floors-logo.png" class="pdf-logo-img">
         <div class="pdf-title-block">
             <h1 class="pdf-title-text">Choice Floors Rug Estimate</h1>
-            <p style="margin:5px 0 0 0; font-weight: 600; font-size: 14px; opacity: 0.7;">Date: <span id="pdf-date"></span></p>
+            <p style="margin:5px 0 0 0; font-weight: 600; font-size: 13px; opacity: 0.6;">Date: <span id="pdf-date"></span></p>
         </div>
     </div>
 
-    <div class="pdf-divider">
-        <div class="div-blue"></div>
-        <div class="div-green"></div>
+    <div class="pdf-wave-container">
+        <svg viewBox="0 0 850 60" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0,30 C150,60 350,0 550,30 C750,60 850,30 850,30 L850,0 L0,0 Z" fill="#2b6291" opacity="0.1"/>
+            <path d="M0,40 C200,70 400,10 600,40 C800,70 850,40 850,40 L850,60 L0,60 Z" fill="#9dbb4c"/>
+            <path d="M0,35 C150,65 350,5 550,35 C750,65 850,35 850,35 L850,60 L0,60 Z" fill="#2b6291"/>
+        </svg>
     </div>
 
     <div class="pdf-body">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 30px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
             <div>
                 <div class="pdf-label">Customer Information</div>
                 <h2 id="pdf-client-name" style="margin:0; font-size: 22px; font-weight: 800;"></h2>
@@ -233,7 +233,7 @@
 
         <div style="margin-top: 70px; display: grid; grid-template-columns: 1.2fr 1fr; gap: 60px; align-items: flex-end;">
             <div style="font-size: 11px; color: #94a3b8; line-height: 1.6; border-left: 3px solid var(--choice-green); padding-left: 15px; font-style: italic;">
-                Pricing includes fabrication labor and selected components. Estimates are valid for 30 days. Final physical measurements may be required upon carpet selection.
+                Pricing includes fabrication labor and components. Estimates valid for 30 days. Final physical measurements may be required upon carpet selection.
             </div>
             <div>
                 <div style="border-bottom: 2px solid #1e293b; height: 35px; width: 100%;"></div>
