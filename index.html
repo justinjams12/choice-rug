@@ -51,6 +51,11 @@
         .pdf-table th { background: #f1f5f9; text-align: left; padding: 12px; color: var(--choice-blue); }
         .pdf-table td { padding: 12px; border-bottom: 1px solid #e2e8f0; }
         .sig-box { border-bottom: 2px solid #000; width: 300px; height: 100px; margin-top: 40px; }
+
+        /* Manual Tax Controls */
+        .tax-control { margin-top: 5px; font-size: 0.7rem; color: #94a3b8; }
+        .tax-btn { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 0.6rem; text-transform: uppercase; }
+        .tax-btn:hover { background: rgba(255,255,255,0.4); }
     </style>
 </head>
 <body>
@@ -70,6 +75,10 @@
             <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; opacity: 0.9; margin-bottom: 5px;">Active Quote Total</div>
             <div id="displayTotal" style="font-size: 2.2rem; font-weight: 900;">$0.00</div>
             <div id="taxInfo" style="font-size: 0.75rem; opacity: 0.8;">Fill Contact for Tax...</div>
+            <div class="tax-control">
+                <span id="taxStatus">Method: Auto</span> | 
+                <button class="tax-btn" onclick="manualTaxOverride()">Edit Rate</button>
+            </div>
         </div>
 
         <div class="card">
@@ -182,8 +191,8 @@
     let currentRugs = [];
     let savedJobs = JSON.parse(localStorage.getItem('rugJobsMaster')) || [];
     let currentTaxRate = 0.00;
+    let isManualTax = false;
 
-    // TAX ENGINE
     function handleZipChange() {
         const zip = document.getElementById('custZip').value;
         if(zip.length === 5) lookupTax();
@@ -191,26 +200,39 @@
     }
 
     function lookupTax() {
+        if (isManualTax) return; // Don't overwrite if the user manually set a rate
+        
         const state = document.getElementById('custState').value;
         const zip = document.getElementById('custZip').value;
         
         // Comprehensive baseline tax logic (Updated 2026)
         const rates = {"AL":0.04,"AZ":0.056,"CA":0.0725,"CO":0.029,"CT":0.0635,"FL":0.06,"GA":0.04,"IL":0.0625,"IN":0.07,"KS":0.065,"KY":0.06,"MD":0.06,"MI":0.06,"NJ":0.06625,"NY":0.04,"NC":0.0475,"OH":0.0575,"PA":0.06,"SC":0.06,"TX":0.0625,"VA":0.053,"WA":0.065};
         
-        let rate = rates[state] || 0.06; // Default to 6% if state not in list
+        let rate = rates[state] || 0.00; 
         
-        // County-specific overrides for PA (Philadelphia example)
-        if(state === "PA" && zip.startsWith("19")) rate = 0.08;
+        // Automatic Precision Overrides
+        if(state === "PA" && zip.startsWith("19")) rate = 0.08; // Philadelphia County
+        if(state === "NY" && zip.startsWith("10")) rate = 0.08875; // NYC Approx
+        if(state === "IL" && zip.startsWith("60")) rate = 0.1025; // Chicago Approx
         
         currentTaxRate = rate;
+        document.getElementById('taxStatus').innerText = "Method: Auto";
         validateInputs();
     }
 
-    // STRICT VALIDATION
+    function manualTaxOverride() {
+        const newRate = prompt("Enter exact sales tax rate (e.g., 8.25 for 8.25%):");
+        if (newRate !== null && !isNaN(newRate)) {
+            currentTaxRate = parseFloat(newRate) / 100;
+            isManualTax = true;
+            document.getElementById('taxStatus').innerText = "Method: Manual";
+            validateInputs();
+        }
+    }
+
     function validateInputs() {
         const fields = ['custFirst','custLast','custPhone','custEmail','custStreet','custCity','custState','custZip','roomName','wA','lB'];
         const allFilled = fields.every(id => document.getElementById(id).value.trim() !== "");
-        
         document.getElementById('btnAddRug').disabled = !allFilled;
         updateLiveTotals();
     }
@@ -220,7 +242,6 @@
         const w = parseFloat(document.getElementById('wA').value) || 0;
         const l = parseFloat(document.getElementById('lB').value) || 0;
         
-        // Active Rug Calculation
         let activeCost = 0;
         if (w > 0 && l > 0) {
             activeCost = (w*l*5) + 
@@ -233,12 +254,7 @@
         const totalTax = totalSub * currentTaxRate;
         
         document.getElementById('displayTotal').innerText = `$${(totalSub + totalTax).toFixed(2)}`;
-        
-        if (currentTaxRate > 0) {
-            document.getElementById('taxInfo').innerText = `Sub: $${totalSub.toFixed(2)} | Tax (${(currentTaxRate*100).toFixed(1)}%): $${totalTax.toFixed(2)}`;
-        } else {
-            document.getElementById('taxInfo').innerText = "Enter State/Zip for Tax calculation";
-        }
+        document.getElementById('taxInfo').innerText = `Sub: $${totalSub.toFixed(2)} | Tax (${(currentTaxRate*100).toFixed(3)}%): $${totalTax.toFixed(2)}`;
     }
 
     function addRug() {
@@ -247,7 +263,6 @@
         const e = document.getElementById('edgeStyle');
         const b = document.getElementById('backingStyle');
         const p = document.getElementById('padStyle');
-        
         const cost = (w*l*5) + ((w*2+l*2)*parseFloat(e.value)) + (w*l*parseFloat(b.value)) + (w*l*parseFloat(p.value));
         
         currentRugs.push({ 
@@ -260,7 +275,6 @@
         });
         
         renderRugs();
-        // Clear spec fields but keep contact info
         ['roomName','wA','lB'].forEach(id => document.getElementById(id).value = "");
         validateInputs();
     }
@@ -318,12 +332,14 @@
             state: document.getElementById('custState').value,
             zip: document.getElementById('custZip').value,
             rugs: [...currentRugs],
+            taxRate: currentTaxRate,
+            isManual: isManualTax,
             total: document.getElementById('displayTotal').innerText,
             date: new Date().toLocaleDateString() 
         };
         savedJobs.unshift(job);
         localStorage.setItem('rugJobsMaster', JSON.stringify(savedJobs));
-        alert("Job saved to History successfully.");
+        alert("Job saved successfully.");
     }
 
     function switchTab(t) {
@@ -354,10 +370,13 @@
         document.getElementById('custPhone').value = j.phone; document.getElementById('custEmail').value = j.email;
         document.getElementById('custStreet').value = j.street; document.getElementById('custCity').value = j.city;
         document.getElementById('custState').value = j.state; document.getElementById('custZip').value = j.zip;
-        currentRugs = [...j.rugs]; renderRugs(); lookupTax(); switchTab('workspace');
+        currentTaxRate = j.taxRate || 0;
+        isManualTax = j.isManual || false;
+        document.getElementById('taxStatus').innerText = isManualTax ? "Method: Manual" : "Method: Auto";
+        currentRugs = [...j.rugs]; renderRugs(); updateLiveTotals(); switchTab('workspace');
     }
 
-    function deleteJob(id) { if(confirm("Permanently delete this saved rug?")) { savedJobs = savedJobs.filter(j => j.id !== id); localStorage.setItem('rugJobsMaster', JSON.stringify(savedJobs)); renderHistory(); } }
+    function deleteJob(id) { if(confirm("Permanently delete?")) { savedJobs = savedJobs.filter(j => j.id !== id); localStorage.setItem('rugJobsMaster', JSON.stringify(savedJobs)); renderHistory(); } }
     function autoCap(el) { el.value = el.value.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '); }
     function formatPhoneNumber(el) {
         let v = el.value.replace(/\D/g,'');
