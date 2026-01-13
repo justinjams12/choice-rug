@@ -53,25 +53,25 @@
 
         .error-msg { color: var(--danger); font-size: 0.75rem; font-weight: bold; margin-bottom: 10px; display: none; background: var(--danger-light); padding: 8px; border-radius: 6px; }
 
-        /* REFINED PDF STYLING */
-        #pdf-template { position: absolute; left: -9999px; width: 800px; background: white; padding: 0; color: #1e293b; }
-        .pdf-top-border { height: 12px; background: var(--choice-blue); width: 100%; }
-        .pdf-green-bar { height: 4px; background: var(--choice-green); width: 100%; }
-        .pdf-header-main { padding: 40px 50px; display: flex; justify-content: space-between; align-items: center; background: #fff; }
-        .pdf-body { padding: 0 50px 50px 50px; }
-        .pdf-divider { height: 1px; background: #e2e8f0; margin: 20px 0; }
-        .pdf-table { width: 100%; border-collapse: collapse; margin: 30px 0; }
-        .pdf-table th { border-bottom: 2px solid var(--choice-blue); text-align: left; padding: 15px 12px; font-size: 13px; text-transform: uppercase; color: var(--choice-blue); font-weight: 800; }
-        .pdf-table td { padding: 15px 12px; border-bottom: 1px solid #f1f5f9; font-size: 13px; vertical-align: top; }
-        .sig-box { border-bottom: 2px solid #1e293b; width: 250px; height: 50px; margin-top: 10px; }
-        .tax-control { margin-top: 5px; font-size: 0.7rem; color: #94a3b8; }
-        .tax-btn { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 0.6rem; text-transform: uppercase; }
+        /* ADVANCED PDF STYLING */
+        #pdf-template { position: absolute; left: -9999px; width: 850px; background: white; color: #1e293b; padding: 0; }
+        .pdf-accent-bar { height: 8px; background: linear-gradient(90deg, var(--choice-blue) 0%, var(--choice-green) 100%); }
+        .pdf-header { padding: 45px 60px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; }
+        .pdf-body { padding: 40px 60px; }
+        .pdf-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 40px; }
+        .customer-accent { border-left: 3px solid var(--choice-green); padding-left: 15px; }
+        .pdf-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .pdf-table th { background: #f8fafc; text-align: left; padding: 14px; font-size: 11px; text-transform: uppercase; color: var(--choice-blue); letter-spacing: 1px; border-bottom: 2px solid var(--choice-blue); }
+        .pdf-table td { padding: 18px 14px; border-bottom: 1px solid #f1f5f9; font-size: 13px; vertical-align: middle; }
+        .pdf-table tr:nth-child(even) { background-color: #fbfcfd; }
+        .total-box { background: var(--choice-blue); color: white; padding: 25px; border-radius: 12px; margin-top: 30px; text-align: right; }
+        .sig-line { border-bottom: 1.5px solid #1e293b; width: 250px; display: inline-block; margin-top: 15px; }
     </style>
 </head>
 <body>
 
 <div class="app-shell">
-    <header style="text-align:center; padding: 10px 0 20px 0;">
+    <header style="text-align:center; padding: 10px 0 10px 0;">
         <img src="choice-floors-logo.png" style="max-height: 55px; width: auto;" alt="Choice Floors">
     </header>
 
@@ -84,14 +84,14 @@
         <div class="live-result">
             <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; opacity: 0.9; margin-bottom: 5px;">Active Quote Total</div>
             <div id="displayTotal" style="font-size: 2.2rem; font-weight: 900;">$0.00</div>
-            <div id="taxInfo" style="font-size: 0.75rem; opacity: 0.8;">Fill Contact for Tax...</div>
+            <div id="taxInfo" style="font-size: 0.75rem; opacity: 0.8;">Enter Zip for Tax...</div>
             <div class="tax-control">
                 <span id="taxStatus">Method: Auto</span> | 
-                <button class="tax-btn" onclick="manualTaxOverride()">Edit Rate</button>
+                <button class="tax-btn" onclick="manualTaxOverride()">Manual Override</button>
             </div>
         </div>
 
-        <button class="btn" style="background: #cbd5e1; color: #1e293b; margin-bottom: 15px; padding: 10px;" onclick="newQuote()">+ New Fresh Quote</button>
+        <button class="btn" style="background: #e2e8f0; color: #475569; margin-bottom: 15px; padding: 10px; font-size: 0.8rem;" onclick="newQuote()">↺ Reset New Quote</button>
 
         <div class="card">
             <div class="section-title">Customer Contact</div>
@@ -108,7 +108,7 @@
                 <input type="text" id="custCity" placeholder="City *" oninput="autoCap(this); validateInputs()">
                 <select id="custState" onchange="lookupTax(); validateInputs()">
                     <option value="" disabled selected>ST *</option>
-                    <option value="AL">AL</option><option value="AK">AK</option><option value="AZ">AZ</option><option value="AR">AR</option><option value="CA">CA</option><option value="CO">CO</option><option value="CT">CT</option><option value="DE">DE</option><option value="FL">FL</option><option value="GA">GA</option><option value="HI">HI</option><option value="ID">ID</option><option value="IL">IL</option><option value="IN">IN</option><option value="IA">IA</option><option value="KS">KS</option><option value="KY">KY</option><option value="LA">LA</option><option value="ME">ME</option><option value="MD">MD</option><option value="MA">MA</option><option value="MI">MI</option><option value="MN">MN</option><option value="MS">MS</option><option value="MO">MO</option><option value="MT">MT</option><option value="NE">NE</option><option value="NV">NV</option><option value="NH">NH</option><option value="NJ">NJ</option><option value="NM">NM</option><option value="NY">NY</option><option value="NC">NC</option><option value="ND">ND</option><option value="OH">OH</option><option value="OK">OK</option><option value="OR">OR</option><option value="PA">PA</option><option value="RI">RI</option><option value="SC">SC</option><option value="SD">SD</option><option value="TN">TN</option><option value="TX">TX</option><option value="UT">UT</option><option value="VT">VT</option><option value="VA">VA</option><option value="WA">WA</option><option value="WV">WV</option><option value="WI">WI</option><option value="WY">WY</option>
+                    <option value="AL">AL</option><option value="AZ">AZ</option><option value="CA">CA</option><option value="CO">CO</option><option value="FL">FL</option><option value="GA">GA</option><option value="IL">IL</option><option value="IN">IN</option><option value="KS">KS</option><option value="KY">KY</option><option value="MD">MD</option><option value="MI">MI</option><option value="NJ">NJ</option><option value="NY">NY</option><option value="NC">NC</option><option value="OH">OH</option><option value="PA">PA</option><option value="TX">TX</option><option value="VA">VA</option><option value="WA">WA</option>
                 </select>
                 <input type="text" id="custZip" placeholder="Zip *" maxlength="5" oninput="handleZipChange()">
             </div>
@@ -116,7 +116,7 @@
 
         <div class="card">
             <div class="section-title">Rug Specifications</div>
-            <input type="text" id="roomName" placeholder="Room Location (e.g. Master Bedroom) *" oninput="autoCap(this); validateInputs()">
+            <input type="text" id="roomName" placeholder="Room Location (e.g. Living Room) *" oninput="autoCap(this); validateInputs()">
             <div class="grid-2">
                 <div><label>Width (ft) *</label><input type="number" id="wA" oninput="validateInputs()"></div>
                 <div><label>Length (ft) *</label><input type="number" id="lB" oninput="validateInputs()"></div>
@@ -135,12 +135,12 @@
                     <option value="2.00">Quad Back ($2.00/sf)</option>
                 </select></div>
             </div>
-            <label id="padLabel">Area Rug Pad (Loose)</label>
+            <label>Area Rug Pad (Loose)</label>
             <select id="padStyle" onchange="handleMutualExclusion('pad')">
                 <option value="0">No Pad</option>
-                <option value="1.15">Value Hold ($1.15/sf)</option>
-                <option value="2.35">Double Grip ($2.35/sf)</option>
-                <option value="3.10">Teebaud ($3.10/sf)</option>
+                <option value="1.15">Value Hold ($1.15/sf) [Max 12']</option>
+                <option value="2.35">Double Grip ($2.35/sf) [Max 12']</option>
+                <option value="3.10">Teebaud ($3.10/sf) [Max 9']</option>
             </select>
             <div class="grid-2">
                 <div><label>Delivery</label><select id="delv" onchange="validateInputs()">
@@ -158,77 +158,74 @@
         <div class="card" id="summaryCard" style="display:none;">
             <div class="section-title">Order Summary</div>
             <div id="roomList"></div>
-            <button class="btn btn-save" onclick="saveJob()">Save Order History</button>
+            <button class="btn btn-save" onclick="saveJob()">Save / Update History</button>
             <button class="btn btn-pdf" onclick="generatePDF()">Download Quote PDF</button>
         </div>
     </div>
 
     <div id="history" class="view">
-        <input type="text" id="jobSearch" class="search-input" placeholder="🔍 Search Client Name..." oninput="renderHistory()">
+        <input type="text" id="jobSearch" class="search-input" placeholder="🔍 Search Client Last Name..." oninput="renderHistory()">
         <div id="historyList"></div>
     </div>
 </div>
 
 <div id="pdf-template">
-    <div class="pdf-top-border"></div>
-    <div class="pdf-green-bar"></div>
-    <div class="pdf-header-main">
-        <img src="choice-floors-logo.png" style="height:100px; width: auto;">
+    <div class="pdf-accent-bar"></div>
+    <div class="pdf-header">
+        <img src="choice-floors-logo.png" style="height:100px;">
         <div style="text-align:right;">
-            <h1 style="margin:0; font-size: 26px; color: var(--choice-blue); font-weight: 900; letter-spacing: -0.5px;">Choice Floors Rug Estimate</h1>
-            <p style="margin:5px 0 0 0; font-size: 13px; color: #64748b; font-weight: 500;">Generated on: <span id="pdf-date"></span></p>
+            <h1 style="margin:0; font-size: 28px; color: var(--choice-blue); font-weight: 900;">Rug Estimate</h1>
+            <p style="margin:4px 0 0 0; color: var(--choice-green); font-weight: bold; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Choice Floors Professional</p>
         </div>
     </div>
-    
+
     <div class="pdf-body">
-        <div class="pdf-divider"></div>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; margin: 10px 0 30px 0;">
-            <div>
-                <p style="color:var(--choice-blue); font-weight: 800; margin-bottom: 8px; text-transform: uppercase; font-size: 11px; letter-spacing: 1px;">Customer Information</p>
-                <h2 id="pdf-client-name" style="margin:0; font-size: 22px; color: #1e293b;"></h2>
-                <p id="pdf-client-address" style="margin:8px 0 4px 0; color: #475569; font-size: 14px; line-height: 1.4;"></p>
-                <p id="pdf-client-contact" style="margin:0; color: #475569; font-size: 14px;"></p>
+        <div class="pdf-info-grid">
+            <div class="customer-accent">
+                <p style="font-size: 11px; text-transform: uppercase; color: #94a3b8; margin: 0 0 5px 0; font-weight: 800;">Prepared For</p>
+                <h2 id="pdf-client-name" style="margin:0; font-size: 22px;"></h2>
+                <p id="pdf-client-address" style="margin:8px 0 0 0; color: #475569; font-size: 14px; line-height: 1.4;"></p>
+                <p id="pdf-client-contact" style="margin:2px 0 0 0; color: #475569; font-size: 14px;"></p>
             </div>
-            <div style="text-align:right; display: flex; flex-direction: column; justify-content: flex-end;">
-                <p style="margin:0; font-size: 12px; color: #94a3b8;">Estimate No: <span id="pdf-est-id"></span></p>
+            <div style="text-align:right;">
+                <p style="font-size: 11px; text-transform: uppercase; color: #94a3b8; margin: 0 0 5px 0; font-weight: 800;">Quote Details</p>
+                <p style="margin:0; font-size: 14px;"><b>Date:</b> <span id="pdf-date"></span></p>
+                <p style="margin:2px 0 0 0; font-size: 14px;"><b>Estimate ID:</b> #<span id="pdf-est-id"></span></p>
             </div>
         </div>
 
         <table class="pdf-table">
             <thead>
                 <tr>
-                    <th>Room Selection</th>
-                    <th>Size</th>
+                    <th>Room / Selection</th>
+                    <th>Dimensions</th>
                     <th>Specifications</th>
-                    <th style="text-align:right;">Line Total</th>
+                    <th style="text-align:right;">Price</th>
                 </tr>
             </thead>
             <tbody id="pdf-item-rows"></tbody>
         </table>
 
-        <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
-            <div style="width: 280px; background: #f8fafc; padding: 20px; border-radius: 12px;">
-                <div style="display:flex; justify-content:space-between; margin-bottom: 12px; font-size: 14px; color: #475569;">
-                    <span>Calculated Tax:</span>
-                    <span id="pdf-tax-amount" style="font-weight: 600;"></span>
-                </div>
-                <div style="display:flex; justify-content:space-between; font-size: 24px; font-weight: 900; border-top: 1px solid #e2e8f0; padding-top: 12px; color: var(--choice-blue);">
-                    <span style="font-size: 14px; align-self: center; text-transform: uppercase; letter-spacing: 1px;">Estimate Total</span>
-                    <span id="pdf-total-display"></span>
-                </div>
+        <div class="total-box">
+            <div style="font-size: 14px; opacity: 0.9; margin-bottom: 5px;">
+                Subtotal: <span id="pdf-subtotal"></span>
+            </div>
+            <div style="font-size: 14px; opacity: 0.9; margin-bottom: 10px;">
+                Tax (<span id="pdf-tax-rate-pct"></span>%): <span id="pdf-tax-amount"></span>
+            </div>
+            <div style="font-size: 26px; font-weight: 900;">
+                Total Estimate: <span id="pdf-total-display"></span>
             </div>
         </div>
 
-        <div style="margin-top: 80px; display: grid; grid-template-columns: 1.2fr 1fr; gap: 50px; align-items: flex-end;">
-            <div>
-                <p style="font-size: 11px; color: #94a3b8; line-height: 1.6; font-style: italic;">
-                    Terms & Conditions: This estimate is valid for 30 days. Final pricing is subject to physical verification of materials. All custom rug orders require a 50% deposit before production begins.
-                </p>
+        <div style="margin-top: 60px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
+            <div style="font-size: 11px; color: #94a3b8; line-height: 1.6;">
+                <b>Note:</b> This estimate is for materials and labor as specified above. Changes to dimensions or edge styles after initial measurement may affect final billing. Valid for 30 days.
             </div>
-            <div style="text-align: left;">
-                <p style="font-weight: 800; margin-bottom: 5px; font-size: 12px; text-transform: uppercase; color: #1e293b;">Approval Signature</p>
-                <div class="sig-box"></div>
-                <p style="font-size: 11px; margin-top: 8px; color: #94a3b8;">Date Signed</p>
+            <div style="text-align: right;">
+                <p style="margin:0; font-size: 12px; font-weight: 800; text-transform: uppercase;">Customer Approval</p>
+                <div class="sig-line"></div>
+                <p style="margin:5px 0 0 0; font-size: 10px; color: #94a3b8;">Signature & Date</p>
             </div>
         </div>
     </div>
@@ -241,19 +238,14 @@
     let isManualTax = false;
     let editingJobId = null;
 
-    function newQuote() {
-        if(confirm("Start a new fresh quote? All unsaved current progress will be lost.")) {
-            location.reload();
-        }
-    }
+    function newQuote() { if(confirm("Clear current work?")) location.reload(); }
 
     function handleMutualExclusion(trigger) {
-        const backing = document.getElementById('backingStyle');
-        const pad = document.getElementById('padStyle');
-        if (trigger === 'backing' && backing.value !== "0") { pad.value = "0"; pad.disabled = true; } 
-        else if (trigger === 'backing') { pad.disabled = false; }
-        if (trigger === 'pad' && pad.value !== "0") { backing.value = "0"; backing.disabled = true; } 
-        else if (trigger === 'pad') { backing.disabled = false; }
+        const b = document.getElementById('backingStyle'), p = document.getElementById('padStyle');
+        if (trigger === 'backing' && b.value !== "0") { p.value = "0"; p.disabled = true; } 
+        else if (trigger === 'backing') { p.disabled = false; }
+        if (trigger === 'pad' && p.value !== "0") { b.value = "0"; b.disabled = true; } 
+        else if (trigger === 'pad') { b.disabled = false; }
         validateInputs();
     }
 
@@ -262,7 +254,7 @@
     function lookupTax() {
         if (isManualTax) return;
         const state = document.getElementById('custState').value, zip = document.getElementById('custZip').value;
-        const rates = {"AL":0.04,"AZ":0.056,"CA":0.0725,"CO":0.029,"CT":0.0635,"FL":0.06,"GA":0.04,"IL":0.0625,"IN":0.07,"KS":0.065,"KY":0.06,"MD":0.06,"MI":0.06,"NJ":0.06625,"NY":0.04,"NC":0.0475,"OH":0.0575,"PA":0.06,"SC":0.06,"TX":0.0625,"VA":0.053,"WA":0.065};
+        const rates = {"AL":0.04,"AZ":0.056,"CA":0.0725,"CO":0.029,"FL":0.06,"GA":0.04,"IL":0.0625,"IN":0.07,"KS":0.065,"KY":0.06,"MD":0.06,"MI":0.06,"NJ":0.06625,"NY":0.04,"NC":0.0475,"OH":0.0575,"PA":0.06,"TX":0.0625,"VA":0.053,"WA":0.065};
         let rate = rates[state] || 0.00; 
         if(state === "PA" && zip.startsWith("19")) rate = 0.08;
         currentTaxRate = rate; validateInputs();
@@ -280,12 +272,12 @@
         const allFilled = fields.every(id => document.getElementById(id).value.trim() !== "");
         
         let widthError = "";
-        if (padType === "1.15" && w > 12) widthError = "⚠️ Value Hold max width is 12ft.";
-        if (padType === "2.35" && w > 12) widthError = "⚠️ Double Grip max width is 12ft.";
-        if (padType === "3.10" && w > 9) widthError = "⚠️ Teebaud max width is 9ft.";
+        if (padType === "1.15" && w > 12) widthError = "Value Hold max width is 12ft.";
+        if (padType === "2.35" && w > 12) widthError = "Double Grip max width is 12ft.";
+        if (padType === "3.10" && w > 9) widthError = "Teebaud max width is 9ft.";
 
         const errEl = document.getElementById('widthError');
-        errEl.innerText = widthError;
+        errEl.innerText = widthError ? "⚠️ " + widthError : "";
         errEl.style.display = widthError ? 'block' : 'none';
         
         document.getElementById('btnAddRug').disabled = !allFilled || !!widthError;
@@ -336,7 +328,7 @@
         const { jsPDF } = window.jspdf;
         document.getElementById('pdf-client-name').innerText = `${document.getElementById('custFirst').value} ${document.getElementById('custLast').value}`;
         document.getElementById('pdf-client-address').innerText = `${document.getElementById('custStreet').value}, ${document.getElementById('custCity').value} ${document.getElementById('custState').value} ${document.getElementById('custZip').value}`;
-        document.getElementById('pdf-client-contact').innerText = `Phone: ${document.getElementById('custPhone').value} | Email: ${document.getElementById('custEmail').value}`;
+        document.getElementById('pdf-client-contact').innerText = `${document.getElementById('custPhone').value} | ${document.getElementById('custEmail').value}`;
         document.getElementById('pdf-date').innerText = new Date().toLocaleDateString();
         document.getElementById('pdf-est-id').innerText = editingJobId || Date.now().toString().slice(-6);
         
@@ -347,6 +339,8 @@
         
         document.getElementById('pdf-item-rows').innerHTML = rows;
         const sub = currentRugs.reduce((a, b) => a + b.cost, 0) + dVal + iVal;
+        document.getElementById('pdf-subtotal').innerText = `$${sub.toFixed(2)}`;
+        document.getElementById('pdf-tax-rate-pct').innerText = (currentTaxRate * 100).toFixed(2);
         document.getElementById('pdf-tax-amount').innerText = `$${(sub * currentTaxRate).toFixed(2)}`;
         document.getElementById('pdf-total-display').innerText = document.getElementById('displayTotal').innerText;
         
@@ -372,7 +366,7 @@
         }
         
         localStorage.setItem('rugJobsMaster', JSON.stringify(savedJobs)); 
-        alert(editingJobId ? "Job Updated Successfully." : "New Job Saved Successfully.");
+        alert(editingJobId ? "Job Updated Successfully." : "New Job Saved.");
         editingJobId = job.id;
     }
 
