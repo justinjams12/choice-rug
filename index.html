@@ -18,7 +18,7 @@
         body { font-family: 'Inter', system-ui, sans-serif; margin: 0; background: #f1f5f9; color: var(--text); padding-bottom: 60px; }
         .app-shell { width: 100%; max-width: 480px; margin: auto; padding: 15px; box-sizing: border-box; }
         
-        /* UI Components */
+        /* Navigation Tabs */
         .tabs { display: flex; background: var(--choice-blue); padding: 6px; border-radius: 12px; margin-bottom: 20px; }
         .tab-btn { flex: 1; padding: 12px; border: none; background: none; color: white; font-weight: 700; cursor: pointer; border-radius: 8px; opacity: 0.7; transition: all 0.2s; }
         .tab-btn.active { background: var(--choice-green); opacity: 1; color: white; }
@@ -26,86 +26,76 @@
         .view { display: none; }
         .view.active { display: block; }
 
+        /* Header Results */
         .live-result { background: var(--choice-blue); color: white; border-radius: 18px; padding: 25px; text-align: center; margin-bottom: 15px; position: relative; overflow: hidden; }
         .live-result::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 5px; background: var(--choice-green); }
         
+        /* Cards */
         .card { background: white; border-radius: 18px; padding: 18px; margin-bottom: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
         .section-title { font-size: 0.7rem; font-weight: 900; color: var(--choice-blue); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 12px; display: flex; align-items: center; }
         .section-title::after { content: ''; height: 2px; flex-grow: 1; background: var(--choice-blue-light); margin-left: 10px; }
 
+        /* Inputs */
         input, select { width: 100%; padding: 12px; border-radius: 10px; border: 1.5px solid #e2e8f0; margin-bottom: 10px; box-sizing: border-box; font-size: 1rem; background-color: white; }
         label { font-size: 0.65rem; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 4px; display: block; }
-
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .grid-3 { display: grid; grid-template-columns: 2fr 1fr 1.2fr; gap: 10px; }
 
+        /* Buttons */
         .btn { width: 100%; padding: 16px; border-radius: 10px; border: none; font-weight: 800; cursor: pointer; transition: all 0.2s; }
         .btn-add { background: var(--choice-blue); color: white; }
         .btn-add:disabled { background: #cbd5e1; cursor: not-allowed; opacity: 0.7; }
-        
         .btn-save { background: var(--choice-green); color: white; margin-top: 10px; }
         .btn-pdf { background: #334155; color: white; margin-top: 10px; }
 
-        .tax-alert { background: #fefce8; border: 1px solid #fef08a; padding: 10px; border-radius: 8px; font-size: 0.75rem; color: #854d0e; margin-bottom: 15px; display: none; }
-        
+        /* Signature */
+        .sig-container { border: 2px dashed #cbd5e1; border-radius: 12px; background: #fff; position: relative; margin-bottom: 10px; touch-action: none; }
+        #sig-canvas { width: 100%; height: 120px; cursor: crosshair; }
+        .btn-clear { background: #f1f5f9; border: none; padding: 5px 10px; border-radius: 5px; font-size: 10px; font-weight: 700; color: #64748b; cursor: pointer; }
+
+        /* Room List */
         .room-tag { background: var(--choice-blue-light); padding: 12px; border-radius: 10px; margin-bottom: 8px; border-left: 4px solid var(--choice-green); display: flex; justify-content: space-between; align-items: center;}
-        .room-info { flex-grow: 1; }
-        .btn-remove-room { background: var(--danger-light); color: var(--danger); border: none; padding: 8px 12px; border-radius: 8px; font-weight: 700; font-size: 0.7rem; cursor: pointer; margin-left: 10px; }
+        .btn-remove-room { background: var(--danger-light); color: var(--danger); border: none; padding: 6px 10px; border-radius: 6px; font-weight: 700; font-size: 0.65rem; cursor: pointer; }
 
-        .validation-msg { color: #64748b; font-size: 0.7rem; text-align: center; margin-top: 8px; font-style: italic; border: 1px dashed #cbd5e1; padding: 8px; border-radius: 8px; }
+        /* History List */
+        .history-card { background: white; border-radius: 15px; padding: 15px; margin-bottom: 12px; border-left: 6px solid var(--choice-blue); position: relative; }
+        .history-actions { display: flex; gap: 10px; margin-top: 10px; }
+        .btn-hist-edit { background: var(--choice-blue-light); color: var(--choice-blue); border:none; padding: 8px 15px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; cursor: pointer; }
+        .btn-hist-del { background: var(--danger-light); color: var(--danger); border:none; padding: 8px 15px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; cursor: pointer; }
 
-        /* --- BEAUTIFIED DETAILED PDF TEMPLATE --- */
-        #pdf-template { position: absolute; left: -9999px; width: 850px; background: white; color: #1e293b; padding: 60px; font-family: 'Inter', sans-serif; }
-        .pdf-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #f1f5f9; padding-bottom: 30px; margin-bottom: 30px; }
-        .pdf-logo-box h1 { margin: 0; color: var(--choice-blue); font-size: 28px; font-weight: 900; }
-        .pdf-logo-box p { margin: 0; color: var(--choice-green); font-weight: 700; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; }
-        
-        .pdf-meta-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 40px; margin-bottom: 40px; }
-        .pdf-info-label { font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
-        .pdf-info-value { font-size: 14px; font-weight: 600; color: #1e293b; line-height: 1.4; }
-
-        .pdf-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        .pdf-table th { text-align: left; padding: 12px 15px; background: #f8fafc; color: #64748b; font-size: 11px; text-transform: uppercase; border-bottom: 2px solid #e2e8f0; }
-        .pdf-table td { padding: 18px 15px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
-        
-        .item-spec-list { font-size: 11px; color: #64748b; margin-top: 6px; display: grid; grid-template-columns: 1fr 1fr; gap: 4px; list-style: none; padding: 0; }
-        .item-spec-list li b { color: #475569; }
-
-        .pdf-totals-section { margin-top: 40px; display: flex; justify-content: flex-end; }
-        .pdf-totals-table { width: 300px; }
-        .pdf-totals-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; }
-        .pdf-totals-row.grand-total { border-top: 2px solid var(--choice-blue); margin-top: 10px; padding-top: 15px; color: var(--choice-blue); font-size: 24px; font-weight: 900; }
+        /* PDF Styles Hidden */
+        #pdf-template { position: absolute; left: -9999px; width: 850px; background: white; padding: 60px; font-family: 'Inter', sans-serif; }
     </style>
 </head>
 <body>
 
 <div class="app-shell">
     <header style="text-align:center; padding: 10px 0 20px 0;">
-        <img id="appLogo" src="choice-floors-logo.png" style="max-height: 50px; width: auto;" alt="Choice Floors">
+        <img src="choice-floors-logo.png" style="max-height: 50px; width: auto;" alt="Choice Floors">
     </header>
 
     <div class="tabs">
         <button class="tab-btn active" id="tab-workspace" onclick="switchTab('workspace')">Rug Design</button>
-        <button class="tab-btn" id="tab-history" onclick="switchTab('history')">Saved Rugs</button>
+        <button class="tab-btn" id="tab-history" onclick="switchTab('history')">Saved Jobs</button>
     </div>
 
     <div id="workspace" class="view active">
         <div class="live-result">
-            <div id="projectHeader" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; opacity: 0.9; margin-bottom: 5px;">Lead Info Required</div>
+            <div id="projectHeader" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; opacity: 0.9; margin-bottom: 5px;">New Estimate</div>
             <div id="displayTotal" style="font-size: 2.2rem; font-weight: 900;">$0.00</div>
-            <div id="taxInfo" style="font-size: 0.75rem; opacity: 0.8;">Tax: $0.00 (Calculated by Zip)</div>
+            <div id="taxInfo" style="font-size: 0.75rem; opacity: 0.8;">Tax: $0.00</div>
         </div>
 
-        <div id="zipTaxAlert" class="tax-alert"></div>
+        <div id="zipTaxAlert" class="tax-alert" style="display:none; background: #fefce8; border: 1px solid #fef08a; padding: 10px; border-radius: 8px; font-size: 0.75rem; color: #854d0e; margin-bottom:10px;"></div>
 
-        <div class="card" id="contactCard">
+        <div class="card">
             <div class="section-title">Customer Contact</div>
             <div class="grid-2">
                 <input type="text" id="custFirst" placeholder="First Name *" oninput="autoCap(this); updateLiveTotals()">
                 <input type="text" id="custLast" placeholder="Last Name *" oninput="autoCap(this); updateLiveTotals()">
             </div>
             <div class="grid-2">
-                <input type="tel" id="custPhone" placeholder="Phone (xxx) xxx-xxxx *" maxlength="14" oninput="formatPhoneNumber(this); updateLiveTotals()">
+                <input type="tel" id="custPhone" placeholder="Phone *" maxlength="14" oninput="formatPhoneNumber(this); updateLiveTotals()">
                 <input type="email" id="custEmail" placeholder="Email Address *" oninput="updateLiveTotals()">
             </div>
             <input type="text" id="custStreet" placeholder="Street Address *" oninput="autoCap(this); updateLiveTotals()">
@@ -113,19 +103,7 @@
                 <input type="text" id="custCity" placeholder="City *" oninput="autoCap(this); updateLiveTotals()">
                 <select id="custState" onchange="updateLiveTotals()">
                     <option value="" disabled selected>ST *</option>
-                    <option value="AL">AL</option><option value="AK">AK</option><option value="AZ">AZ</option><option value="AR">AR</option>
-                    <option value="CA">CA</option><option value="CO">CO</option><option value="CT">CT</option><option value="DE">DE</option>
-                    <option value="FL">FL</option><option value="GA">GA</option><option value="HI">HI</option><option value="ID">ID</option>
-                    <option value="IL">IL</option><option value="IN">IN</option><option value="IA">IA</option><option value="KS">KS</option>
-                    <option value="KY">KY</option><option value="LA">LA</option><option value="ME">ME</option><option value="MD">MD</option>
-                    <option value="MA">MA</option><option value="MI">MI</option><option value="MN">MN</option><option value="MS">MS</option>
-                    <option value="MO">MO</option><option value="MT">MT</option><option value="NE">NE</option><option value="NV">NV</option>
-                    <option value="NH">NH</option><option value="NJ">NJ</option><option value="NM">NM</option><option value="NY">NY</option>
-                    <option value="NC">NC</option><option value="ND">ND</option><option value="OH">OH</option><option value="OK">OK</option>
-                    <option value="OR">OR</option><option value="PA">PA</option><option value="RI">RI</option><option value="SC">SC</option>
-                    <option value="SD">SD</option><option value="TN">TN</option><option value="TX">TX</option><option value="UT">UT</option>
-                    <option value="VT">VT</option><option value="VA">VA</option><option value="WA">WA</option><option value="WV">WV</option>
-                    <option value="WI">WI</option><option value="WY">WY</option>
+                    <option value="PA">PA</option><option value="MD">MD</option><option value="VA">VA</option><option value="DE">DE</option><option value="NJ">NJ</option><option value="NY">NY</option>
                 </select>
                 <input type="text" id="custZip" placeholder="Zip *" maxlength="5" oninput="updateLiveTotals()">
             </div>
@@ -133,127 +111,112 @@
 
         <div class="card">
             <div class="section-title">Rug Specifications</div>
-            <input type="text" id="roomName" placeholder="Rug Location (e.g. Living Room) *" oninput="autoCap(this); updateLiveTotals()">
+            <input type="text" id="roomName" placeholder="Room Location *" oninput="autoCap(this); updateLiveTotals()">
             <div class="grid-2">
                 <div><label>Width (ft)</label><input type="number" id="wA" placeholder="0" oninput="updateLiveTotals()"></div>
                 <div><label>Length (ft)</label><input type="number" id="lB" placeholder="0" oninput="updateLiveTotals()"></div>
             </div>
             <div class="grid-2">
-                <div><label>Edge Finish</label>
-                    <select id="edgeStyle" onchange="updateLiveTotals()">
-                        <option value="2.50" data-label="Bind">Bind ($2.50/lf)</option>
-                        <option value="6.00" data-label="Serge">Serge ($6.00/lf)</option>
-                    </select>
-                </div>
-                <div><label>Attached Backing</label>
-                    <select id="backingStyle" onchange="updateLiveTotals()">
-                        <option value="0" data-label="None">None</option>
-                        <option value="1.50" data-label="Soft Felt">Soft Felt ($1.50/sf)</option>
-                        <option value="2.25" data-label="Teebaud">Teebaud ($2.25/sf)</option>
-                        <option value="2.00" data-label="Quad Back">Quad Back ($2.00/sf)</option>
-                    </select>
-                </div>
+                <div><label>Edge</label><select id="edgeStyle" onchange="updateLiveTotals()"><option value="2.50" data-label="Bind">Bind ($2.50/lf)</option><option value="6.00" data-label="Serge">Serge ($6.00/lf)</option></select></div>
+                <div><label>Backing</label><select id="backingStyle" onchange="updateLiveTotals()"><option value="0" data-label="None">None</option><option value="1.50" data-label="Soft Felt">Soft Felt ($1.50/sf)</option></select></div>
             </div>
-            <label>Area Rug Pad (Loose)</label>
-            <select id="padStyle" onchange="updateLiveTotals()">
-                <option value="0" data-width="999" data-label="None">No Pad</option>
-                <option value="1.15" data-width="12" data-label="Value Hold">Value Hold ($1.15/sf)</option>
-                <option value="2.35" data-width="12" data-label="Double Grip">Double Grip ($2.35/sf)</option>
-                <option value="3.10" data-width="9" data-label="Teebaud">Teebaud ($3.10/sf)</option>
-            </select>
+            <label>Loose Pad</label>
+            <select id="padStyle" onchange="updateLiveTotals()"><option value="0" data-label="None">No Pad</option><option value="1.15" data-label="Value Hold">Value Hold ($1.15/sf)</option><option value="3.10" data-label="Teebaud">Teebaud ($3.10/sf)</option></select>
 
             <div class="grid-2">
-                <div><label>Delivery</label><select id="deliverySelect" onchange="updateLiveTotals()"><option value="0">No Delivery</option><option value="125">Delivery ($125)</option></select></div>
-                <div><label>Installation</label><select id="installSelect" onchange="updateLiveTotals()"><option value="0">No Install</option><option value="100">Installation ($100)</option></select></div>
+                <div><label>Delivery</label><select id="deliverySelect" onchange="updateLiveTotals()"><option value="0">No</option><option value="125">Yes ($125)</option></select></div>
+                <div><label>Install</label><select id="installSelect" onchange="updateLiveTotals()"><option value="0">No</option><option value="100">Yes ($100)</option></select></div>
             </div>
-
             <button class="btn btn-add" id="btnAddRug" disabled onclick="addOrUpdateRug()">+ Add Rug to Quote</button>
-            <div id="lockMessage" class="validation-msg">Every field & valid email required to unlock.</div>
+            <div id="lockMessage" class="validation-msg" style="color: #64748b; font-size: 0.7rem; text-align: center; margin-top: 8px;">Fill contact info & room to unlock.</div>
         </div>
 
         <div class="card" id="roomListCard" style="display:none;">
-            <div class="section-title">Quote Summary</div>
-            <div id="currentRooms"></div>
-            <button class="btn btn-save" onclick="finalizeJob()">Finalize & Save Job</button>
-            <button class="btn btn-pdf" onclick="generatePDF()">Download PDF Quote</button>
+            <div class="section-title">Summary & Approval</div>
+            <div id="currentRooms" style="margin-bottom: 20px;"></div>
+            
+            <label>Customer Signature</label>
+            <div class="sig-container">
+                <canvas id="sig-canvas"></canvas>
+                <div class="sig-tools"><button class="btn-clear" onclick="clearSignature()">Clear</button></div>
+            </div>
+
+            <button class="btn btn-save" onclick="saveJob()">Finalize & Save Job</button>
+            <button class="btn btn-pdf" onclick="generatePDF()">Download Signed PDF</button>
         </div>
     </div>
 
     <div id="history" class="view">
+        <h2 style="font-size: 1.2rem; margin-bottom: 15px; color: var(--choice-blue);">Job History</h2>
         <div id="historyList"></div>
     </div>
 </div>
 
 <div id="pdf-template">
-    <div class="pdf-header">
-        <div class="pdf-logo-box">
-            <h1>Choice Floors</h1>
-            <p>Custom Rug Specification & Estimate</p>
-        </div>
-        <div style="text-align: right;">
-            <div class="pdf-info-label">Estimate Date</div>
-            <div id="pdf-date" class="pdf-info-value"></div>
-        </div>
+    <div style="display:flex; justify-content:space-between; border-bottom:2px solid #f1f5f9; padding-bottom:20px; margin-bottom:20px;">
+        <div><h1 style="color:var(--choice-blue); margin:0;">Choice Floors</h1><p style="color:var(--choice-green); margin:0; font-weight:700;">Custom Rug Estimate</p></div>
+        <div style="text-align:right;"><small style="color:#94a3b8;">Date</small><div id="pdf-date" style="font-weight:700;"></div></div>
     </div>
-
-    <div class="pdf-meta-grid">
-        <div>
-            <div class="pdf-info-label">Customer Information</div>
-            <div id="pdf-cust-full" class="pdf-info-value" style="font-size: 18px;"></div>
-            <div id="pdf-cust-contact" class="pdf-info-value" style="color: #64748b; font-weight: 400;"></div>
-        </div>
-        <div>
-            <div class="pdf-info-label">Project Address</div>
-            <div id="pdf-cust-street" class="pdf-info-value"></div>
-            <div id="pdf-cust-cityline" class="pdf-info-value"></div>
-        </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:40px; margin-bottom:30px;">
+        <div><small style="color:#94a3b8;">Client</small><div id="pdf-cust-full" style="font-size:18px; font-weight:700;"></div><div id="pdf-cust-contact"></div></div>
+        <div><small style="color:#94a3b8;">Site</small><div id="pdf-cust-street" style="font-weight:600;"></div><div id="pdf-cust-cityline"></div></div>
     </div>
-
-    <table class="pdf-table">
-        <thead>
-            <tr>
-                <th style="width: 65%;">Description & Specifications</th>
-                <th style="width: 15%; text-align: center;">Dimensions</th>
-                <th style="width: 20%; text-align: right;">Total Price</th>
-            </tr>
-        </thead>
+    <table style="width:100%; border-collapse:collapse;">
+        <thead style="background:#f8fafc;"><tr><th style="text-align:left; padding:12px;">Description</th><th style="padding:12px;">Size</th><th style="text-align:right; padding:12px;">Price</th></tr></thead>
         <tbody id="pdf-item-list"></tbody>
     </table>
-
-    <div class="pdf-totals-section">
-        <div class="pdf-totals-table">
-            <div class="pdf-totals-row">
-                <span style="color: #64748b;">Subtotal</span>
-                <span id="pdf-subtotal" style="font-weight: 600;"></span>
-            </div>
-            <div class="pdf-totals-row">
-                <span style="color: #64748b;">Tax (<span id="pdf-tax-rate"></span>%)</span>
-                <span id="pdf-tax-amount" style="font-weight: 600;"></span>
-            </div>
-            <div class="pdf-totals-row grand-total">
-                <span>Total</span>
-                <span id="pdf-total-price"></span>
-            </div>
+    <div style="margin-top:30px; display:flex; justify-content:flex-end;">
+        <div style="width:250px;">
+            <div style="display:flex; justify-content:space-between; padding:5px 0;"><span>Subtotal</span><span id="pdf-subtotal"></span></div>
+            <div style="display:flex; justify-content:space-between; padding:5px 0;"><span>Tax</span><span id="pdf-tax-amount"></span></div>
+            <div style="display:flex; justify-content:space-between; border-top:2px solid var(--choice-blue); padding-top:10px; font-size:20px; font-weight:900; color:var(--choice-blue);"><span>Total</span><span id="pdf-total-price"></span></div>
         </div>
     </div>
-
-    <div style="margin-top: 60px; padding-top: 20px; border-top: 1px solid #f1f5f9; font-size: 10px; color: #94a3b8; line-height: 1.5;">
-        <b>Terms & Conditions:</b> This estimate is based on the dimensions provided and includes the specific edge, backing, and padding selections listed above. Final pricing is subject to physical verification of materials. This quote is valid for 30 days from the date listed.
+    <div style="margin-top:40px; border-top:1px solid #e2e8f0; padding-top:20px;">
+        <img id="pdf-sig-image" style="max-height:80px;">
+        <div style="border-top:1px solid #000; width:200px; font-size:12px; font-weight:700;">Authorized Signature</div>
     </div>
 </div>
 
 <script>
     let currentJobRugs = [];
+    let savedJobs = JSON.parse(localStorage.getItem('rugJobs')) || [];
     const CARPET_SQFT_PRICE = 5.00; 
+    let sigCanvas, sigCtx, drawing = false;
 
-    const stateTaxRates = { "PA": 6.0, "NY": 4.0, "NJ": 6.6, "MD": 6.0, "VA": 5.3, "DE": 0.0 };
-    function getTaxRate() {
-        const state = document.getElementById('custState').value;
-        const zip = document.getElementById('custZip').value;
-        let rate = stateTaxRates[state] || 6.0;
-        if (state === "PA" && (zip.startsWith("190") || zip.startsWith("191"))) rate = 8.0;
-        return rate;
+    window.onload = () => {
+        sigCanvas = document.getElementById('sig-canvas');
+        sigCtx = sigCanvas.getContext('2d');
+        initSignature();
+        renderHistory();
+    };
+
+    function initSignature() {
+        const ratio = Math.max(window.devicePixelRatio || 1, 1);
+        sigCanvas.width = sigCanvas.offsetWidth * ratio;
+        sigCanvas.height = sigCanvas.offsetHeight * ratio;
+        sigCtx.scale(ratio, ratio);
+        sigCtx.strokeStyle = "#2b6291";
+        sigCtx.lineWidth = 2;
+
+        const start = (e) => { drawing = true; sigCtx.beginPath(); sigCtx.moveTo(getPos(e).x, getPos(e).y); };
+        const move = (e) => { if(!drawing) return; sigCtx.lineTo(getPos(e).x, getPos(e).y); sigCtx.stroke(); };
+        const stop = () => { drawing = false; };
+        
+        sigCanvas.addEventListener('mousedown', start);
+        sigCanvas.addEventListener('mousemove', move);
+        sigCanvas.addEventListener('mouseup', stop);
+        sigCanvas.addEventListener('touchstart', (e) => { e.preventDefault(); start(e.touches[0]); });
+        sigCanvas.addEventListener('touchmove', (e) => { e.preventDefault(); move(e.touches[0]); });
+        sigCanvas.addEventListener('touchend', stop);
     }
+
+    function getPos(e) { 
+        const rect = sigCanvas.getBoundingClientRect();
+        return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    }
+
+    function clearSignature() { sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height); }
 
     function autoCap(input) {
         let words = input.value.split(' ');
@@ -273,132 +236,158 @@
         input.value = val;
     }
 
-    function isValidEmail(email) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); }
-
     function updateLiveTotals() {
         const fields = ['custFirst', 'custLast', 'custPhone', 'custEmail', 'custStreet', 'custCity', 'custState', 'custZip'];
         const allContactFilled = fields.every(id => document.getElementById(id).value.trim() !== "");
         const rugFilled = document.getElementById('roomName').value.trim() !== "" && document.getElementById('wA').value !== "" && document.getElementById('lB').value !== "";
-        const emailValid = isValidEmail(document.getElementById('custEmail').value);
         
+        const subtotalCurrent = currentJobRugs.reduce((s, r) => s + r.cost, 0);
         const w = parseFloat(document.getElementById('wA').value) || 0;
         const l = parseFloat(document.getElementById('lB').value) || 0;
-        const subtotalCurrent = currentJobRugs.reduce((s, r) => s + r.cost, 0);
-        
         let activeRugCost = 0;
         if (w > 0 && l > 0) {
-            const e = document.getElementById('edgeStyle').value;
-            const b = document.getElementById('backingStyle').value;
-            const p = document.getElementById('padStyle').value;
-            activeRugCost = (w * l * CARPET_SQFT_PRICE) + (((w*2)+(l*2)) * e) + (w * l * b) + (w * l * p);
+            activeRugCost = (w * l * CARPET_SQFT_PRICE) + (((w*2)+(l*2)) * parseFloat(document.getElementById('edgeStyle').value)) + (w * l * parseFloat(document.getElementById('backingStyle').value)) + (w * l * parseFloat(document.getElementById('padStyle').value));
         }
 
-        const delivery = parseFloat(document.getElementById('deliverySelect').value);
-        const install = parseFloat(document.getElementById('installSelect').value);
-        
-        const subtotal = subtotalCurrent + activeRugCost + delivery + install;
-        const rate = getTaxRate();
-        const taxAmount = subtotal * (rate / 100);
-        const grandTotal = subtotal + taxAmount;
+        const subtotal = subtotalCurrent + activeRugCost + parseFloat(document.getElementById('deliverySelect').value) + parseFloat(document.getElementById('installSelect').value);
+        const rate = (document.getElementById('custState').value === "PA" && document.getElementById('custZip').value.startsWith("19")) ? 8.0 : ({"PA":6, "NY":4, "NJ":6.6, "MD":6, "VA":5.3, "DE":0}[document.getElementById('custState').value] || 6);
+        const tax = subtotal * (rate / 100);
 
-        document.getElementById('displayTotal').innerText = `$${grandTotal.toFixed(2)}`;
-        document.getElementById('taxInfo').innerText = `Subtotal: $${subtotal.toFixed(2)} | Tax (${rate}%): $${taxAmount.toFixed(2)}`;
+        document.getElementById('displayTotal').innerText = `$${(subtotal + tax).toFixed(2)}`;
+        document.getElementById('taxInfo').innerText = `Subtotal: $${subtotal.toFixed(2)} | Tax (${rate}%): $${tax.toFixed(2)}`;
         
-        const zip = document.getElementById('custZip').value;
-        const taxAlert = document.getElementById('zipTaxAlert');
-        if(zip.length === 5) {
-            taxAlert.style.display = "block";
-            taxAlert.innerText = `📍 Location identified. Sales tax for ${zip} is estimated at ${rate}%.`;
-        }
-
-        const addBtn = document.getElementById('btnAddRug');
-        addBtn.disabled = !(allContactFilled && rugFilled && emailValid);
-        document.getElementById('lockMessage').style.display = addBtn.disabled ? 'block' : 'none';
+        document.getElementById('btnAddRug').disabled = !(allContactFilled && rugFilled);
     }
 
     function addOrUpdateRug() {
-        const roomName = document.getElementById('roomName').value;
-        const w = parseFloat(document.getElementById('wA').value);
-        const l = parseFloat(document.getElementById('lB').value);
         const e = document.getElementById('edgeStyle');
         const b = document.getElementById('backingStyle');
         const p = document.getElementById('padStyle');
-        
+        const w = parseFloat(document.getElementById('wA').value);
+        const l = parseFloat(document.getElementById('lB').value);
         const cost = (w * l * CARPET_SQFT_PRICE) + (((w*2)+(l*2)) * parseFloat(e.value)) + (w * l * parseFloat(b.value)) + (w * l * parseFloat(p.value));
         
         currentJobRugs.push({ 
-            name: roomName, 
-            w, l, 
-            cost,
+            name: document.getElementById('roomName').value, w, l, cost,
             edge: e.options[e.selectedIndex].getAttribute('data-label'),
             backing: b.options[b.selectedIndex].getAttribute('data-label'),
             pad: p.options[p.selectedIndex].getAttribute('data-label')
         });
         
-        updateRugList();
+        renderRoomList();
         ['roomName', 'wA', 'lB'].forEach(id => document.getElementById(id).value = "");
         updateLiveTotals();
     }
 
-    function removeRug(index) {
-        currentJobRugs.splice(index, 1);
-        updateRugList();
-        updateLiveTotals();
-    }
-
-    function updateRugList() {
-        const container = document.getElementById('currentRooms');
-        container.innerHTML = currentJobRugs.map((r, i) => `
+    function renderRoomList() {
+        document.getElementById('currentRooms').innerHTML = currentJobRugs.map((r, i) => `
             <div class="room-tag">
-                <div class="room-info">
-                    <b>${r.name}</b> (${r.w}' x ${r.l}')<br>
-                    <small>${r.edge} Edge • ${r.backing} Backing</small>
-                </div>
+                <div><b>${r.name}</b> (${r.w}'x${r.l}')<br><small>${r.edge} • ${r.backing}</small></div>
                 <button class="btn-remove-room" onclick="removeRug(${i})">Remove</button>
             </div>`).join('');
         document.getElementById('roomListCard').style.display = currentJobRugs.length ? 'block' : 'none';
+        setTimeout(initSignature, 100);
+    }
+
+    function removeRug(i) { currentJobRugs.splice(i, 1); renderRoomList(); updateLiveTotals(); }
+
+    function saveJob() {
+        const job = {
+            id: Date.now(),
+            date: new Date().toLocaleDateString(),
+            contact: {
+                first: document.getElementById('custFirst').value,
+                last: document.getElementById('custLast').value,
+                phone: document.getElementById('custPhone').value,
+                email: document.getElementById('custEmail').value,
+                street: document.getElementById('custStreet').value,
+                city: document.getElementById('custCity').value,
+                state: document.getElementById('custState').value,
+                zip: document.getElementById('custZip').value
+            },
+            rugs: [...currentJobRugs],
+            delivery: document.getElementById('deliverySelect').value,
+            install: document.getElementById('installSelect').value,
+            sig: sigCanvas.toDataURL()
+        };
+        savedJobs.unshift(job);
+        localStorage.setItem('rugJobs', JSON.stringify(savedJobs));
+        alert("Job Saved Successfully");
+        location.reload();
+    }
+
+    function renderHistory() {
+        const list = document.getElementById('historyList');
+        if (savedJobs.length === 0) {
+            list.innerHTML = "<p style='text-align:center; color:#64748b;'>No saved jobs found.</p>";
+            return;
+        }
+        list.innerHTML = savedJobs.map((j, i) => `
+            <div class="history-card">
+                <div style="font-weight:900; color:var(--choice-blue);">${j.contact.last}, ${j.contact.first}</div>
+                <div style="font-size:0.8rem; color:#64748b;">${j.date} • ${j.rugs.length} Rugs</div>
+                <div class="history-actions">
+                    <button class="btn-hist-edit" onclick="editJob(${j.id})">Edit Job</button>
+                    <button class="btn-hist-del" onclick="deleteJob(${j.id})">Delete</button>
+                </div>
+            </div>`).join('');
+    }
+
+    function deleteJob(id) {
+        if(confirm("Delete this job permanently?")) {
+            savedJobs = savedJobs.filter(j => j.id !== id);
+            localStorage.setItem('rugJobs', JSON.stringify(savedJobs));
+            renderHistory();
+        }
+    }
+
+    function editJob(id) {
+        const j = savedJobs.find(job => job.id === id);
+        if(!j) return;
+        
+        document.getElementById('custFirst').value = j.contact.first;
+        document.getElementById('custLast').value = j.contact.last;
+        document.getElementById('custPhone').value = j.contact.phone;
+        document.getElementById('custEmail').value = j.contact.email;
+        document.getElementById('custStreet').value = j.contact.street;
+        document.getElementById('custCity').value = j.contact.city;
+        document.getElementById('custState').value = j.contact.state;
+        document.getElementById('custZip').value = j.contact.zip;
+        
+        currentJobRugs = j.rugs;
+        document.getElementById('deliverySelect').value = j.delivery;
+        document.getElementById('installSelect').value = j.install;
+        
+        renderRoomList();
+        switchTab('workspace');
+        updateLiveTotals();
+        
+        // Remove from history so it doesn't duplicate when re-saved
+        savedJobs = savedJobs.filter(job => job.id !== id);
     }
 
     async function generatePDF() {
-        const { jsPDF } = window.jspdf;
-        const rate = getTaxRate();
-        const delivery = parseFloat(document.getElementById('deliverySelect').value);
-        const install = parseFloat(document.getElementById('installSelect').value);
-        const subtotal = currentJobRugs.reduce((s, r) => s + r.cost, 0) + delivery + install;
-        const tax = subtotal * (rate / 100);
+        const subtotal = currentJobRugs.reduce((s, r) => s + r.cost, 0) + parseFloat(document.getElementById('deliverySelect').value) + parseFloat(document.getElementById('installSelect').value);
+        const rate = (document.getElementById('custState').value === "PA" && document.getElementById('custZip').value.startsWith("19")) ? 8.0 : ({"PA":6, "NY":4, "NJ":6.6, "MD":6, "VA":5.3, "DE":0}[document.getElementById('custState').value] || 6);
+        const tax = subtotal * (rate/100);
 
         document.getElementById('pdf-date').innerText = new Date().toLocaleDateString();
-        document.getElementById('pdf-cust-full').innerText = document.getElementById('custFirst').value + " " + document.getElementById('custLast').value;
-        document.getElementById('pdf-cust-contact').innerText = document.getElementById('custPhone').value + "  |  " + document.getElementById('custEmail').value;
+        document.getElementById('pdf-cust-full').innerText = `${document.getElementById('custFirst').value} ${document.getElementById('custLast').value}`;
+        document.getElementById('pdf-cust-contact').innerText = `${document.getElementById('custPhone').value} | ${document.getElementById('custEmail').value}`;
         document.getElementById('pdf-cust-street').innerText = document.getElementById('custStreet').value;
         document.getElementById('pdf-cust-cityline').innerText = `${document.getElementById('custCity').value}, ${document.getElementById('custState').value} ${document.getElementById('custZip').value}`;
         
-        let rows = currentJobRugs.map(r => `
-            <tr>
-                <td>
-                    <div style="font-weight: 700; color: var(--choice-blue); font-size: 14px;">Rug: ${r.name}</div>
-                    <ul class="item-spec-list">
-                        <li><b>Edge:</b> ${r.edge}</li>
-                        <li><b>Backing:</b> ${r.backing}</li>
-                        <li><b>Pad:</b> ${r.pad}</li>
-                        <li><b>Labor:</b> Custom Fabrication</li>
-                    </ul>
-                </td>
-                <td style="text-align: center; font-weight: 600;">${r.w}' x ${r.l}'</td>
-                <td style="text-align: right; font-weight: 700; font-size: 14px;">$${r.cost.toFixed(2)}</td>
-            </tr>`).join('');
-        
-        if(delivery > 0) rows += `<tr><td><div style="font-weight: 700;">Home Delivery Service</div><div style="font-size:11px; color:#64748b;">Professional transport to residence</div></td><td style="text-align:center;">-</td><td style="text-align:right; font-weight:700;">$${delivery.toFixed(2)}</td></tr>`;
-        if(install > 0) rows += `<tr><td><div style="font-weight: 700;">Professional Installation</div><div style="font-size:11px; color:#64748b;">On-site placement and adjustment</div></td><td style="text-align:center;">-</td><td style="text-align:right; font-weight:700;">$${install.toFixed(2)}</td></tr>`;
+        document.getElementById('pdf-item-list').innerHTML = currentJobRugs.map(r => `
+            <tr><td style="padding:10px;"><b>${r.name}</b><br><small>${r.edge} • ${r.backing}</small></td><td style="text-align:center;">${r.w}'x${r.l}'</td><td style="text-align:right;">$${r.cost.toFixed(2)}</td></tr>
+        `).join('');
 
-        document.getElementById('pdf-item-list').innerHTML = rows;
         document.getElementById('pdf-subtotal').innerText = `$${subtotal.toFixed(2)}`;
-        document.getElementById('pdf-tax-rate').innerText = rate;
         document.getElementById('pdf-tax-amount').innerText = `$${tax.toFixed(2)}`;
         document.getElementById('pdf-total-price').innerText = `$${(subtotal + tax).toFixed(2)}`;
+        document.getElementById('pdf-sig-image').src = sigCanvas.toDataURL();
 
         const canvas = await html2canvas(document.getElementById('pdf-template'), { scale: 2 });
-        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
         pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
         pdf.save(`Estimate_${document.getElementById('custLast').value}.pdf`);
     }
@@ -408,11 +397,7 @@
         document.getElementById(t).classList.add('active');
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('tab-'+t).classList.add('active');
-    }
-
-    function finalizeJob() {
-        alert("Estimate successfully finalized and saved.");
-        location.reload();
+        if(t === 'history') renderHistory();
     }
 </script>
 </body>
