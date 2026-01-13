@@ -131,18 +131,18 @@
             <div id="widthError" class="error-msg"></div>
             
             <div class="grid-2">
-                <div><label>Edge</label><select id="edgeStyle" onchange="validateInputs()">
-                    <option value="2.50">Bind ($2.50)</option>
-                    <option value="6.00">Serge ($6.00)</option>
+                <div><label>Edge (Per Lft)</label><select id="edgeStyle" onchange="validateInputs()">
+                    <option value="2.50">Bind ($2.50/Lft)</option>
+                    <option value="6.00">Serge ($6.00/Lft)</option>
                 </select></div>
-                <div><label>Attached Backing</label><select id="backingStyle" onchange="handleMutualExclusion('backing')">
+                <div><label>Attached Backing (Per SF)</label><select id="backingStyle" onchange="handleMutualExclusion('backing')">
                     <option value="0">None</option>
                     <option value="1.50">Soft Felt ($1.50/sf)</option>
                     <option value="2.25">Teebaud ($2.25/sf)</option>
                     <option value="2.00">Quad Back ($2.00/sf)</option>
                 </select></div>
             </div>
-            <label>Area Rug Pad (Loose)</label>
+            <label>Area Rug Pad (Loose - Per SF)</label>
             <select id="padStyle" onchange="handleMutualExclusion('pad')">
                 <option value="0">No Pad</option>
                 <option value="1.15">Value Hold ($1.15/sf) [Max 12']</option>
@@ -150,11 +150,11 @@
                 <option value="3.10">Teebaud ($3.10/sf) [Max 9']</option>
             </select>
             <div class="grid-2">
-                <div><label>Delivery</label><select id="delv" onchange="validateInputs()">
+                <div><label>Delivery (Flat)</label><select id="delv" onchange="validateInputs()">
                     <option value="0">No Delivery</option>
                     <option value="125">Standard Delivery ($125)</option>
                 </select></div>
-                <div><label>Install</label><select id="inst" onchange="validateInputs()">
+                <div><label>Install (Flat)</label><select id="inst" onchange="validateInputs()">
                     <option value="0">No Install</option>
                     <option value="100">Professional Install ($100)</option>
                 </select></div>
@@ -297,13 +297,34 @@
         updateLiveTotals();
     }
 
+    // UPDATED CALCULATION LOGIC
+    function calculateRugCost(w, l, edgeRate, backingRate, padRate) {
+        const perimeter = (w * 2) + (l * 2);
+        const sqft = w * l;
+        const edgeCost = perimeter * edgeRate;
+        const backingCost = sqft * backingRate;
+        const padCost = sqft * padRate;
+        return edgeCost + backingCost + padCost;
+    }
+
     function updateLiveTotals() {
-        const sub = currentRugs.reduce((a, b) => a + b.cost, 0);
-        const w = parseFloat(document.getElementById('wA').value) || 0, l = parseFloat(document.getElementById('lB').value) || 0;
-        let activeCost = 0;
-        if (w > 0 && l > 0) activeCost = (w*l*5) + ((w*2+l*2)*parseFloat(document.getElementById('edgeStyle').value)) + (w*l*parseFloat(document.getElementById('backingStyle').value)) + (w*l*parseFloat(document.getElementById('padStyle').value));
-        const totalSub = sub + activeCost + parseFloat(document.getElementById('delv').value) + parseFloat(document.getElementById('inst').value);
+        const existingSub = currentRugs.reduce((a, b) => a + b.cost, 0);
+        
+        // Active Form calculation
+        const w = parseFloat(document.getElementById('wA').value) || 0;
+        const l = parseFloat(document.getElementById('lB').value) || 0;
+        const eR = parseFloat(document.getElementById('edgeStyle').value) || 0;
+        const bR = parseFloat(document.getElementById('backingStyle').value) || 0;
+        const pR = parseFloat(document.getElementById('padStyle').value) || 0;
+        
+        const activeRugCost = (w > 0 && l > 0) ? calculateRugCost(w, l, eR, bR, pR) : 0;
+        
+        const deliveryFlat = parseFloat(document.getElementById('delv').value) || 0;
+        const installFlat = parseFloat(document.getElementById('inst').value) || 0;
+        
+        const totalSub = existingSub + activeRugCost + deliveryFlat + installFlat;
         const totalTax = totalSub * currentTaxRate;
+        
         document.getElementById('displayTotal').innerText = `$${(totalSub + totalTax).toFixed(2)}`;
         document.getElementById('taxInfo').innerText = `Sub: $${totalSub.toFixed(2)} | Tax (${(currentTaxRate*100).toFixed(2)}%): $${totalTax.toFixed(2)}`;
     }
@@ -311,7 +332,9 @@
     function addRug() {
         const w = parseFloat(document.getElementById('wA').value), l = parseFloat(document.getElementById('lB').value);
         const e = document.getElementById('edgeStyle'), b = document.getElementById('backingStyle'), p = document.getElementById('padStyle');
-        const cost = (w*l*5) + ((w*2+l*2)*parseFloat(e.value)) + (w*l*parseFloat(b.value)) + (w*l*parseFloat(p.value));
+        
+        const cost = calculateRugCost(w, l, parseFloat(e.value), parseFloat(b.value), parseFloat(p.value));
+        
         currentRugs.push({ 
             name: document.getElementById('roomName').value, w, l, 
             edge: e.options[e.selectedIndex].text, edgeVal: e.value, 
@@ -319,6 +342,7 @@
             pad: p.options[p.selectedIndex].text, padVal: p.value, 
             cost 
         });
+        
         renderRugs();
         ['roomName','wA','lB'].forEach(id => document.getElementById(id).value = "");
         b.value = "0"; p.value = "0"; b.disabled = false; p.disabled = false;
@@ -365,8 +389,8 @@
             </tr>`).join('');
 
         const dVal = parseFloat(document.getElementById('delv').value), iVal = parseFloat(document.getElementById('inst').value);
-        if(dVal > 0) rows += `<tr><td><b>Delivery</b></td><td>-</td><td>Standard Home Service</td><td style="text-align:right; font-weight:700;">$${dVal.toFixed(2)}</td></tr>`;
-        if(iVal > 0) rows += `<tr><td><b>Installation</b></td><td>-</td><td>Professional Placement</td><td style="text-align:right; font-weight:700;">$${iVal.toFixed(2)}</td></tr>`;
+        if(dVal > 0) rows += `<tr><td><b>Delivery</b></td><td>-</td><td>Standard Flat Service</td><td style="text-align:right; font-weight:700;">$${dVal.toFixed(2)}</td></tr>`;
+        if(iVal > 0) rows += `<tr><td><b>Installation</b></td><td>-</td><td>Professional Flat Service</td><td style="text-align:right; font-weight:700;">$${iVal.toFixed(2)}</td></tr>`;
         
         document.getElementById('pdf-item-rows').innerHTML = rows;
         const sub = currentRugs.reduce((a, b) => a + b.cost, 0) + dVal + iVal;
@@ -424,8 +448,6 @@
         const j = savedJobs.find(item => item.id === id);
         if(!j) return;
         editingJobId = j.id;
-        
-        // Restore Customer Data
         document.getElementById('custFirst').value = j.fName; 
         document.getElementById('custLast').value = j.lName; 
         document.getElementById('custPhone').value = j.phone; 
@@ -434,16 +456,11 @@
         document.getElementById('custCity').value = j.city; 
         document.getElementById('custState').value = j.state; 
         document.getElementById('custZip').value = j.zip;
-        
-        // Restore Quote Logic
         currentTaxRate = j.taxRate || 0; 
         isManualTax = j.isManual || false;
         currentRugs = [...j.rugs]; 
-        
-        // Restore Delivery/Install
         document.getElementById('delv').value = j.delivery || "0";
         document.getElementById('inst').value = j.install || "0";
-        
         renderRugs(); 
         updateLiveTotals(); 
         switchTab('workspace');
