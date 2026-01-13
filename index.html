@@ -44,25 +44,32 @@
         .btn-save { background: var(--choice-green); color: white; margin-top: 10px; }
         .btn-pdf { background: #334155; color: white; margin-top: 10px; }
 
-        .room-tag { background: var(--choice-blue-light); padding: 12px; border-radius: 10px; margin-bottom: 8px; border-left: 4px solid var(--choice-green); display: flex; justify-content: space-between; align-items: center;}
-        
-        #pdf-template { position: absolute; left: -9999px; width: 850px; background: white; padding: 50px; color: #1e293b; }
-        .pdf-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-        .pdf-table th { background: #f1f5f9; text-align: left; padding: 12px; color: var(--choice-blue); }
-        .pdf-table td { padding: 12px; border-bottom: 1px solid #e2e8f0; }
-        .sig-box { border-bottom: 2px solid #000; width: 300px; height: 100px; margin-top: 40px; }
+        .room-tag { background: var(--choice-blue-light); padding: 12px; border-radius: 10px; margin-bottom: 8px; border-left: 4px solid var(--choice-green); }
+        .room-tag-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;}
+        .room-tag-btns { display: flex; gap: 10px; }
+        .btn-inline { background: none; border: none; font-size: 0.7rem; font-weight: bold; cursor: pointer; padding: 4px; border-radius: 4px;}
+        .btn-edit { color: var(--choice-blue); }
+        .btn-remove { color: var(--danger); }
 
-        /* Manual Tax Controls */
+        .error-msg { color: var(--danger); font-size: 0.75rem; font-weight: bold; margin-bottom: 10px; display: none; background: var(--danger-light); padding: 8px; border-radius: 6px; }
+        
+        /* PDF STYLING */
+        #pdf-template { position: absolute; left: -9999px; width: 800px; background: white; padding: 0; color: #1e293b; }
+        .pdf-header { background: var(--choice-blue); color: white; padding: 40px; display: flex; justify-content: space-between; align-items: center; }
+        .pdf-body { padding: 40px; }
+        .pdf-table { width: 100%; border-collapse: collapse; margin: 30px 0; }
+        .pdf-table th { border-bottom: 2px solid var(--choice-blue); text-align: left; padding: 12px; font-size: 14px; text-transform: uppercase; color: var(--choice-blue); }
+        .pdf-table td { padding: 15px 12px; border-bottom: 1px solid #e2e8f0; font-size: 13px; }
+        .sig-box { border-bottom: 1px solid #000; width: 250px; height: 40px; margin-top: 10px; }
         .tax-control { margin-top: 5px; font-size: 0.7rem; color: #94a3b8; }
         .tax-btn { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 0.6rem; text-transform: uppercase; }
-        .tax-btn:hover { background: rgba(255,255,255,0.4); }
     </style>
 </head>
 <body>
 
 <div class="app-shell">
     <header style="text-align:center; padding: 10px 0 20px 0;">
-        <img src="choice-floors-logo.png" style="max-height: 50px; width: auto;" alt="Choice Floors">
+        <img src="choice-floors-logo.png" style="max-height: 55px; width: auto;" alt="Choice Floors">
     </header>
 
     <div class="tabs">
@@ -109,24 +116,26 @@
                 <div><label>Width (ft) *</label><input type="number" id="wA" oninput="validateInputs()"></div>
                 <div><label>Length (ft) *</label><input type="number" id="lB" oninput="validateInputs()"></div>
             </div>
+            <div id="widthError" class="error-msg"></div>
+            
             <div class="grid-2">
                 <div><label>Edge</label><select id="edgeStyle" onchange="validateInputs()">
                     <option value="2.50">Bind ($2.50)</option>
                     <option value="6.00">Serge ($6.00)</option>
                 </select></div>
-                <div><label>Attached Backing</label><select id="backingStyle" onchange="validateInputs()">
+                <div><label>Attached Backing</label><select id="backingStyle" onchange="handleMutualExclusion('backing')">
                     <option value="0">None</option>
                     <option value="1.50">Soft Felt ($1.50/sf)</option>
                     <option value="2.25">Teebaud ($2.25/sf)</option>
                     <option value="2.00">Quad Back ($2.00/sf)</option>
                 </select></div>
             </div>
-            <label>Area Rug Pad (Loose)</label>
-            <select id="padStyle" onchange="validateInputs()">
+            <label id="padLabel">Area Rug Pad (Loose)</label>
+            <select id="padStyle" onchange="handleMutualExclusion('pad')">
                 <option value="0">No Pad</option>
-                <option value="1.15">Value Hold ($1.15/sf)</option>
-                <option value="2.35">Double Grip ($2.35/sf)</option>
-                <option value="3.10">Teebaud ($3.10/sf)</option>
+                <option value="1.15">Value Hold ($1.15/sf) [Max 12ft]</option>
+                <option value="2.35">Double Grip ($2.35/sf) [Max 12ft]</option>
+                <option value="3.10">Teebaud ($3.10/sf) [Max 9ft]</option>
             </select>
             <div class="grid-2">
                 <div><label>Delivery</label><select id="delv" onchange="validateInputs()">
@@ -156,34 +165,63 @@
 </div>
 
 <div id="pdf-template">
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-        <img src="choice-floors-logo.png" style="height:60px;">
-        <h1 style="color:var(--choice-blue); margin:0;">Quote Estimate</h1>
+    <div class="pdf-header">
+        <img src="choice-floors-logo.png" style="height:90px; filter: brightness(0) invert(1);">
+        <div style="text-align:right;">
+            <h1 style="margin:0; font-size: 28px; letter-spacing: 1px;">Choice Floors</h1>
+            <p style="margin:0; font-weight: bold; font-size: 14px; opacity: 0.9;">Rug Estimate</p>
+        </div>
     </div>
-    <hr>
-    <div style="margin:20px 0;">
-        <h3 id="pdf-client-name"></h3>
-        <p id="pdf-client-address"></p>
-        <p id="pdf-client-contact"></p>
-    </div>
-    <table class="pdf-table">
-        <thead>
-            <tr>
-                <th>Room / Item</th>
-                <th>Dimensions</th>
-                <th>Specifications</th>
-                <th>Price</th>
-            </tr>
-        </thead>
-        <tbody id="pdf-item-rows"></tbody>
-    </table>
-    <div style="text-align:right;">
-        <h2 id="pdf-total-display"></h2>
-    </div>
-    <div style="margin-top:50px;">
-        <p>Customer Approval Signature:</p>
-        <div class="sig-box"></div>
-        <p><small>Date Generated: <span id="pdf-date"></span></small></p>
+    <div class="pdf-body">
+        <div style="display:grid; grid-template-columns: 1fr 1fr; margin-bottom: 30px;">
+            <div>
+                <p style="color:var(--choice-blue); font-weight: bold; margin-bottom: 5px; text-transform: uppercase; font-size: 12px;">Customer Details</p>
+                <h2 id="pdf-client-name" style="margin:0; font-size: 20px;"></h2>
+                <p id="pdf-client-address" style="margin:5px 0 0 0; color: #64748b;"></p>
+                <p id="pdf-client-contact" style="margin:2px 0 0 0; color: #64748b;"></p>
+            </div>
+            <div style="text-align:right;">
+                <p style="color:var(--choice-blue); font-weight: bold; margin-bottom: 5px; text-transform: uppercase; font-size: 12px;">Estimate Info</p>
+                <p style="margin:0;">Date: <span id="pdf-date"></span></p>
+                <p style="margin:0;">Quote Status: Professional Draft</p>
+            </div>
+        </div>
+
+        <table class="pdf-table">
+            <thead>
+                <tr>
+                    <th>Room / Selection</th>
+                    <th>Dimensions</th>
+                    <th>Specifications</th>
+                    <th style="text-align:right;">Total</th>
+                </tr>
+            </thead>
+            <tbody id="pdf-item-rows"></tbody>
+        </table>
+
+        <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
+            <div style="width: 250px;">
+                <div style="display:flex; justify-content:space-between; margin-bottom: 10px;">
+                    <span>Total Tax:</span>
+                    <span id="pdf-tax-amount"></span>
+                </div>
+                <div style="display:flex; justify-content:space-between; font-size: 22px; font-weight: 900; border-top: 2px solid var(--choice-blue); padding-top: 10px; color: var(--choice-blue);">
+                    <span>Estimate:</span>
+                    <span id="pdf-total-display"></span>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 60px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
+            <div>
+                <p style="font-size: 11px; color: #64748b; line-height: 1.5;">This estimate is valid for 30 days. Final measurements and rug availability will be confirmed upon order placement. Choice Floors reserves the right to adjust pricing based on actual job-site conditions.</p>
+            </div>
+            <div style="text-align: center;">
+                <p style="font-weight: bold; margin-bottom: 20px; font-size: 13px;">Customer Approval Signature</p>
+                <div class="sig-box" style="margin: 0 auto;"></div>
+                <p style="font-size: 11px; margin-top: 5px;">Date signed</p>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -192,103 +230,92 @@
     let savedJobs = JSON.parse(localStorage.getItem('rugJobsMaster')) || [];
     let currentTaxRate = 0.00;
     let isManualTax = false;
+    let editingJobId = null;
 
-    function handleZipChange() {
-        const zip = document.getElementById('custZip').value;
-        if(zip.length === 5) lookupTax();
+    function handleMutualExclusion(trigger) {
+        const backing = document.getElementById('backingStyle');
+        const pad = document.getElementById('padStyle');
+        if (trigger === 'backing' && backing.value !== "0") { pad.value = "0"; pad.disabled = true; } 
+        else if (trigger === 'backing') { pad.disabled = false; }
+        if (trigger === 'pad' && pad.value !== "0") { backing.value = "0"; backing.disabled = true; } 
+        else if (trigger === 'pad') { backing.disabled = false; }
         validateInputs();
     }
 
+    function handleZipChange() { if(document.getElementById('custZip').value.length === 5) lookupTax(); validateInputs(); }
+
     function lookupTax() {
-        if (isManualTax) return; // Don't overwrite if the user manually set a rate
-        
-        const state = document.getElementById('custState').value;
-        const zip = document.getElementById('custZip').value;
-        
-        // Comprehensive baseline tax logic (Updated 2026)
+        if (isManualTax) return;
+        const state = document.getElementById('custState').value, zip = document.getElementById('custZip').value;
         const rates = {"AL":0.04,"AZ":0.056,"CA":0.0725,"CO":0.029,"CT":0.0635,"FL":0.06,"GA":0.04,"IL":0.0625,"IN":0.07,"KS":0.065,"KY":0.06,"MD":0.06,"MI":0.06,"NJ":0.06625,"NY":0.04,"NC":0.0475,"OH":0.0575,"PA":0.06,"SC":0.06,"TX":0.0625,"VA":0.053,"WA":0.065};
-        
         let rate = rates[state] || 0.00; 
-        
-        // Automatic Precision Overrides
-        if(state === "PA" && zip.startsWith("19")) rate = 0.08; // Philadelphia County
-        if(state === "NY" && zip.startsWith("10")) rate = 0.08875; // NYC Approx
-        if(state === "IL" && zip.startsWith("60")) rate = 0.1025; // Chicago Approx
-        
-        currentTaxRate = rate;
-        document.getElementById('taxStatus').innerText = "Method: Auto";
-        validateInputs();
+        if(state === "PA" && zip.startsWith("19")) rate = 0.08;
+        currentTaxRate = rate; validateInputs();
     }
 
     function manualTaxOverride() {
-        const newRate = prompt("Enter exact sales tax rate (e.g., 8.25 for 8.25%):");
-        if (newRate !== null && !isNaN(newRate)) {
-            currentTaxRate = parseFloat(newRate) / 100;
-            isManualTax = true;
-            document.getElementById('taxStatus').innerText = "Method: Manual";
-            validateInputs();
-        }
+        const nr = prompt("Enter tax rate (e.g. 8.25):");
+        if(nr) { currentTaxRate = parseFloat(nr)/100; isManualTax = true; validateInputs(); }
     }
 
     function validateInputs() {
+        const w = parseFloat(document.getElementById('wA').value) || 0;
+        const padType = document.getElementById('padStyle').value;
         const fields = ['custFirst','custLast','custPhone','custEmail','custStreet','custCity','custState','custZip','roomName','wA','lB'];
         const allFilled = fields.every(id => document.getElementById(id).value.trim() !== "");
-        document.getElementById('btnAddRug').disabled = !allFilled;
+        
+        let widthError = "";
+        if (padType === "1.15" && w > 12) widthError = "⚠️ Value Hold max width is 12ft.";
+        if (padType === "2.35" && w > 12) widthError = "⚠️ Double Grip max width is 12ft.";
+        if (padType === "3.10" && w > 9) widthError = "⚠️ Teebaud max width is 9ft.";
+
+        const errEl = document.getElementById('widthError');
+        errEl.innerText = widthError;
+        errEl.style.display = widthError ? 'block' : 'none';
+        
+        document.getElementById('btnAddRug').disabled = !allFilled || !!widthError;
         updateLiveTotals();
     }
 
     function updateLiveTotals() {
         const sub = currentRugs.reduce((a, b) => a + b.cost, 0);
-        const w = parseFloat(document.getElementById('wA').value) || 0;
-        const l = parseFloat(document.getElementById('lB').value) || 0;
-        
+        const w = parseFloat(document.getElementById('wA').value) || 0, l = parseFloat(document.getElementById('lB').value) || 0;
         let activeCost = 0;
-        if (w > 0 && l > 0) {
-            activeCost = (w*l*5) + 
-                         ((w*2+l*2)*parseFloat(document.getElementById('edgeStyle').value)) + 
-                         (w*l*parseFloat(document.getElementById('backingStyle').value)) + 
-                         (w*l*parseFloat(document.getElementById('padStyle').value));
-        }
-
+        if (w > 0 && l > 0) activeCost = (w*l*5) + ((w*2+l*2)*parseFloat(document.getElementById('edgeStyle').value)) + (w*l*parseFloat(document.getElementById('backingStyle').value)) + (w*l*parseFloat(document.getElementById('padStyle').value));
         const totalSub = sub + activeCost + parseFloat(document.getElementById('delv').value) + parseFloat(document.getElementById('inst').value);
         const totalTax = totalSub * currentTaxRate;
-        
         document.getElementById('displayTotal').innerText = `$${(totalSub + totalTax).toFixed(2)}`;
-        document.getElementById('taxInfo').innerText = `Sub: $${totalSub.toFixed(2)} | Tax (${(currentTaxRate*100).toFixed(3)}%): $${totalTax.toFixed(2)}`;
+        document.getElementById('taxInfo').innerText = `Sub: $${totalSub.toFixed(2)} | Tax (${(currentTaxRate*100).toFixed(2)}%): $${totalTax.toFixed(2)}`;
     }
 
     function addRug() {
-        const w = parseFloat(document.getElementById('wA').value);
-        const l = parseFloat(document.getElementById('lB').value);
-        const e = document.getElementById('edgeStyle');
-        const b = document.getElementById('backingStyle');
-        const p = document.getElementById('padStyle');
+        const w = parseFloat(document.getElementById('wA').value), l = parseFloat(document.getElementById('lB').value);
+        const e = document.getElementById('edgeStyle'), b = document.getElementById('backingStyle'), p = document.getElementById('padStyle');
         const cost = (w*l*5) + ((w*2+l*2)*parseFloat(e.value)) + (w*l*parseFloat(b.value)) + (w*l*parseFloat(p.value));
-        
-        currentRugs.push({ 
-            name: document.getElementById('roomName').value, 
-            w, l, 
-            edge: e.options[e.selectedIndex].text,
-            backing: b.options[b.selectedIndex].text,
-            pad: p.options[p.selectedIndex].text,
-            cost
-        });
-        
+        currentRugs.push({ name: document.getElementById('roomName').value, w, l, edge: e.options[e.selectedIndex].text, edgeVal: e.value, backing: b.options[b.selectedIndex].text, backingVal: b.value, pad: p.options[p.selectedIndex].text, padVal: p.value, cost });
         renderRugs();
         ['roomName','wA','lB'].forEach(id => document.getElementById(id).value = "");
+        b.value = "0"; p.value = "0"; b.disabled = false; p.disabled = false;
         validateInputs();
     }
 
     function renderRugs() {
         document.getElementById('roomList').innerHTML = currentRugs.map((r, i) => `
             <div class="room-tag">
-                <div><b>${r.name}</b> (${r.w}'x${r.l}')</div>
-                <button onclick="removeRug(${i})" style="background:none; border:none; color:var(--danger); font-weight:bold; cursor:pointer;">REMOVE</button>
+                <div class="room-tag-header"><b>${r.name}</b><div class="room-tag-btns"><button class="btn-inline btn-edit" onclick="editRug(${i})">EDIT</button><button class="btn-inline btn-remove" onclick="removeRug(${i})">REMOVE</button></div></div>
+                <div style="font-size: 0.8rem; opacity: 0.8;">${r.w}'x${r.l}' | $${r.cost.toFixed(2)}</div>
             </div>`).join('');
         document.getElementById('summaryCard').style.display = currentRugs.length ? 'block' : 'none';
     }
 
-    function removeRug(i) { currentRugs.splice(i,1); renderRugs(); validateInputs(); }
+    function editRug(i) {
+        const r = currentRugs[i];
+        document.getElementById('roomName').value = r.name; document.getElementById('wA').value = r.w; document.getElementById('lB').value = r.l;
+        document.getElementById('edgeStyle').value = r.edgeVal; document.getElementById('backingStyle').value = r.backingVal; document.getElementById('padStyle').value = r.padVal;
+        currentRugs.splice(i,1); renderRugs(); handleMutualExclusion(r.backingVal !== "0" ? 'backing' : 'pad');
+    }
+
+    function removeRug(i) { if(confirm("Remove room?")) { currentRugs.splice(i,1); renderRugs(); validateInputs(); } }
 
     async function generatePDF() {
         const { jsPDF } = window.jspdf;
@@ -297,49 +324,40 @@
         document.getElementById('pdf-client-contact').innerText = `Phone: ${document.getElementById('custPhone').value} | Email: ${document.getElementById('custEmail').value}`;
         document.getElementById('pdf-date').innerText = new Date().toLocaleDateString();
         
-        let rows = currentRugs.map(r => `
-            <tr>
-                <td>${r.name}</td>
-                <td>${r.w}' x ${r.l}'</td>
-                <td style="font-size:10px;">Edge: ${r.edge}<br>Backing: ${r.backing}<br>Pad: ${r.pad}</td>
-                <td>$${r.cost.toFixed(2)}</td>
-            </tr>`).join('');
-        
-        const dVal = parseFloat(document.getElementById('delv').value);
-        const iVal = parseFloat(document.getElementById('inst').value);
-        if(dVal > 0) rows += `<tr><td>Delivery</td><td>-</td><td>Standard Delivery</td><td>$${dVal.toFixed(2)}</td></tr>`;
-        if(iVal > 0) rows += `<tr><td>Installation</td><td>-</td><td>Professional Install</td><td>$${iVal.toFixed(2)}</td></tr>`;
+        let rows = currentRugs.map(r => `<tr><td><b>${r.name}</b></td><td>${r.w}' x ${r.l}'</td><td style="font-size:10px;">Edge: ${r.edge}<br>Backing: ${r.backing}<br>Pad: ${r.pad}</td><td style="text-align:right;">$${r.cost.toFixed(2)}</td></tr>`).join('');
+        const dVal = parseFloat(document.getElementById('delv').value), iVal = parseFloat(document.getElementById('inst').value);
+        if(dVal > 0) rows += `<tr><td><b>Delivery</b></td><td>-</td><td>Standard Delivery</td><td style="text-align:right;">$${dVal.toFixed(2)}</td></tr>`;
+        if(iVal > 0) rows += `<tr><td><b>Installation</b></td><td>-</td><td>Professional Install</td><td style="text-align:right;">$${iVal.toFixed(2)}</td></tr>`;
         
         document.getElementById('pdf-item-rows').innerHTML = rows;
-        document.getElementById('pdf-total-display').innerText = `Final Total: ${document.getElementById('displayTotal').innerText}`;
-
+        const sub = currentRugs.reduce((a, b) => a + b.cost, 0) + dVal + iVal;
+        document.getElementById('pdf-tax-amount').innerText = `$${(sub * currentTaxRate).toFixed(2)}`;
+        document.getElementById('pdf-total-display').innerText = document.getElementById('displayTotal').innerText;
+        
         const canvas = await html2canvas(document.getElementById('pdf-template'), { scale: 2 });
         const pdf = new jsPDF('p', 'mm', 'a4');
         pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
-        pdf.save(`Choice_Floors_Quote_${document.getElementById('custLast').value}.pdf`);
+        pdf.save(`Choice_Floors_Estimate_${document.getElementById('custLast').value}.pdf`);
     }
 
     function saveJob() {
         const job = { 
-            id: Date.now(),
+            id: editingJobId || Date.now(), 
             name: `${document.getElementById('custLast').value}, ${document.getElementById('custFirst').value}`, 
-            fName: document.getElementById('custFirst').value,
-            lName: document.getElementById('custLast').value,
-            phone: document.getElementById('custPhone').value,
-            email: document.getElementById('custEmail').value,
-            street: document.getElementById('custStreet').value,
-            city: document.getElementById('custCity').value,
-            state: document.getElementById('custState').value,
-            zip: document.getElementById('custZip').value,
-            rugs: [...currentRugs],
-            taxRate: currentTaxRate,
-            isManual: isManualTax,
-            total: document.getElementById('displayTotal').innerText,
-            date: new Date().toLocaleDateString() 
+            fName: document.getElementById('custFirst').value, lName: document.getElementById('custLast').value, phone: document.getElementById('custPhone').value, email: document.getElementById('custEmail').value, street: document.getElementById('custStreet').value, city: document.getElementById('custCity').value, state: document.getElementById('custState').value, zip: document.getElementById('custZip').value, 
+            rugs: [...currentRugs], taxRate: currentTaxRate, total: document.getElementById('displayTotal').innerText, date: new Date().toLocaleDateString() 
         };
-        savedJobs.unshift(job);
-        localStorage.setItem('rugJobsMaster', JSON.stringify(savedJobs));
-        alert("Job saved successfully.");
+
+        if (editingJobId) {
+            const index = savedJobs.findIndex(j => j.id === editingJobId);
+            if (index !== -1) savedJobs[index] = job;
+        } else {
+            savedJobs.unshift(job);
+        }
+        
+        localStorage.setItem('rugJobsMaster', JSON.stringify(savedJobs)); 
+        alert(editingJobId ? "Job Updated Successfully." : "New Job Saved Successfully.");
+        editingJobId = job.id;
     }
 
     function switchTab(t) {
@@ -353,30 +371,18 @@
     function renderHistory() {
         const term = document.getElementById('jobSearch').value.toLowerCase();
         const filtered = savedJobs.filter(j => j.name.toLowerCase().includes(term));
-        document.getElementById('historyList').innerHTML = filtered.map(j => `
-            <div class="card" style="border-left:5px solid var(--choice-green);">
-                <b>${j.name}</b> - ${j.total}<br><small>${j.date}</small>
-                <div style="margin-top:10px; display:flex; gap:5px;">
-                    <button class="btn-small" onclick="loadJob(${j.id})" style="flex:1; background:var(--choice-blue-light); border:none; padding:8px; border-radius:5px; cursor:pointer;">Edit</button>
-                    <button class="btn-small" onclick="deleteJob(${j.id})" style="flex:1; background:var(--danger-light); color:var(--danger); border:none; padding:8px; border-radius:5px; cursor:pointer;">Delete</button>
-                </div>
-            </div>`).join('');
+        document.getElementById('historyList').innerHTML = filtered.map(j => `<div class="card" style="border-left:5px solid var(--choice-green);"><b>${j.name}</b> - ${j.total}<br><small>${j.date}</small><div style="margin-top:10px; display:flex; gap:5px;"><button class="btn-small" onclick="loadJob(${j.id})" style="flex:1; background:var(--choice-blue-light); border:none; padding:8px; border-radius:5px; cursor:pointer;">Edit</button><button class="btn-small" onclick="deleteJob(${j.id})" style="flex:1; background:var(--danger-light); color:var(--danger); border:none; padding:8px; border-radius:5px; cursor:pointer;">Delete</button></div></div>`).join('');
     }
 
     function loadJob(id) {
         const j = savedJobs.find(item => item.id === id);
         if(!j) return;
-        document.getElementById('custFirst').value = j.fName; document.getElementById('custLast').value = j.lName;
-        document.getElementById('custPhone').value = j.phone; document.getElementById('custEmail').value = j.email;
-        document.getElementById('custStreet').value = j.street; document.getElementById('custCity').value = j.city;
-        document.getElementById('custState').value = j.state; document.getElementById('custZip').value = j.zip;
-        currentTaxRate = j.taxRate || 0;
-        isManualTax = j.isManual || false;
-        document.getElementById('taxStatus').innerText = isManualTax ? "Method: Manual" : "Method: Auto";
-        currentRugs = [...j.rugs]; renderRugs(); updateLiveTotals(); switchTab('workspace');
+        editingJobId = j.id;
+        document.getElementById('custFirst').value = j.fName; document.getElementById('custLast').value = j.lName; document.getElementById('custPhone').value = j.phone; document.getElementById('custEmail').value = j.email; document.getElementById('custStreet').value = j.street; document.getElementById('custCity').value = j.city; document.getElementById('custState').value = j.state; document.getElementById('custZip').value = j.zip;
+        currentTaxRate = j.taxRate || 0; currentRugs = [...j.rugs]; renderRugs(); updateLiveTotals(); switchTab('workspace');
     }
 
-    function deleteJob(id) { if(confirm("Permanently delete?")) { savedJobs = savedJobs.filter(j => j.id !== id); localStorage.setItem('rugJobsMaster', JSON.stringify(savedJobs)); renderHistory(); } }
+    function deleteJob(id) { if(confirm("Delete?")) { savedJobs = savedJobs.filter(j => j.id !== id); localStorage.setItem('rugJobsMaster', JSON.stringify(savedJobs)); renderHistory(); } }
     function autoCap(el) { el.value = el.value.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '); }
     function formatPhoneNumber(el) {
         let v = el.value.replace(/\D/g,'');
