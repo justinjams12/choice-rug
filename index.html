@@ -152,7 +152,7 @@
                     <option value="1.25">Non-Skid Rubber ($1.25/sf)</option>
                 </select></div>
             </div>
-            <label>Loose Padding</label>
+            <label>Area Rug Pad (Loose)</label>
             <select id="padStyle" onchange="handleMutualExclusion('pad')">
                 <option value="0">No Pad</option>
                 <option value="1.15">Value Hold ($1.15/sf)</option>
@@ -164,11 +164,11 @@
             <div class="grid-2">
                 <div><label>Delivery (Flat)</label><select id="delv" onchange="updateLiveTotals()">
                     <option value="0">N/A</option>
-                    <option value="125">Standard ($125)</option>
+                    <option value="125">Standard Delivery ($125)</option>
                 </select></div>
                 <div><label>Install (Flat)</label><select id="inst" onchange="updateLiveTotals()">
                     <option value="0">N/A</option>
-                    <option value="100">Pro ($100)</option>
+                    <option value="100">Professional Install ($100)</option>
                 </select></div>
             </div>
             <button class="btn btn-add" id="btnAddRug" disabled onclick="addRug()">+ Add to Quote</button>
@@ -283,7 +283,6 @@
         const w = parseFloat(document.getElementById('wA').value) || 0;
         const pad = document.getElementById('padStyle').value;
         
-        // Safety Warning logic restored and fixed
         const padError = (pad !== "0" && w > 12.1);
         document.getElementById('padError').style.display = padError ? 'block' : 'none';
 
@@ -349,8 +348,8 @@
 
     function renderFees(d, i) {
         let html = "";
-        if(d > 0) html += `<div class="fee-tag"><span>Delivery Fee</span><b>$${d.toFixed(2)}</b></div>`;
-        if(i > 0) html += `<div class="fee-tag"><span>Installation Fee</span><b>$${i.toFixed(2)}</b></div>`;
+        if(d > 0) html += `<div class="fee-tag"><span>Standard Delivery</span><b>$${d.toFixed(2)}</b></div>`;
+        if(i > 0) html += `<div class="fee-tag"><span>Professional Install</span><b>$${i.toFixed(2)}</b></div>`;
         document.getElementById('feeList').innerHTML = html;
     }
 
@@ -377,8 +376,8 @@
             </tr>`).join('');
 
         const dVal = parseFloat(document.getElementById('delv').value), iVal = parseFloat(document.getElementById('inst').value);
-        if(dVal > 0) rows += `<tr style="background:#f8fafc"><td><b>Delivery</b></td><td>-</td><td>Standard</td><td style="text-align:right;">$${dVal.toFixed(2)}</td></tr>`;
-        if(iVal > 0) rows += `<tr style="background:#f8fafc"><td><b>Installation</b></td><td>-</td><td>Pro</td><td style="text-align:right;">$${iVal.toFixed(2)}</td></tr>`;
+        if(dVal > 0) rows += `<tr style="background:#f8fafc"><td><b>Standard Delivery</b></td><td>-</td><td>Standard</td><td style="text-align:right;">$${dVal.toFixed(2)}</td></tr>`;
+        if(iVal > 0) rows += `<tr style="background:#f8fafc"><td><b>Professional Install</b></td><td>-</td><td>Professional</td><td style="text-align:right;">$${iVal.toFixed(2)}</td></tr>`;
         
         document.getElementById('pdf-item-rows').innerHTML = rows;
         const sub = currentRugs.reduce((a, b) => a + b.cost, 0) + dVal + iVal;
