@@ -51,14 +51,12 @@
         .error-msg { color: var(--danger); font-size: 0.7rem; font-weight: bold; margin-bottom: 10px; display: none; }
 
         .room-tag { background: var(--choice-blue-light); padding: 12px; border-radius: 10px; margin-bottom: 8px; border-left: 4px solid var(--choice-green); }
-        .fee-tag { background: #f8fafc; padding: 8px 12px; border-radius: 8px; margin-bottom: 5px; border: 1px dashed #cbd5e1; display: flex; justify-content: space-between; font-size: 0.85rem; }
         .room-tag-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;}
         .room-tag-btns { display: flex; gap: 10px; }
         .btn-inline { background: none; border: none; font-size: 0.7rem; font-weight: bold; cursor: pointer; padding: 4px; border-radius: 4px;}
         .btn-edit { color: var(--choice-blue); }
         .btn-remove { color: var(--danger); }
 
-        /* Signature Toggle Styling */
         .sig-container { display: none; border: 2px dashed #cbd5e1; border-radius: 10px; background: #fff; margin-top: 10px; overflow: hidden; }
         .signature-pad { width: 100%; height: 140px; cursor: crosshair; }
         .sig-controls { display: flex; justify-content: space-between; padding: 5px 10px; background: #f8fafc; border-top: 1px solid #e2e8f0; }
@@ -260,7 +258,6 @@
 
         <div style="clear: both; margin-top: 80px;">
             <p style="font-size: 11px; color: #94a3b8; font-style: italic; margin-bottom: 20px;">Fabrication quotes valid for 30 days. Not responsible for defects in customer-owned material.</p>
-            
             <div class="pdf-auth-section">
                 <div class="pdf-sig-block">
                     <div class="pdf-sig-line">
@@ -288,7 +285,6 @@
     window.onload = () => {
         const canvas = document.getElementById('sig-pad');
         signaturePad = new SignaturePad(canvas, { penColor: "rgb(0, 0, 0)" });
-        
         function resizeCanvas() {
             const ratio = Math.max(window.devicePixelRatio || 1, 1);
             canvas.width = canvas.offsetWidth * ratio;
@@ -305,7 +301,6 @@
         const isChecked = document.getElementById('useSig').checked;
         container.style.display = isChecked ? 'block' : 'none';
         if(isChecked) {
-            // Force a resize check when revealed
             const canvas = document.getElementById('sig-pad');
             const ratio = Math.max(window.devicePixelRatio || 1, 1);
             canvas.width = canvas.offsetWidth * ratio;
@@ -317,7 +312,6 @@
     }
 
     function clearSig() { signaturePad.clear(); }
-
     function newQuote() { if(confirm("Clear builder?")) location.reload(); }
 
     function handleMutualExclusion(trigger) {
@@ -357,18 +351,14 @@
         const fields = ['custFirst','custLast','custPhone','custEmail','custStreet','custCity','custState','custZip','roomName','wA','lB'];
         const anySide = ['sideTop','sideBottom','sideLeft','sideRight'].some(id => document.getElementById(id).checked);
         const w = parseFloat(document.getElementById('wA').value) || 0;
-        
         const padSelect = document.getElementById('padStyle');
         const padOption = padSelect.options[padSelect.selectedIndex];
         const widthLimit = parseFloat(padOption.getAttribute('data-limit'));
-        
         const padError = (padSelect.value !== "0" && w > widthLimit);
         document.getElementById('padError').innerText = `⚠️ ${padOption.text.split(' (')[0]} is only available up to ${widthLimit}ft width.`;
         document.getElementById('padError').style.display = padError ? 'block' : 'none';
-
         const allFieldsFilled = fields.every(id => document.getElementById(id).value.trim() !== "");
         document.getElementById('btnAddRug').disabled = !allFieldsFilled || !anySide || padError;
-        
         updateLiveTotals();
     }
 
@@ -380,14 +370,11 @@
         const eR = parseFloat(document.getElementById('edgeStyle').value) || 0;
         const bR = parseFloat(document.getElementById('backingStyle').value) || 0;
         const pR = parseFloat(document.getElementById('padStyle').value) || 0;
-        
         const activeCost = (activeLft * eR) + ((w*l)*bR) + ((w*l)*pR);
         const d = parseFloat(document.getElementById('delv').value) || 0;
         const i = parseFloat(document.getElementById('inst').value) || 0;
-        
         const subtotal = rugSub + activeCost + d + i;
         const total = subtotal + (subtotal * currentTaxRate);
-        
         document.getElementById('displayTotal').innerText = `$${total.toFixed(2)}`;
         document.getElementById('taxInfo').innerText = `Subtotal: $${subtotal.toFixed(2)} | Tax: $${(subtotal*currentTaxRate).toFixed(2)}`;
         renderFees(d, i);
@@ -397,11 +384,9 @@
         const w = parseFloat(document.getElementById('wA').value), l = parseFloat(document.getElementById('lB').value);
         const lft = calculateLft();
         const e = document.getElementById('edgeStyle'), b = document.getElementById('backingStyle'), p = document.getElementById('padStyle');
-        
         const edgeName = e.options[e.selectedIndex].text.split(' ($')[0];
         const backingName = b.options[b.selectedIndex].text.split(' ($')[0];
         const padName = p.options[p.selectedIndex].text.split(' ($')[0];
-
         const cost = (lft * parseFloat(e.value)) + ((w*l) * parseFloat(b.value)) + ((w*l) * parseFloat(p.value));
         
         let sides = [];
@@ -417,7 +402,9 @@
         });
         
         renderRugs();
+        // Clear inputs and RESET sides to default all checked
         ['roomName','wA','lB'].forEach(id => document.getElementById(id).value = "");
+        ['sideTop','sideBottom','sideLeft','sideRight'].forEach(id => document.getElementById(id).checked = true);
         validateInputs();
     }
 
@@ -440,8 +427,20 @@
 
     function editRug(i) {
         const r = currentRugs[i];
-        document.getElementById('roomName').value = r.name; document.getElementById('wA').value = r.w; document.getElementById('lB').value = r.l;
-        currentRugs.splice(i,1); renderRugs(); validateInputs();
+        document.getElementById('roomName').value = r.name; 
+        document.getElementById('wA').value = r.w; 
+        document.getElementById('lB').value = r.l;
+        
+        // Match checkboxes to the saved sides of the rug being edited
+        const sideStr = r.sides;
+        document.getElementById('sideTop').checked = sideStr.includes("Top");
+        document.getElementById('sideBottom').checked = sideStr.includes("Bottom");
+        document.getElementById('sideLeft').checked = sideStr.includes("Left");
+        document.getElementById('sideRight').checked = sideStr.includes("Right");
+
+        currentRugs.splice(i,1); 
+        renderRugs(); 
+        validateInputs();
     }
 
     function removeRug(i) { currentRugs.splice(i,1); renderRugs(); updateLiveTotals(); }
