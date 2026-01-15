@@ -321,6 +321,12 @@
         const w = parseFloat(document.getElementById('wA').value), l = parseFloat(document.getElementById('lB').value);
         const lft = calculateLft();
         const e = document.getElementById('edgeStyle'), b = document.getElementById('backingStyle'), p = document.getElementById('padStyle');
+        
+        // Correctly capture names for display
+        const edgeName = e.options[e.selectedIndex].text.split(' ($')[0];
+        const backingName = b.options[b.selectedIndex].text.split(' ($')[0];
+        const padName = p.options[p.selectedIndex].text.split(' ($')[0];
+
         const cost = (lft * parseFloat(e.value)) + ((w*l) * parseFloat(b.value)) + ((w*l) * parseFloat(p.value));
         
         let sides = [];
@@ -331,8 +337,8 @@
 
         currentRugs.push({ 
             name: document.getElementById('roomName').value, w, l, lft, sqft: (w*l),
-            edge: e.options[e.selectedIndex].text, backing: b.options[b.selectedIndex].text, 
-            pad: p.options[p.selectedIndex].text, cost, sides: sides.join(", ")
+            edge: edgeName, backing: backingName, 
+            pad: padName, cost, sides: sides.join(", ")
         });
         
         renderRugs();
@@ -344,7 +350,7 @@
         document.getElementById('roomList').innerHTML = currentRugs.map((r, i) => `
             <div class="room-tag">
                 <div class="room-tag-header"><b>${r.name}</b><div class="room-tag-btns"><button class="btn-inline btn-edit" onclick="editRug(${i})">EDIT</button><button class="btn-inline btn-remove" onclick="removeRug(${i})">X</button></div></div>
-                <div style="font-size: 0.75rem; opacity: 0.7;">${r.w}'x${r.l}' | Edges: ${r.sides} (${r.lft} lft)</div>
+                <div style="font-size: 0.75rem; opacity: 0.7;">${r.w}'x${r.l}' | ${r.edge} Edges: ${r.sides} (${r.lft} lft)</div>
                 <div style="font-weight:700; color:var(--choice-blue);">$${r.cost.toFixed(2)}</div>
             </div>`).join('');
         document.getElementById('summaryCard').style.display = 'block';
@@ -375,7 +381,7 @@
             <tr>
                 <td><b>${r.name}</b></td>
                 <td>${r.sqft} SF<br>${r.lft} LFT</td>
-                <td><small>${r.edge}<br>Sides: ${r.sides}<br>Backing: ${r.backing}<br>Pad: ${r.pad}</small></td>
+                <td><small>Edge: ${r.edge}<br>Sides: ${r.sides}<br>Backing: ${r.backing}<br>Pad: ${r.pad}</small></td>
                 <td style="text-align:right; font-weight:700;">$${r.cost.toFixed(2)}</td>
             </tr>`).join('');
 
