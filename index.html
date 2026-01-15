@@ -193,7 +193,7 @@
     <div class="pdf-header-wrapper">
         <img src="choice-floors-logo.png" class="pdf-logo-img">
         <div class="pdf-title-block">
-            <h1 class="pdf-title-text">Rug Fabrication Quote</h1>
+            <h1 class="pdf-title-text">Choice Floors Rug Estimate</h1>
             <p style="margin:5px 0 0 0; font-weight: 600; font-size: 13px;">Date: <span id="pdf-date"></span></p>
         </div>
     </div>
@@ -204,8 +204,12 @@
         </svg>
     </div>
     <div class="pdf-body">
-        <h2 id="pdf-client-name" style="margin:0;"></h2>
-        <p id="pdf-client-address" style="margin:5px 0 20px 0; color: #475569;"></p>
+        <div style="margin-bottom: 25px;">
+            <h2 id="pdf-client-name" style="margin:0; color: var(--choice-blue);"></h2>
+            <p id="pdf-client-address" style="margin:5px 0 2px 0; color: #475569; font-weight: 600;"></p>
+            <p id="pdf-client-contact" style="margin:0; color: #475569; font-size: 13px;"></p>
+        </div>
+        
         <p style="font-size: 11px; font-weight: 800; color: var(--danger);">* PRICING EXCLUDES CARPET MATERIAL COST *</p>
 
         <table class="pdf-table">
@@ -322,7 +326,6 @@
         const lft = calculateLft();
         const e = document.getElementById('edgeStyle'), b = document.getElementById('backingStyle'), p = document.getElementById('padStyle');
         
-        // Correctly capture names for display
         const edgeName = e.options[e.selectedIndex].text.split(' ($')[0];
         const backingName = b.options[b.selectedIndex].text.split(' ($')[0];
         const padName = p.options[p.selectedIndex].text.split(' ($')[0];
@@ -374,7 +377,8 @@
     async function generatePDF() {
         const { jsPDF } = window.jspdf;
         document.getElementById('pdf-client-name').innerText = `${document.getElementById('custFirst').value} ${document.getElementById('custLast').value}`;
-        document.getElementById('pdf-client-address').innerText = `${document.getElementById('custStreet').value}, ${document.getElementById('custCity').value}, ${document.getElementById('custState').value}`;
+        document.getElementById('pdf-client-address').innerText = `${document.getElementById('custStreet').value}, ${document.getElementById('custCity').value}, ${document.getElementById('custState').value} ${document.getElementById('custZip').value}`;
+        document.getElementById('pdf-client-contact').innerText = `Phone: ${document.getElementById('custPhone').value} | Email: ${document.getElementById('custEmail').value}`;
         document.getElementById('pdf-date').innerText = new Date().toLocaleDateString();
         
         let rows = currentRugs.map(r => `
@@ -399,7 +403,7 @@
         const canvas = await html2canvas(document.getElementById('pdf-template'), { scale: 2 });
         const pdf = new jsPDF('p', 'mm', 'a4');
         pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
-        pdf.save(`Fabrication_Quote_${document.getElementById('custLast').value}.pdf`);
+        pdf.save(`Choice_Floors_Estimate_${document.getElementById('custLast').value}.pdf`);
     }
 
     function saveJob() {
