@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Choice Floors - Custom Rug Pro</title>
+    <title>Choice Floors - Rug Fabrication Pro</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
@@ -13,7 +13,6 @@
             --choice-blue-light: #eef4f9;
             --text: #1e293b;
             --danger: #ef4444;
-            --danger-light: #fee2e2;
         }
         body { font-family: 'Inter', system-ui, sans-serif; margin: 0; background: #f1f5f9; color: var(--text); padding-bottom: 60px; }
         .app-shell { width: 100%; max-width: 480px; margin: auto; padding: 15px; box-sizing: border-box; }
@@ -38,6 +37,10 @@
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .grid-3 { display: grid; grid-template-columns: 2.5fr 1fr 1.5fr; gap: 10px; }
 
+        .side-selector { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 15px; background: #f8fafc; padding: 12px; border-radius: 10px; border: 1px solid #e2e8f0; }
+        .side-option { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
+        .side-option input { width: auto; margin: 0; cursor: pointer; }
+
         .btn { width: 100%; padding: 16px; border-radius: 10px; border: none; font-weight: 800; cursor: pointer; transition: all 0.2s; }
         .btn-add { background: var(--choice-blue); color: white; }
         .btn-add:disabled { background: #cbd5e1; cursor: not-allowed; opacity: 0.6; }
@@ -45,35 +48,25 @@
         .btn-pdf { background: #334155; color: white; margin-top: 10px; }
 
         .room-tag { background: var(--choice-blue-light); padding: 12px; border-radius: 10px; margin-bottom: 8px; border-left: 4px solid var(--choice-green); }
+        .fee-tag { background: #f8fafc; padding: 8px 12px; border-radius: 8px; margin-bottom: 5px; border: 1px dashed #cbd5e1; display: flex; justify-content: space-between; font-size: 0.85rem; }
         .room-tag-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;}
         .room-tag-btns { display: flex; gap: 10px; }
         .btn-inline { background: none; border: none; font-size: 0.7rem; font-weight: bold; cursor: pointer; padding: 4px; border-radius: 4px;}
         .btn-edit { color: var(--choice-blue); }
         .btn-remove { color: var(--danger); }
 
-        .error-msg { color: var(--danger); font-size: 0.75rem; font-weight: bold; margin-bottom: 10px; display: none; background: var(--danger-light); padding: 8px; border-radius: 6px; }
-
-        /* PDF TEMPLATE STYLING */
+        /* PDF TEMPLATE */
         #pdf-template { position: absolute; left: -9999px; width: 850px; background: #fff; color: #1e293b; padding: 0; }
         .pdf-header-wrapper { background: white; padding: 40px 60px 0 60px; display: flex; justify-content: space-between; align-items: flex-end; }
         .pdf-logo-img { height: 95px; width: auto; margin-bottom: 10px; }
         .pdf-title-block { text-align: right; padding-bottom: 15px; }
         .pdf-title-text { color: var(--choice-blue); margin: 0; font-size: 26px; font-weight: 900; text-transform: uppercase; }
-        
         .pdf-wave-container { line-height: 0; margin-top: -1px; width: 100%; position: relative; }
         .pdf-body { padding: 40px 60px; }
-        .pdf-label { font-size: 10px; font-weight: 900; color: var(--choice-blue); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; }
-        
         .pdf-table { width: 100%; border-collapse: collapse; margin: 25px 0; }
         .pdf-table th { text-align: left; padding: 14px; background: #f8fafc; border-bottom: 2px solid #e2e8f0; font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 800; }
         .pdf-table td { padding: 14px; border-bottom: 1px solid #f1f5f9; font-size: 13px; vertical-align: top; }
-        .pdf-spec-list { list-style: none; padding: 0; margin: 0; font-size: 11px; color: #475569; }
-        .pdf-spec-list li { margin-bottom: 3px; }
-        .math-detail { font-size: 9px; color: #94a3b8; margin-top: 4px; display: block; }
-        
-        .pdf-table tr:nth-child(even) { background: #fbfcfd; }
-        .pdf-total-row { display: flex; justify-content: flex-end; margin-top: 30px; }
-        .pdf-total-card { background: var(--choice-blue-light); padding: 25px; border-radius: 12px; width: 280px; text-align: right; border: 1px solid #dbeafe; }
+        .pdf-total-card { background: var(--choice-blue-light); padding: 25px; border-radius: 12px; width: 280px; float: right; text-align: right; border: 1px solid #dbeafe; }
     </style>
 </head>
 <body>
@@ -84,95 +77,90 @@
     </header>
 
     <div class="tabs">
-        <button class="tab-btn active" id="tab-workspace" onclick="switchTab('workspace')">Rug Design</button>
-        <button class="tab-btn" id="tab-history" onclick="switchTab('history')">Saved Rugs</button>
+        <button class="tab-btn active" id="tab-workspace" onclick="switchTab('workspace')">Quote Builder</button>
+        <button class="tab-btn" id="tab-history" onclick="switchTab('history')">History</button>
     </div>
 
     <div id="workspace" class="view active">
         <div class="live-result">
-            <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; opacity: 0.9; margin-bottom: 5px;">Active Quote Total</div>
+            <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; opacity: 0.9; margin-bottom: 5px;">Quote Total (Tax Inc.)</div>
             <div id="displayTotal" style="font-size: 2.2rem; font-weight: 900;">$0.00</div>
-            <div id="taxInfo" style="font-size: 0.75rem; opacity: 0.8;">Enter Zip for Tax...</div>
-            <div class="tax-control">
-                <span id="taxStatus">Method: Auto</span> | 
-                <button class="tax-btn" onclick="manualTaxOverride()">Manual Override</button>
-            </div>
+            <div id="taxInfo" style="font-size: 0.75rem; opacity: 0.8;">Enter details for tax...</div>
         </div>
 
-        <button class="btn" style="background: #e2e8f0; color: #475569; margin-bottom: 15px; padding: 10px; font-size: 0.8rem;" onclick="newQuote()">↺ Clear & New Quote</button>
-
         <div class="card">
-            <div class="section-title">Customer Contact</div>
+            <div class="section-title">Client Details</div>
             <div class="grid-2">
                 <input type="text" id="custFirst" placeholder="First Name *" oninput="autoCap(this); validateInputs()">
                 <input type="text" id="custLast" placeholder="Last Name *" oninput="autoCap(this); validateInputs()">
             </div>
-            <div class="grid-2">
-                <input type="tel" id="custPhone" placeholder="Phone *" maxlength="14" oninput="formatPhoneNumber(this); validateInputs()">
-                <input type="email" id="custEmail" placeholder="Email *" oninput="validateInputs()">
-            </div>
-            <input type="text" id="custStreet" placeholder="Street Address *" oninput="autoCap(this); validateInputs()">
             <div class="grid-3">
                 <input type="text" id="custCity" placeholder="City *" oninput="autoCap(this); validateInputs()">
                 <select id="custState" onchange="lookupTax(); validateInputs()">
                     <option value="" disabled selected>ST *</option>
-                    <option value="AL">AL</option><option value="AZ">AZ</option><option value="CA">CA</option><option value="CO">CO</option><option value="FL">FL</option><option value="GA">GA</option><option value="IL">IL</option><option value="IN">IN</option><option value="KS">KS</option><option value="KY">KY</option><option value="MD">MD</option><option value="MI">MI</option><option value="NJ">NJ</option><option value="NY">NY</option><option value="NC">NC</option><option value="OH">OH</option><option value="PA">PA</option><option value="TX">TX</option><option value="VA">VA</option><option value="WA">WA</option>
+                    <option value="PA">PA</option><option value="DE">DE</option><option value="MD">MD</option><option value="NJ">NJ</option>
                 </select>
                 <input type="text" id="custZip" placeholder="Zip *" maxlength="5" oninput="handleZipChange()">
             </div>
         </div>
 
         <div class="card">
-            <div class="section-title">Rug Specifications</div>
-            <input type="text" id="roomName" placeholder="Room Location (e.g. Master Bedroom) *" oninput="autoCap(this); validateInputs()">
+            <div class="section-title">Rug Dimensions & Finishing</div>
+            <input type="text" id="roomName" placeholder="Room/Area Name *" oninput="autoCap(this); validateInputs()">
             <div class="grid-2">
                 <div><label>Width (ft) *</label><input type="number" id="wA" oninput="validateInputs()"></div>
                 <div><label>Length (ft) *</label><input type="number" id="lB" oninput="validateInputs()"></div>
             </div>
-            <div id="widthError" class="error-msg"></div>
+
+            <label>Finished Sides (Check to add Edge Work)</label>
+            <div class="side-selector">
+                <label class="side-option"><input type="checkbox" id="sideTop" checked onchange="validateInputs()"> Top (Width)</label>
+                <label class="side-option"><input type="checkbox" id="sideBottom" checked onchange="validateInputs()"> Bottom (Width)</label>
+                <label class="side-option"><input type="checkbox" id="sideLeft" checked onchange="validateInputs()"> Left (Length)</label>
+                <label class="side-option"><input type="checkbox" id="sideRight" checked onchange="validateInputs()"> Right (Length)</label>
+            </div>
             
             <div class="grid-2">
-                <div><label>Edge (Per Lft)</label><select id="edgeStyle" onchange="validateInputs()">
-                    <option value="2.50">Bind ($2.50/Lft)</option>
-                    <option value="6.00">Serge ($6.00/Lft)</option>
+                <div><label>Edge Method</label><select id="edgeStyle" onchange="validateInputs()">
+                    <option value="2.50">Binding ($2.50/Lft)</option>
+                    <option value="6.00">Serging ($6.00/Lft)</option>
                 </select></div>
-                <div><label>Attached Backing (Per SF)</label><select id="backingStyle" onchange="handleMutualExclusion('backing')">
+                <div><label>Applied Backing</label><select id="backingStyle" onchange="handleMutualExclusion('backing')">
                     <option value="0">None</option>
                     <option value="1.50">Soft Felt ($1.50/sf)</option>
                     <option value="2.25">Teebaud ($2.25/sf)</option>
-                    <option value="2.00">Quad Back ($2.00/sf)</option>
                 </select></div>
             </div>
-            <label>Area Rug Pad (Loose - Per SF)</label>
+            <label>Loose Padding</label>
             <select id="padStyle" onchange="handleMutualExclusion('pad')">
                 <option value="0">No Pad</option>
-                <option value="1.15">Value Hold ($1.15/sf) [Max 12']</option>
-                <option value="2.35">Double Grip ($2.35/sf) [Max 12']</option>
-                <option value="3.10">Teebaud ($3.10/sf) [Max 9']</option>
+                <option value="1.15">Value Hold ($1.15/sf)</option>
+                <option value="2.35">Double Grip ($2.35/sf)</option>
             </select>
             <div class="grid-2">
-                <div><label>Delivery (Flat)</label><select id="delv" onchange="validateInputs()">
-                    <option value="0">No Delivery</option>
-                    <option value="125">Standard Delivery ($125)</option>
+                <div><label>Delivery</label><select id="delv" onchange="updateLiveTotals()">
+                    <option value="0">N/A</option>
+                    <option value="125">Standard ($125)</option>
                 </select></div>
-                <div><label>Install (Flat)</label><select id="inst" onchange="validateInputs()">
-                    <option value="0">No Install</option>
-                    <option value="100">Professional Install ($100)</option>
+                <div><label>Install</label><select id="inst" onchange="updateLiveTotals()">
+                    <option value="0">N/A</option>
+                    <option value="100">Pro ($100)</option>
                 </select></div>
             </div>
-            <button class="btn btn-add" id="btnAddRug" disabled onclick="addRug()">+ Add Rug to Quote</button>
+            <button class="btn btn-add" id="btnAddRug" disabled onclick="addRug()">+ Add to Quote</button>
         </div>
 
         <div class="card" id="summaryCard" style="display:none;">
-            <div class="section-title">Order Items</div>
+            <div class="section-title">Quote Summary</div>
             <div id="roomList"></div>
-            <button class="btn btn-save" onclick="saveJob()">Save Order History</button>
+            <div id="feeList"></div>
+            <button class="btn btn-save" onclick="saveJob()">Save Order</button>
             <button class="btn btn-pdf" onclick="generatePDF()">Download Professional PDF</button>
         </div>
     </div>
 
     <div id="history" class="view">
-        <input type="text" id="jobSearch" class="search-input" placeholder="🔍 Search Client Last Name..." oninput="renderHistory()">
+        <input type="text" id="jobSearch" class="search-input" placeholder="Search Last Name..." oninput="renderHistory()">
         <div id="historyList"></div>
     </div>
 </div>
@@ -181,65 +169,38 @@
     <div class="pdf-header-wrapper">
         <img src="choice-floors-logo.png" class="pdf-logo-img">
         <div class="pdf-title-block">
-            <h1 class="pdf-title-text">Choice Floors Rug Estimate</h1>
-            <p style="margin:5px 0 0 0; font-weight: 600; font-size: 13px; opacity: 0.6;">Date: <span id="pdf-date"></span></p>
+            <h1 class="pdf-title-text">Rug Fabrication Quote</h1>
+            <p style="font-size: 13px;">Date: <span id="pdf-date"></span></p>
         </div>
     </div>
-
     <div class="pdf-wave-container">
         <svg viewBox="0 0 850 80" xmlns="http://www.w3.org/2000/svg">
             <path d="M0,40 C200,80 400,0 600,40 C800,80 850,50 850,50 L850,80 L0,80 Z" fill="#9dbb4c" opacity="0.8"/>
             <path d="M0,50 C200,10 400,90 600,50 C800,10 850,40 850,40 L850,80 L0,80 Z" fill="#2b6291"/>
         </svg>
     </div>
-
     <div class="pdf-body">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
-            <div>
-                <div class="pdf-label">Customer Information</div>
-                <h2 id="pdf-client-name" style="margin:0; font-size: 22px; font-weight: 800;"></h2>
-                <p id="pdf-client-address" style="margin:6px 0 3px 0; color: #475569; line-height: 1.4; font-size: 14px;"></p>
-                <p id="pdf-client-contact" style="margin:0; color: #475569; font-weight: 500; font-size: 14px;"></p>
-            </div>
-            <div style="text-align: right;"></div>
-        </div>
+        <h2 id="pdf-client-name"></h2>
+        <p id="pdf-client-address"></p>
+        <p style="font-size: 10px; color: var(--danger);">* PRICING EXCLUDES CARPET MATERIAL *</p>
 
         <table class="pdf-table">
             <thead>
                 <tr>
-                    <th style="width: 25%;">Room / Location</th>
-                    <th style="width: 15%;">Dimensions</th>
-                    <th style="width: 40%;">Specifications</th>
+                    <th style="width: 30%;">Room/Area</th>
+                    <th style="width: 20%;">Calculations</th>
+                    <th style="width: 30%;">Finishing Specs</th>
                     <th style="width: 20%; text-align: right;">Cost</th>
                 </tr>
             </thead>
             <tbody id="pdf-item-rows"></tbody>
         </table>
 
-        <div class="pdf-total-row">
+        <div style="overflow: auto; margin-top: 20px;">
             <div class="pdf-total-card">
-                <div style="display:flex; justify-content:space-between; margin-bottom: 6px; font-size: 13px; color: #475569;">
-                    <span>Subtotal</span>
-                    <span id="pdf-subtotal" style="font-weight: 600;"></span>
-                </div>
-                <div style="display:flex; justify-content:space-between; margin-bottom: 15px; font-size: 13px; color: #475569;">
-                    <span>Tax (<span id="pdf-tax-rate"></span>%)</span>
-                    <span id="pdf-tax-amount" style="font-weight: 600;"></span>
-                </div>
-                <div style="display:flex; justify-content:space-between; border-top: 2px solid #cbd5e1; padding-top: 10px; color: var(--choice-blue);">
-                    <span style="font-weight: 900; text-transform: uppercase; font-size: 11px; align-self: center; letter-spacing: 1px;">Estimate Total</span>
-                    <span id="pdf-total-display" style="font-size: 28px; font-weight: 900;"></span>
-                </div>
-            </div>
-        </div>
-
-        <div style="margin-top: 70px; display: grid; grid-template-columns: 1.2fr 1fr; gap: 60px; align-items: flex-end;">
-            <div style="font-size: 11px; color: #94a3b8; line-height: 1.6; border-left: 3px solid var(--choice-green); padding-left: 15px; font-style: italic;">
-                Pricing includes fabrication labor and components. Estimates valid for 30 days. Final physical measurements may be required upon carpet selection.
-            </div>
-            <div>
-                <div style="border-bottom: 2px solid #1e293b; height: 35px; width: 100%;"></div>
-                <p style="margin:8px 0 0 0; font-size: 11px; font-weight: 800; color: var(--choice-blue); text-transform: uppercase; letter-spacing: 1px;">Customer Signature & Date</p>
+                <div>Subtotal: <span id="pdf-subtotal"></span></div>
+                <div>Tax (<span id="pdf-tax-rate"></span>%): <span id="pdf-tax-amount"></span></div>
+                <div style="border-top: 1px solid #cbd5e1; margin-top: 10px; padding-top: 10px; font-size: 22px; font-weight: 900; color: var(--choice-blue);">Total: <span id="pdf-total-display"></span></div>
             </div>
         </div>
     </div>
@@ -249,177 +210,144 @@
     let currentRugs = [];
     let savedJobs = JSON.parse(localStorage.getItem('rugJobsMaster')) || [];
     let currentTaxRate = 0.00;
-    let isManualTax = false;
-    let editingJobId = null;
-
-    function newQuote() { if(confirm("Clear current work?")) location.reload(); }
 
     function handleMutualExclusion(trigger) {
         const b = document.getElementById('backingStyle'), p = document.getElementById('padStyle');
-        if (trigger === 'backing' && b.value !== "0") { p.value = "0"; p.disabled = true; } 
-        else if (trigger === 'backing') { p.disabled = false; }
-        if (trigger === 'pad' && p.value !== "0") { b.value = "0"; b.disabled = true; } 
-        else if (trigger === 'pad') { b.disabled = false; }
+        if (trigger === 'backing' && b.value !== "0") p.value = "0";
+        if (trigger === 'pad' && p.value !== "0") b.value = "0";
         validateInputs();
+    }
+
+    function calculateLft() {
+        const w = parseFloat(document.getElementById('wA').value) || 0;
+        const l = parseFloat(document.getElementById('lB').value) || 0;
+        let lft = 0;
+        if(document.getElementById('sideTop').checked) lft += w;
+        if(document.getElementById('sideBottom').checked) lft += w;
+        if(document.getElementById('sideLeft').checked) lft += l;
+        if(document.getElementById('sideRight').checked) lft += l;
+        return lft;
+    }
+
+    function lookupTax() {
+        const state = document.getElementById('custState').value;
+        const rates = {"PA":0.06, "DE":0.00, "MD":0.06, "NJ":0.066};
+        currentTaxRate = rates[state] || 0;
+        updateLiveTotals();
     }
 
     function handleZipChange() { if(document.getElementById('custZip').value.length === 5) lookupTax(); validateInputs(); }
 
-    function lookupTax() {
-        if (isManualTax) return;
-        const state = document.getElementById('custState').value, zip = document.getElementById('custZip').value;
-        const rates = {"AL":0.04,"AZ":0.056,"CA":0.0725,"CO":0.029,"FL":0.06,"GA":0.04,"IL":0.0625,"IN":0.07,"KS":0.065,"KY":0.06,"MD":0.06,"MI":0.06,"NJ":0.06625,"NY":0.04,"NC":0.0475,"OH":0.0575,"PA":0.06,"TX":0.0625,"VA":0.053,"WA":0.065};
-        let rate = rates[state] || 0.00; 
-        if(state === "PA" && zip.startsWith("19")) rate = 0.08;
-        currentTaxRate = rate; validateInputs();
-    }
-
-    function manualTaxOverride() {
-        const nr = prompt("Enter tax rate (e.g. 8.25):");
-        if(nr) { currentTaxRate = parseFloat(nr)/100; isManualTax = true; validateInputs(); }
-    }
-
     function validateInputs() {
-        const w = parseFloat(document.getElementById('wA').value) || 0;
-        const padType = document.getElementById('padStyle').value;
-        const fields = ['custFirst','custLast','custPhone','custEmail','custStreet','custCity','custState','custZip','roomName','wA','lB'];
-        const allFilled = fields.every(id => document.getElementById(id).value.trim() !== "");
-        
-        let widthError = "";
-        if (padType === "1.15" && w > 12) widthError = "Value Hold max width is 12ft.";
-        if (padType === "2.35" && w > 12) widthError = "Double Grip max width is 12ft.";
-        if (padType === "3.10" && w > 9) widthError = "Teebaud max width is 9ft.";
-
-        const errEl = document.getElementById('widthError');
-        errEl.innerText = widthError ? "⚠️ " + widthError : "";
-        errEl.style.display = widthError ? 'block' : 'none';
-        
-        document.getElementById('btnAddRug').disabled = !allFilled || !!widthError;
+        const fields = ['custFirst','custLast','custState','custZip','roomName','wA','lB'];
+        const anySideChecked = ['sideTop','sideBottom','sideLeft','sideRight'].some(id => document.getElementById(id).checked);
+        document.getElementById('btnAddRug').disabled = !fields.every(id => document.getElementById(id).value.trim() !== "") || !anySideChecked;
         updateLiveTotals();
     }
 
     function updateLiveTotals() {
-        const existingSub = currentRugs.reduce((a, b) => a + b.cost, 0);
+        const rugSub = currentRugs.reduce((a, b) => a + b.cost, 0);
+        const activeLft = calculateLft();
         const w = parseFloat(document.getElementById('wA').value) || 0;
         const l = parseFloat(document.getElementById('lB').value) || 0;
         const eR = parseFloat(document.getElementById('edgeStyle').value) || 0;
         const bR = parseFloat(document.getElementById('backingStyle').value) || 0;
         const pR = parseFloat(document.getElementById('padStyle').value) || 0;
         
-        const activeRugCost = (w > 0 && l > 0) ? ((w*2+l*2)*eR + (w*l)*bR + (w*l)*pR) : 0;
-        const deliveryFlat = parseFloat(document.getElementById('delv').value) || 0;
-        const installFlat = parseFloat(document.getElementById('inst').value) || 0;
+        const activeCost = (activeLft * eR) + ((w*l)*bR) + ((w*l)*pR);
+        const d = parseFloat(document.getElementById('delv').value) || 0;
+        const i = parseFloat(document.getElementById('inst').value) || 0;
         
-        const totalSub = existingSub + activeRugCost + deliveryFlat + installFlat;
-        const totalTax = totalSub * currentTaxRate;
+        const subtotal = rugSub + activeCost + d + i;
+        const tax = subtotal * currentTaxRate;
         
-        document.getElementById('displayTotal').innerText = `$${(totalSub + totalTax).toFixed(2)}`;
-        document.getElementById('taxInfo').innerText = `Sub: $${totalSub.toFixed(2)} | Tax (${(currentTaxRate*100).toFixed(2)}%): $${totalTax.toFixed(2)}`;
+        document.getElementById('displayTotal').innerText = `$${(subtotal + tax).toFixed(2)}`;
+        document.getElementById('taxInfo').innerText = `Subtotal: $${subtotal.toFixed(2)} | Tax: $${tax.toFixed(2)}`;
+        renderFees(d, i);
     }
 
     function addRug() {
         const w = parseFloat(document.getElementById('wA').value), l = parseFloat(document.getElementById('lB').value);
+        const lft = calculateLft();
         const e = document.getElementById('edgeStyle'), b = document.getElementById('backingStyle'), p = document.getElementById('padStyle');
+        const cost = (lft * parseFloat(e.value)) + ((w*l) * parseFloat(b.value)) + ((w*l) * parseFloat(p.value));
         
-        const perim = (w * 2) + (l * 2);
-        const sqft = w * l;
-        const cost = (perim * parseFloat(e.value)) + (sqft * parseFloat(b.value)) + (sqft * parseFloat(p.value));
-        
+        let sides = [];
+        if(document.getElementById('sideTop').checked) sides.push("Top");
+        if(document.getElementById('sideBottom').checked) sides.push("Bottom");
+        if(document.getElementById('sideLeft').checked) sides.push("Left");
+        if(document.getElementById('sideRight').checked) sides.push("Right");
+
         currentRugs.push({ 
-            name: document.getElementById('roomName').value, w, l, perim, sqft,
-            edge: e.options[e.selectedIndex].text, edgeVal: e.value, 
-            backing: b.options[b.selectedIndex].text, backingVal: b.value, 
-            pad: p.options[p.selectedIndex].text, padVal: p.value, 
-            cost 
+            name: document.getElementById('roomName').value, w, l, lft, sqft: (w*l),
+            edge: e.options[e.selectedIndex].text, backing: b.options[b.selectedIndex].text, 
+            pad: p.options[p.selectedIndex].text, cost, sides: sides.join(", ")
         });
         
         renderRugs();
         ['roomName','wA','lB'].forEach(id => document.getElementById(id).value = "");
-        b.value = "0"; p.value = "0"; b.disabled = false; p.disabled = false;
-        validateInputs();
+        updateLiveTotals();
     }
 
     function renderRugs() {
         document.getElementById('roomList').innerHTML = currentRugs.map((r, i) => `
             <div class="room-tag">
-                <div class="room-tag-header"><b>${r.name}</b><div class="room-tag-btns"><button class="btn-inline btn-edit" onclick="editRug(${i})">EDIT</button><button class="btn-inline btn-remove" onclick="removeRug(${i})">REMOVE</button></div></div>
-                <div style="font-size: 0.8rem; opacity: 0.8;">${r.w}'x${r.l}' (${r.sqft} sqft | ${r.perim} lft)</div>
-                <div style="font-weight:bold; color:var(--choice-blue);">$${r.cost.toFixed(2)}</div>
+                <div class="room-tag-header"><b>${r.name}</b><button class="btn-inline btn-remove" onclick="removeRug(${i})">X</button></div>
+                <div style="font-size: 0.75rem; opacity: 0.7;">${r.w}'x${r.l}' | Edges: ${r.sides} (${r.lft} lft)</div>
+                <div style="font-weight:700; color:var(--choice-blue);">$${r.cost.toFixed(2)}</div>
             </div>`).join('');
-        document.getElementById('summaryCard').style.display = currentRugs.length ? 'block' : 'none';
+        document.getElementById('summaryCard').style.display = 'block';
     }
 
-    function editRug(i) {
-        const r = currentRugs[i];
-        document.getElementById('roomName').value = r.name; document.getElementById('wA').value = r.w; document.getElementById('lB').value = r.l;
-        document.getElementById('edgeStyle').value = r.edgeVal; document.getElementById('backingStyle').value = r.backingVal; document.getElementById('padStyle').value = r.padVal;
-        currentRugs.splice(i,1); renderRugs(); handleMutualExclusion(r.backingVal !== "0" ? 'backing' : 'pad');
+    function renderFees(d, i) {
+        let html = "";
+        if(d > 0) html += `<div class="fee-tag"><span>Delivery</span><b>$${d.toFixed(2)}</b></div>`;
+        if(i > 0) html += `<div class="fee-tag"><span>Installation</span><b>$${i.toFixed(2)}</b></div>`;
+        document.getElementById('feeList').innerHTML = html;
     }
 
-    function removeRug(i) { if(confirm("Remove room?")) { currentRugs.splice(i,1); renderRugs(); validateInputs(); } }
+    function removeRug(i) { currentRugs.splice(i,1); renderRugs(); updateLiveTotals(); }
 
     async function generatePDF() {
         const { jsPDF } = window.jspdf;
         document.getElementById('pdf-client-name').innerText = `${document.getElementById('custFirst').value} ${document.getElementById('custLast').value}`;
-        document.getElementById('pdf-client-address').innerText = `${document.getElementById('custStreet').value}, ${document.getElementById('custCity').value} ${document.getElementById('custState').value} ${document.getElementById('custZip').value}`;
-        document.getElementById('pdf-client-contact').innerText = `${document.getElementById('custPhone').value} | ${document.getElementById('custEmail').value}`;
+        document.getElementById('pdf-client-address').innerText = `${document.getElementById('custCity').value}, ${document.getElementById('custState').value}`;
         document.getElementById('pdf-date').innerText = new Date().toLocaleDateString();
         
         let rows = currentRugs.map(r => `
             <tr>
                 <td><b>${r.name}</b></td>
-                <td>
-                    ${r.w}' x ${r.l}'
-                    <span class="math-detail">${r.sqft} Sqft / ${r.perim} Lft</span>
-                </td>
-                <td>
-                    <ul class="pdf-spec-list">
-                        <li>• <b>Edge:</b> ${r.edge}</li>
-                        <li>• <b>Backing:</b> ${r.backing !== 'None' ? r.backing : 'N/A'}</li>
-                        <li>• <b>Pad:</b> ${r.pad !== 'No Pad' ? r.pad : 'N/A'}</li>
-                    </ul>
-                </td>
-                <td style="text-align:right; font-weight:700;">$${r.cost.toFixed(2)}</td>
+                <td>${r.sqft} SF<br>${r.lft} LFT</td>
+                <td><small>${r.edge}<br>Sides: ${r.sides}<br>Backing: ${r.backing}</small></td>
+                <td style="text-align:right;">$${r.cost.toFixed(2)}</td>
             </tr>`).join('');
 
         const dVal = parseFloat(document.getElementById('delv').value), iVal = parseFloat(document.getElementById('inst').value);
-        if(dVal > 0) rows += `<tr><td><b>Delivery</b></td><td>-</td><td>Standard Flat Service</td><td style="text-align:right; font-weight:700;">$${dVal.toFixed(2)}</td></tr>`;
-        if(iVal > 0) rows += `<tr><td><b>Installation</b></td><td>-</td><td>Professional Flat Service</td><td style="text-align:right; font-weight:700;">$${iVal.toFixed(2)}</td></tr>`;
+        if(dVal > 0) rows += `<tr><td><b>Delivery</b></td><td>-</td><td>Standard</td><td style="text-align:right;">$${dVal.toFixed(2)}</td></tr>`;
+        if(iVal > 0) rows += `<tr><td><b>Install</b></td><td>-</td><td>Pro</td><td style="text-align:right;">$${iVal.toFixed(2)}</td></tr>`;
         
         document.getElementById('pdf-item-rows').innerHTML = rows;
         const sub = currentRugs.reduce((a, b) => a + b.cost, 0) + dVal + iVal;
         document.getElementById('pdf-subtotal').innerText = `$${sub.toFixed(2)}`;
-        document.getElementById('pdf-tax-rate').innerText = (currentTaxRate * 100).toFixed(2);
+        document.getElementById('pdf-tax-rate').innerText = (currentTaxRate * 100).toFixed(1);
         document.getElementById('pdf-tax-amount').innerText = `$${(sub * currentTaxRate).toFixed(2)}`;
-        document.getElementById('pdf-total-display').innerText = document.getElementById('displayTotal').innerText;
+        document.getElementById('pdf-total-display').innerText = `$${(sub * (1 + currentTaxRate)).toFixed(2)}`;
         
         const canvas = await html2canvas(document.getElementById('pdf-template'), { scale: 2 });
         const pdf = new jsPDF('p', 'mm', 'a4');
         pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
-        pdf.save(`Choice_Floors_Rug_Estimate_${document.getElementById('custLast').value}.pdf`);
+        pdf.save(`Quote_${document.getElementById('custLast').value}.pdf`);
     }
 
     function saveJob() {
-        const job = { 
-            id: editingJobId || Date.now(), 
-            name: `${document.getElementById('custLast').value}, ${document.getElementById('custFirst').value}`, 
-            fName: document.getElementById('custFirst').value, lName: document.getElementById('custLast').value, phone: document.getElementById('custPhone').value, email: document.getElementById('custEmail').value, street: document.getElementById('custStreet').value, city: document.getElementById('custCity').value, state: document.getElementById('custState').value, zip: document.getElementById('custZip').value, 
-            rugs: [...currentRugs], 
-            taxRate: currentTaxRate, 
-            isManual: isManualTax,
-            delivery: document.getElementById('delv').value,
-            install: document.getElementById('inst').value,
-            total: document.getElementById('displayTotal').innerText, 
-            date: new Date().toLocaleDateString() 
-        };
-        if (editingJobId) {
-            const index = savedJobs.findIndex(j => j.id === editingJobId);
-            if (index !== -1) savedJobs[index] = job;
-        } else {
-            savedJobs.unshift(job);
-        }
-        localStorage.setItem('rugJobsMaster', JSON.stringify(savedJobs)); 
-        alert("Success: Saved to history.");
+        const job = { id: Date.now(), fName: document.getElementById('custFirst').value, lName: document.getElementById('custLast').value, rugs: [...currentRugs], total: document.getElementById('displayTotal').innerText, date: new Date().toLocaleDateString() };
+        savedJobs.unshift(job); localStorage.setItem('rugJobsMaster', JSON.stringify(savedJobs)); alert("Saved.");
+    }
+
+    function renderHistory() {
+        const term = document.getElementById('jobSearch').value.toLowerCase();
+        const filtered = savedJobs.filter(j => j.lName.toLowerCase().includes(term));
+        document.getElementById('historyList').innerHTML = filtered.map(j => `<div class="card"><b>${j.lName}</b> - ${j.total}<br><small>${j.date}</small></div>`).join('');
     }
 
     function switchTab(t) {
@@ -430,41 +358,7 @@
         if(t === 'history') renderHistory();
     }
 
-    function renderHistory() {
-        const term = document.getElementById('jobSearch').value.toLowerCase();
-        const filtered = savedJobs.filter(j => j.name.toLowerCase().includes(term));
-        document.getElementById('historyList').innerHTML = filtered.map(j => `<div class="card" style="border-left:5px solid var(--choice-green);"><b>${j.name}</b> - ${j.total}<br><small>${j.date}</small><div style="margin-top:10px; display:flex; gap:5px;"><button class="btn-small" onclick="loadJob(${j.id})" style="flex:1; background:var(--choice-blue-light); border:none; padding:8px; border-radius:5px; cursor:pointer;">Edit</button><button class="btn-small" onclick="deleteJob(${j.id})" style="flex:1; background:var(--danger-light); color:var(--danger); border:none; padding:8px; border-radius:5px; cursor:pointer;">Delete</button></div></div>`).join('');
-    }
-
-    function loadJob(id) {
-        const j = savedJobs.find(item => item.id === id);
-        if(!j) return;
-        editingJobId = j.id;
-        document.getElementById('custFirst').value = j.fName; 
-        document.getElementById('custLast').value = j.lName; 
-        document.getElementById('custPhone').value = j.phone; 
-        document.getElementById('custEmail').value = j.email; 
-        document.getElementById('custStreet').value = j.street; 
-        document.getElementById('custCity').value = j.city; 
-        document.getElementById('custState').value = j.state; 
-        document.getElementById('custZip').value = j.zip;
-        currentTaxRate = j.taxRate || 0; 
-        isManualTax = j.isManual || false;
-        currentRugs = [...j.rugs]; 
-        document.getElementById('delv').value = j.delivery || "0";
-        document.getElementById('inst').value = j.install || "0";
-        renderRugs(); 
-        updateLiveTotals(); 
-        switchTab('workspace');
-    }
-
-    function deleteJob(id) { if(confirm("Permanently delete?")) { savedJobs = savedJobs.filter(j => j.id !== id); localStorage.setItem('rugJobsMaster', JSON.stringify(savedJobs)); renderHistory(); } }
     function autoCap(el) { el.value = el.value.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '); }
-    function formatPhoneNumber(el) {
-        let v = el.value.replace(/\D/g,'');
-        if(v.length > 6) el.value = `(${v.slice(0,3)}) ${v.slice(3,6)}-${v.slice(6,10)}`;
-        else if(v.length > 3) el.value = `(${v.slice(0,3)}) ${v.slice(3)}`;
-    }
 </script>
 </body>
 </html>
