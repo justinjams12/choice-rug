@@ -281,7 +281,7 @@
         const w = parseFloat(document.getElementById('wA').value) || 0;
         const pad = document.getElementById('padStyle').value;
         
-        // Pad Width Logic
+        // Pad Width Logic Restore
         const padError = (pad !== "0" && w > 12.1);
         document.getElementById('padError').style.display = padError ? 'block' : 'none';
 
