@@ -47,6 +47,8 @@
         .btn-save { background: var(--choice-green); color: white; margin-top: 10px; }
         .btn-pdf { background: #334155; color: white; margin-top: 10px; }
 
+        .error-msg { color: var(--danger); font-size: 0.7rem; font-weight: bold; margin-bottom: 10px; display: none; }
+
         .room-tag { background: var(--choice-blue-light); padding: 12px; border-radius: 10px; margin-bottom: 8px; border-left: 4px solid var(--choice-green); }
         .fee-tag { background: #f8fafc; padding: 8px 12px; border-radius: 8px; margin-bottom: 5px; border: 1px dashed #cbd5e1; display: flex; justify-content: space-between; font-size: 0.85rem; }
         .room-tag-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;}
@@ -155,6 +157,8 @@
                 <option value="1.15">Value Hold ($1.15/sf)</option>
                 <option value="2.35">Double Grip ($2.35/sf)</option>
             </select>
+            <div id="padError" class="error-msg">⚠️ Pad is only available up to 12.1ft width.</div>
+            
             <div class="grid-2">
                 <div><label>Delivery (Flat)</label><select id="delv" onchange="updateLiveTotals()">
                     <option value="0">N/A</option>
@@ -274,7 +278,16 @@
     function validateInputs() {
         const fields = ['custFirst','custLast','custPhone','custEmail','custStreet','custCity','custState','custZip','roomName','wA','lB'];
         const anySide = ['sideTop','sideBottom','sideLeft','sideRight'].some(id => document.getElementById(id).checked);
-        document.getElementById('btnAddRug').disabled = !fields.every(id => document.getElementById(id).value.trim() !== "") || !anySide;
+        const w = parseFloat(document.getElementById('wA').value) || 0;
+        const pad = document.getElementById('padStyle').value;
+        
+        // Pad Width Logic
+        const padError = (pad !== "0" && w > 12.1);
+        document.getElementById('padError').style.display = padError ? 'block' : 'none';
+
+        const allFieldsFilled = fields.every(id => document.getElementById(id).value.trim() !== "");
+        document.getElementById('btnAddRug').disabled = !allFieldsFilled || !anySide || padError;
+        
         updateLiveTotals();
     }
 
@@ -319,7 +332,7 @@
         
         renderRugs();
         ['roomName','wA','lB'].forEach(id => document.getElementById(id).value = "");
-        updateLiveTotals();
+        validateInputs();
     }
 
     function renderRugs() {
@@ -342,7 +355,7 @@
     function editRug(i) {
         const r = currentRugs[i];
         document.getElementById('roomName').value = r.name; document.getElementById('wA').value = r.w; document.getElementById('lB').value = r.l;
-        currentRugs.splice(i,1); renderRugs(); updateLiveTotals();
+        currentRugs.splice(i,1); renderRugs(); validateInputs();
     }
 
     function removeRug(i) { currentRugs.splice(i,1); renderRugs(); updateLiveTotals(); }
@@ -411,7 +424,7 @@
         editingJobId = j.id;
         document.getElementById('custFirst').value = j.fName; document.getElementById('custLast').value = j.lName; document.getElementById('custPhone').value = j.phone; document.getElementById('custEmail').value = j.email; document.getElementById('custStreet').value = j.street; document.getElementById('custCity').value = j.city; document.getElementById('custState').value = j.state; document.getElementById('custZip').value = j.zip;
         currentTaxRate = j.taxRate || 0; currentRugs = [...j.rugs]; document.getElementById('delv').value = j.delivery || "0"; document.getElementById('inst').value = j.install || "0";
-        renderRugs(); updateLiveTotals(); switchTab('workspace');
+        renderRugs(); validateInputs(); switchTab('workspace');
     }
 
     function switchTab(t) {
