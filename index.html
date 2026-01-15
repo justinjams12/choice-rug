@@ -69,6 +69,7 @@
         .pdf-table td { padding: 14px; border-bottom: 1px solid #f1f5f9; font-size: 13px; vertical-align: top; }
         .pdf-spec-list { list-style: none; padding: 0; margin: 0; font-size: 11px; color: #475569; }
         .pdf-spec-list li { margin-bottom: 3px; }
+        .math-detail { font-size: 9px; color: #94a3b8; margin-top: 4px; display: block; }
         
         .pdf-table tr:nth-child(even) { background: #fbfcfd; }
         .pdf-total-row { display: flex; justify-content: flex-end; margin-top: 30px; }
@@ -207,7 +208,7 @@
             <thead>
                 <tr>
                     <th style="width: 25%;">Room / Location</th>
-                    <th style="width: 15%;">Size</th>
+                    <th style="width: 15%;">Dimensions</th>
                     <th style="width: 40%;">Specifications</th>
                     <th style="width: 20%; text-align: right;">Cost</th>
                 </tr>
@@ -297,28 +298,15 @@
         updateLiveTotals();
     }
 
-    // UPDATED CALCULATION LOGIC
-    function calculateRugCost(w, l, edgeRate, backingRate, padRate) {
-        const perimeter = (w * 2) + (l * 2);
-        const sqft = w * l;
-        const edgeCost = perimeter * edgeRate;
-        const backingCost = sqft * backingRate;
-        const padCost = sqft * padRate;
-        return edgeCost + backingCost + padCost;
-    }
-
     function updateLiveTotals() {
         const existingSub = currentRugs.reduce((a, b) => a + b.cost, 0);
-        
-        // Active Form calculation
         const w = parseFloat(document.getElementById('wA').value) || 0;
         const l = parseFloat(document.getElementById('lB').value) || 0;
         const eR = parseFloat(document.getElementById('edgeStyle').value) || 0;
         const bR = parseFloat(document.getElementById('backingStyle').value) || 0;
         const pR = parseFloat(document.getElementById('padStyle').value) || 0;
         
-        const activeRugCost = (w > 0 && l > 0) ? calculateRugCost(w, l, eR, bR, pR) : 0;
-        
+        const activeRugCost = (w > 0 && l > 0) ? ((w*2+l*2)*eR + (w*l)*bR + (w*l)*pR) : 0;
         const deliveryFlat = parseFloat(document.getElementById('delv').value) || 0;
         const installFlat = parseFloat(document.getElementById('inst').value) || 0;
         
@@ -333,10 +321,12 @@
         const w = parseFloat(document.getElementById('wA').value), l = parseFloat(document.getElementById('lB').value);
         const e = document.getElementById('edgeStyle'), b = document.getElementById('backingStyle'), p = document.getElementById('padStyle');
         
-        const cost = calculateRugCost(w, l, parseFloat(e.value), parseFloat(b.value), parseFloat(p.value));
+        const perim = (w * 2) + (l * 2);
+        const sqft = w * l;
+        const cost = (perim * parseFloat(e.value)) + (sqft * parseFloat(b.value)) + (sqft * parseFloat(p.value));
         
         currentRugs.push({ 
-            name: document.getElementById('roomName').value, w, l, 
+            name: document.getElementById('roomName').value, w, l, perim, sqft,
             edge: e.options[e.selectedIndex].text, edgeVal: e.value, 
             backing: b.options[b.selectedIndex].text, backingVal: b.value, 
             pad: p.options[p.selectedIndex].text, padVal: p.value, 
@@ -353,7 +343,8 @@
         document.getElementById('roomList').innerHTML = currentRugs.map((r, i) => `
             <div class="room-tag">
                 <div class="room-tag-header"><b>${r.name}</b><div class="room-tag-btns"><button class="btn-inline btn-edit" onclick="editRug(${i})">EDIT</button><button class="btn-inline btn-remove" onclick="removeRug(${i})">REMOVE</button></div></div>
-                <div style="font-size: 0.8rem; opacity: 0.8;">${r.w}'x${r.l}' | $${r.cost.toFixed(2)}</div>
+                <div style="font-size: 0.8rem; opacity: 0.8;">${r.w}'x${r.l}' (${r.sqft} sqft | ${r.perim} lft)</div>
+                <div style="font-weight:bold; color:var(--choice-blue);">$${r.cost.toFixed(2)}</div>
             </div>`).join('');
         document.getElementById('summaryCard').style.display = currentRugs.length ? 'block' : 'none';
     }
@@ -377,7 +368,10 @@
         let rows = currentRugs.map(r => `
             <tr>
                 <td><b>${r.name}</b></td>
-                <td>${r.w}' x ${r.l}'</td>
+                <td>
+                    ${r.w}' x ${r.l}'
+                    <span class="math-detail">${r.sqft} Sqft / ${r.perim} Lft</span>
+                </td>
                 <td>
                     <ul class="pdf-spec-list">
                         <li>• <b>Edge:</b> ${r.edge}</li>
@@ -418,14 +412,12 @@
             total: document.getElementById('displayTotal').innerText, 
             date: new Date().toLocaleDateString() 
         };
-
         if (editingJobId) {
             const index = savedJobs.findIndex(j => j.id === editingJobId);
             if (index !== -1) savedJobs[index] = job;
         } else {
             savedJobs.unshift(job);
         }
-        
         localStorage.setItem('rugJobsMaster', JSON.stringify(savedJobs)); 
         alert("Success: Saved to history.");
     }
