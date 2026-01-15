@@ -149,17 +149,17 @@
                     <option value="0">None</option>
                     <option value="1.50">Soft Felt ($1.50/sf)</option>
                     <option value="2.25">Teebaud ($2.25/sf)</option>
-                    <option value="1.25">Non-Skid Rubber ($1.25/sf)</option>
+                    <option value="1.25">Quad Back ($1.25/sf)</option>
                 </select></div>
             </div>
             <label>Area Rug Pad (Loose)</label>
             <select id="padStyle" onchange="handleMutualExclusion('pad')">
-                <option value="0">No Pad</option>
-                <option value="1.15">Value Hold ($1.15/sf)</option>
-                <option value="2.35">Double Grip ($2.35/sf)</option>
-                <option value="3.00">Rug-Check Plus ($3.00/sf)</option>
+                <option value="0" data-limit="999">No Pad</option>
+                <option value="1.15" data-limit="12.0">Value Hold ($1.15/sf)</option>
+                <option value="2.35" data-limit="12.0">Double Grip ($2.35/sf)</option>
+                <option value="3.00" data-limit="9.0">Teebaud ($3.00/sf)</option>
             </select>
-            <div id="padError" class="error-msg">⚠️ Pad is only available up to 12.1ft width.</div>
+            <div id="padError" class="error-msg">⚠️ Selected Pad exceeds maximum width limit.</div>
             
             <div class="grid-2">
                 <div><label>Delivery (Flat)</label><select id="delv" onchange="updateLiveTotals()">
@@ -281,9 +281,13 @@
         const fields = ['custFirst','custLast','custPhone','custEmail','custStreet','custCity','custState','custZip','roomName','wA','lB'];
         const anySide = ['sideTop','sideBottom','sideLeft','sideRight'].some(id => document.getElementById(id).checked);
         const w = parseFloat(document.getElementById('wA').value) || 0;
-        const pad = document.getElementById('padStyle').value;
         
-        const padError = (pad !== "0" && w > 12.1);
+        const padSelect = document.getElementById('padStyle');
+        const padOption = padSelect.options[padSelect.selectedIndex];
+        const widthLimit = parseFloat(padOption.getAttribute('data-limit'));
+        
+        const padError = (padSelect.value !== "0" && w > widthLimit);
+        document.getElementById('padError').innerText = `⚠️ ${padOption.text.split(' (')[0]} is only available up to ${widthLimit}ft width.`;
         document.getElementById('padError').style.display = padError ? 'block' : 'none';
 
         const allFieldsFilled = fields.every(id => document.getElementById(id).value.trim() !== "");
