@@ -347,7 +347,7 @@
     }
 
     function updateLiveTotals() {
-        const rugSub = currentRugs.reduce((a, b) => a + b.cost, 0);
+        const rugSub = currentRugs.reduce((a, b) => a + (b.cost || 0), 0);
         let activeLft = 0, activeSqft = 0;
         if(currentShape === 'rect') {
             const w = parseFloat(document.getElementById('wA').value) || 0, l = parseFloat(document.getElementById('lB').value) || 0;
@@ -396,7 +396,7 @@
     function renderRugs() {
         document.getElementById('roomList').innerHTML = currentRugs.map((r, i) => `
             <div class="room-tag">
-                <b>${r.name}</b> ($${r.cost.toFixed(2)})<br>
+                <b>${r.name}</b> ($${(r.cost || 0).toFixed(2)})<br>
                 <small>${r.shape === 'rect' ? r.w+'x'+r.l : 'Irregular Shape'}</small>
                 <div class="room-tag-btns">
                     <button class="btn-inline btn-edit" onclick="editRug(${i})">Edit Room</button>
@@ -427,26 +427,22 @@
 
     function saveJob() {
         try {
-            // Check if we actually have rooms to save
             if (!currentRugs || currentRugs.length === 0) {
-                alert("Error: You must add at least one room to the quote before saving.");
-                return;
+                alert("Error: Add at least one room before saving."); return;
             }
 
             const client = {
-                first: document.getElementById('custFirst').value || "N/A", 
-                last: document.getElementById('custLast').value || "N/A",
-                phone: document.getElementById('custPhone').value || "N/A", 
-                email: document.getElementById('custEmail').value || "N/A",
-                street: document.getElementById('custStreet').value || "N/A", 
-                city: document.getElementById('custCity').value || "N/A",
-                state: document.getElementById('custState').value || "N/A", 
-                zip: document.getElementById('custZip').value || "N/A"
+                first: document.getElementById('custFirst')?.value || "N/A", 
+                last: document.getElementById('custLast')?.value || "N/A",
+                phone: document.getElementById('custPhone')?.value || "N/A", 
+                email: document.getElementById('custEmail')?.value || "N/A",
+                street: document.getElementById('custStreet')?.value || "N/A", 
+                city: document.getElementById('custCity')?.value || "N/A",
+                state: document.getElementById('custState')?.value || "N/A", 
+                zip: document.getElementById('custZip')?.value || "N/A"
             };
             
-            // Deep clone the rugs array to break references
             const rugClone = currentRugs.map(r => ({...r}));
-
             const job = { 
                 id: Date.now(), 
                 client: client, 
@@ -462,20 +458,22 @@
             renderHistory();
             alert("Order successfully saved to history.");
         } catch (err) {
-            console.error("Save failed detailed error:", err);
-            alert("System Error: " + err.message);
+            console.error("Save Error:", err);
+            alert("Error: " + err.message);
         }
     }
 
     function renderHistory() {
-        const search = document.getElementById('jobSearch').value.toLowerCase();
-        const filtered = savedJobs.filter(j => (j.client.last || "").toLowerCase().includes(search));
+        const search = (document.getElementById('jobSearch')?.value || "").toLowerCase();
+        // Critical fix: filter out any corrupted/broken entries before rendering
+        const filtered = savedJobs.filter(j => j && j.client && (j.client.last || "").toLowerCase().includes(search));
+        
         document.getElementById('historyList').innerHTML = filtered.map(j => {
-            const rugSummary = j.rugs.map(r => `${r.name}: ${r.shape === 'rect' ? r.w + 'x' + r.l : r.sqft + 'sf'}`).join(', ');
+            const rugSummary = (j.rugs || []).map(r => `${r.name}: ${r.shape === 'rect' ? r.w + 'x' + r.l : r.sqft + 'sf'}`).join(', ');
             return `
             <div class="history-item">
                 <div style="flex-grow:1" onclick="viewJob(${j.id})">
-                    <b>${j.client.last}, ${j.client.first}</b><br>
+                    <b>${j.client.last || "N/A"}, ${j.client.first || "N/A"}</b><br>
                     <small style="color: var(--choice-blue); font-weight: 600;">${rugSummary}</small><br>
                     <small>${j.date} — ${j.total}</small>
                 </div>
@@ -488,11 +486,17 @@
 
     function viewJob(id) {
         const job = savedJobs.find(j => j.id === id); if(!job) return;
-        document.getElementById('custFirst').value = job.client.first; document.getElementById('custLast').value = job.client.last;
-        document.getElementById('custPhone').value = job.client.phone; document.getElementById('custEmail').value = job.client.email;
-        document.getElementById('custStreet').value = job.client.street; document.getElementById('custCity').value = job.client.city;
-        document.getElementById('custState').value = job.client.state; document.getElementById('custZip').value = job.client.zip;
-        currentRugs = [...job.rugs]; document.getElementById('delv').value = job.delivery; document.getElementById('inst').value = job.install;
+        document.getElementById('custFirst').value = job.client.first || ""; 
+        document.getElementById('custLast').value = job.client.last || "";
+        document.getElementById('custPhone').value = job.client.phone || ""; 
+        document.getElementById('custEmail').value = job.client.email || "";
+        document.getElementById('custStreet').value = job.client.street || ""; 
+        document.getElementById('custCity').value = job.client.city || "";
+        document.getElementById('custState').value = job.client.state || ""; 
+        document.getElementById('custZip').value = job.client.zip || "";
+        currentRugs = [...(job.rugs || [])]; 
+        document.getElementById('delv').value = job.delivery || 0; 
+        document.getElementById('inst').value = job.install || 0;
         renderRugs(); lookupTax(); switchTab('workspace');
     }
 
@@ -528,7 +532,7 @@
         document.getElementById('pdf-date').innerText = new Date().toLocaleDateString();
         document.getElementById('pdf-total-display').innerText = `Total: ${document.getElementById('displayTotal').innerText}`;
         
-        let rowsHtml = currentRugs.map(r => `<tr><td>${r.name}</td><td>${r.shape==='rect' ? r.w+'\' x '+r.l+'\'' : r.sqft+' SF'}</td><td>Edge: ${r.edge}<br>Backing: ${r.backing !== 'None' ? r.backing : r.pad}</td><td style="text-align:right">$${r.cost.toFixed(2)}</td></tr>`).join('');
+        let rowsHtml = currentRugs.map(r => `<tr><td>${r.name}</td><td>${r.shape==='rect' ? r.w+'\' x '+r.l+'\'' : r.sqft+' SF'}</td><td>Edge: ${r.edge}<br>Backing: ${r.backing !== 'None' ? r.backing : r.pad}</td><td style="text-align:right">$${(r.cost || 0).toFixed(2)}</td></tr>`).join('');
         const d = parseFloat(document.getElementById('delv').value), i = parseFloat(document.getElementById('inst').value);
         if(d > 0) rowsHtml += `<tr><td>Delivery</td><td>-</td><td>Standard</td><td style="text-align:right">$${d.toFixed(2)}</td></tr>`;
         if(i > 0) rowsHtml += `<tr><td>Installation</td><td>-</td><td>Pro</td><td style="text-align:right">$${i.toFixed(2)}</td></tr>`;
