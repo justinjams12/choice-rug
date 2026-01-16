@@ -44,11 +44,11 @@
 
         .btn { width: 100%; padding: 16px; border-radius: 10px; border: none; font-weight: 800; cursor: pointer; transition: all 0.2s; }
         .btn-add { background: var(--choice-blue); color: white; }
-        .btn-add:disabled { background: #cbd5e1 !important; cursor: not-allowed; opacity: 0.6; }
+        .btn-add:disabled { background: #cbd5e1 !important; color: #94a3b8 !important; cursor: not-allowed; opacity: 1; }
         .btn-save { background: var(--choice-green); color: white; margin-top: 10px; }
         .btn-pdf { background: #334155; color: white; margin-top: 10px; }
 
-        .error-msg { color: var(--danger); font-size: 0.75rem; font-weight: 900; margin: 5px 0 15px 0; display: none; padding: 10px; background: #fee2e2; border-radius: 8px; text-align: center; }
+        .error-msg { color: var(--danger); font-size: 0.75rem; font-weight: 900; margin-bottom: 15px; display: none; padding: 10px; background: #fee2e2; border-radius: 8px; border: 1px solid var(--danger); text-align: center; }
 
         .room-tag { background: var(--choice-blue-light); padding: 12px; border-radius: 10px; margin-bottom: 8px; border-left: 4px solid var(--choice-green); }
         .room-tag-btns { display: flex; gap: 10px; margin-top: 5px; }
@@ -60,10 +60,6 @@
         .history-controls { display: flex; gap: 8px; }
         .btn-hist-edit { background: var(--choice-blue); color: white; border: none; border-radius: 6px; padding: 8px 12px; font-weight: 800; font-size: 0.7rem; cursor: pointer; }
         .btn-del-history { background: var(--danger); color: white; border: none; border-radius: 6px; padding: 8px 12px; font-weight: 800; font-size: 0.7rem; cursor: pointer; }
-
-        .shape-toggle { display: flex; background: #f1f5f9; padding: 4px; border-radius: 8px; margin-bottom: 12px; }
-        .shape-btn { flex: 1; padding: 8px; border: none; background: none; font-size: 0.7rem; font-weight: 800; cursor: pointer; border-radius: 6px; color: #64748b; }
-        .shape-btn.active { background: white; color: var(--choice-blue); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
 
         .sig-container { display: none; border: 2px dashed #cbd5e1; border-radius: 10px; background: #fff; margin-top: 10px; overflow: hidden; }
         .signature-pad { width: 100%; height: 140px; }
@@ -113,8 +109,7 @@
                 <input type="text" id="custCity" placeholder="City *" oninput="autoCap(this); validateInputs()">
                 <select id="custState" onchange="lookupTax(); validateInputs()">
                     <option value="" disabled selected>ST *</option>
-                    <option value="PA">PA</option><option value="DE">DE</option><option value="MD">MD</option>
-                    <option value="NJ">NJ</option><option value="VA">VA</option><option value="NY">NY</option>
+                    <option value="AL">AL</option><option value="AK">AK</option><option value="AZ">AZ</option><option value="AR">AR</option><option value="CA">CA</option><option value="CO">CO</option><option value="CT">CT</option><option value="DE">DE</option><option value="FL">FL</option><option value="GA">GA</option><option value="HI">HI</option><option value="ID">ID</option><option value="IL">IL</option><option value="IN">IN</option><option value="IA">IA</option><option value="KS">KS</option><option value="KY">KY</option><option value="LA">LA</option><option value="ME">ME</option><option value="MD">MD</option><option value="MA">MA</option><option value="MI">MI</option><option value="MN">MN</option><option value="MS">MS</option><option value="MO">MO</option><option value="MT">MT</option><option value="NE">NE</option><option value="NV">NV</option><option value="NH">NH</option><option value="NJ">NJ</option><option value="NM">NM</option><option value="NY">NY</option><option value="NC">NC</option><option value="ND">ND</option><option value="OH">OH</option><option value="OK">OK</option><option value="OR">OR</option><option value="PA">PA</option><option value="RI">RI</option><option value="SC">SC</option><option value="SD">SD</option><option value="TN">TN</option><option value="TX">TX</option><option value="UT">UT</option><option value="VT">VT</option><option value="VA">VA</option><option value="WA">WA</option><option value="WV">WV</option><option value="WI">WI</option><option value="WY">WY</option>
                 </select>
                 <input type="text" id="custZip" placeholder="Zip *" maxlength="5" oninput="handleZipChange()">
             </div>
@@ -155,7 +150,7 @@
                     <option value="2.50">Binding ($2.50)</option>
                     <option value="6.00">Serging ($6.00)</option>
                 </select></div>
-                <div><label>Backing</label><select id="backingStyle" onchange="handleMutualExclusion('backing')">
+                <div><label>Attached Backing</label><select id="backingStyle" onchange="handleMutualExclusion('backing')">
                     <option value="0">None</option>
                     <option value="1.50">Soft Felt ($1.50)</option>
                     <option value="2.25">Teebaud ($2.25)</option>
@@ -285,7 +280,8 @@
 
     function validateInputs() {
         const fields = ['custFirst','custLast','custPhone','custEmail','custStreet','custCity','custState','custZip','roomName'];
-        let subValid = false, widthCheck = 0;
+        let subValid = false;
+        let widthCheck = 0;
         
         if(currentShape === 'rect') {
             const w = parseFloat(document.getElementById('wA').value) || 0;
@@ -300,11 +296,14 @@
 
         const padSelect = document.getElementById('padStyle');
         const padLimit = parseFloat(padSelect.options[padSelect.selectedIndex].getAttribute('data-limit'));
+        
+        // Critical Logic: Check if width is over limit for selected pad
         const isPadTooBig = (padSelect.value !== "0") && (widthCheck > padLimit);
         
         document.getElementById('padError').style.display = isPadTooBig ? 'block' : 'none';
         const allFieldsFilled = fields.every(id => document.getElementById(id).value.trim() !== "");
         
+        // Lock button if limit exceeded
         document.getElementById('btnAddRug').disabled = !allFieldsFilled || !subValid || isPadTooBig;
         updateLiveTotals();
     }
@@ -345,9 +344,11 @@
         const rug = { name: document.getElementById('roomName').value, w, l, lft, sqft, edge: e.options[e.selectedIndex].text, backing: b.options[b.selectedIndex].text, pad: p.options[p.selectedIndex].text, cost, shape: currentShape, sides: sidesText };
         
         if(editingRugIndex !== null) currentRugs[editingRugIndex] = rug; else currentRugs.push(rug);
-        editingRugIndex = null; renderRugs(); 
+        editingRugIndex = null; 
+        renderRugs(); 
         ['roomName','wA','lB','manualSqft','manualLft'].forEach(id => document.getElementById(id).value = "");
-        document.getElementById('btnAddRug').innerText = "+ Add to Quote"; document.getElementById('btnCancelEdit').style.display = 'none';
+        document.getElementById('btnAddRug').innerText = "+ Add to Quote"; 
+        document.getElementById('btnCancelEdit').style.display = 'none';
     }
 
     function renderRugs() {
@@ -385,14 +386,19 @@
         };
         savedJobs.unshift(job); 
         localStorage.setItem('rugJobsMaster', JSON.stringify(savedJobs));
-        alert("Quote Saved to History"); 
+        alert("Success: Order saved to History tab."); 
         renderHistory();
     }
 
     function renderHistory() {
         const search = document.getElementById('jobSearch').value.toLowerCase();
         const filtered = savedJobs.filter(j => j.client.last.toLowerCase().includes(search));
-        document.getElementById('historyList').innerHTML = filtered.map(j => `
+        const listEl = document.getElementById('historyList');
+        if (filtered.length === 0) {
+            listEl.innerHTML = "<p style='text-align:center; color:#64748b; font-size:0.8rem;'>No saved orders found.</p>";
+            return;
+        }
+        listEl.innerHTML = filtered.map(j => `
             <div class="history-item">
                 <div style="flex-grow:1">
                     <b>${j.client.last}, ${j.client.first}</b><br>
@@ -407,16 +413,24 @@
 
     function viewJob(id) {
         const job = savedJobs.find(j => j.id === id); if(!job) return;
-        document.getElementById('custFirst').value = job.client.first; document.getElementById('custLast').value = job.client.last;
-        document.getElementById('custPhone').value = job.client.phone; document.getElementById('custEmail').value = job.client.email;
-        document.getElementById('custStreet').value = job.client.street; document.getElementById('custCity').value = job.client.city;
-        document.getElementById('custState').value = job.client.state; document.getElementById('custZip').value = job.client.zip;
-        currentRugs = [...job.rugs]; document.getElementById('delv').value = job.delivery; document.getElementById('inst').value = job.install;
-        renderRugs(); lookupTax(); switchTab('workspace');
+        document.getElementById('custFirst').value = job.client.first; 
+        document.getElementById('custLast').value = job.client.last;
+        document.getElementById('custPhone').value = job.client.phone; 
+        document.getElementById('custEmail').value = job.client.email;
+        document.getElementById('custStreet').value = job.client.street; 
+        document.getElementById('custCity').value = job.client.city;
+        document.getElementById('custState').value = job.client.state; 
+        document.getElementById('custZip').value = job.client.zip;
+        currentRugs = [...job.rugs]; 
+        document.getElementById('delv').value = job.delivery; 
+        document.getElementById('inst').value = job.install;
+        renderRugs(); 
+        lookupTax(); 
+        switchTab('workspace');
     }
 
     function deleteHistory(id) { 
-        if(confirm("Delete this permanent record?")) { 
+        if(confirm("Are you sure you want to delete this order?")) { 
             savedJobs = savedJobs.filter(j => j.id !== id); 
             localStorage.setItem('rugJobsMaster', JSON.stringify(savedJobs)); 
             renderHistory(); 
