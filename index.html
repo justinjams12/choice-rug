@@ -54,9 +54,9 @@
 
         .error-msg { color: var(--danger); font-size: 0.7rem; font-weight: bold; margin-bottom: 10px; display: none; }
 
-        .room-tag { background: var(--choice-blue-light); padding: 12px; border-radius: 10px; margin-bottom: 8px; border-left: 4px solid var(--choice-green); }
-        .room-tag-btns { display: flex; gap: 10px; margin-top: 5px; }
-        .btn-inline { background: none; border: none; font-size: 0.7rem; font-weight: bold; cursor: pointer; padding: 4px; }
+        .room-tag { background: var(--choice-blue-light); padding: 15px; border-radius: 12px; margin-bottom: 10px; border-left: 4px solid var(--choice-green); }
+        .room-tag-btns { display: flex; gap: 10px; margin-top: 10px; border-top: 1px solid #cbd5e1; padding-top: 8px; }
+        .btn-inline { background: none; border: none; font-size: 0.75rem; font-weight: bold; cursor: pointer; padding: 4px; }
         .btn-edit { color: var(--choice-blue); }
         .btn-remove { color: var(--danger); }
 
@@ -409,13 +409,20 @@
             edge: stripPricing(e.options[e.selectedIndex].text), 
             backing: stripPricing(b.options[b.selectedIndex].text), 
             pad: stripPricing(p.options[p.selectedIndex].text), 
+            edgeVal: e.value,
+            backingVal: b.value,
+            padVal: p.value,
             cost, 
             shape: currentShape, 
             sides: sidesText, 
             sideStates: sideStates 
         };
 
-        if(editingRugIndex !== null) currentRugs[editingRugIndex] = rug; else currentRugs.push(rug);
+        if(editingRugIndex !== null) {
+            currentRugs[editingRugIndex] = rug;
+        } else {
+            currentRugs.push(rug);
+        }
         clearRugForm();
     }
 
@@ -429,11 +436,21 @@
     function renderRugs() {
         document.getElementById('roomList').innerHTML = currentRugs.map((r, i) => `
             <div class="room-tag">
-                <b>${r.name}</b> ($${(r.cost || 0).toFixed(2)})<br>
-                <small>${r.shape === 'rect' ? r.w+'x'+r.l : 'Irregular Shape'}</small>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <b style="font-size: 1rem; color: var(--choice-blue);">${r.name}</b><br>
+                        <small style="color: #64748b; font-weight: 600;">${r.shape === 'rect' ? r.w+' x '+r.l : 'Irregular Shape'}</small>
+                    </div>
+                    <b style="color: var(--text);">$${(r.cost || 0).toFixed(2)}</b>
+                </div>
+                <div style="margin-top: 8px; font-size: 0.75rem; color: #475569; line-height: 1.4;">
+                    • <b>Edge:</b> ${r.edge}<br>
+                    • <b>Backing:</b> ${r.backing}<br>
+                    • <b>Pad:</b> ${r.pad}
+                </div>
                 <div class="room-tag-btns">
-                    <button class="btn-inline btn-edit" onclick="editRug(${i})">Edit Room</button>
-                    <button class="btn-inline btn-remove" onclick="removeRug(${i})">Delete</button>
+                    <button class="btn-inline btn-edit" onclick="editRug(${i})">Edit Details</button>
+                    <button class="btn-inline btn-remove" onclick="removeRug(${i})">Remove Room</button>
                 </div>
             </div>`).join('');
         document.getElementById('summaryCard').style.display = currentRugs.length ? 'block' : 'none';
@@ -442,19 +459,29 @@
 
     function editRug(i) {
         editingRugIndex = i; const r = currentRugs[i];
-        document.getElementById('roomName').value = r.name; setShape(r.shape);
+        document.getElementById('roomName').value = r.name; 
+        setShape(r.shape);
+        
         if(r.shape === 'rect') { 
-            document.getElementById('wA').value = r.w; document.getElementById('lB').value = r.l;
-            document.getElementById('sideTop').checked = r.sideStates.top; document.getElementById('sideBottom').checked = r.sideStates.bottom;
-            document.getElementById('sideLeft').checked = r.sideStates.left; document.getElementById('sideRight').checked = r.sideStates.right;
-        } else { document.getElementById('manualSqft').value = r.sqft; document.getElementById('manualLft').value = r.lft; }
+            document.getElementById('wA').value = r.w; 
+            document.getElementById('lB').value = r.l;
+            document.getElementById('sideTop').checked = r.sideStates.top; 
+            document.getElementById('sideBottom').checked = r.sideStates.bottom;
+            document.getElementById('sideLeft').checked = r.sideStates.left; 
+            document.getElementById('sideRight').checked = r.sideStates.right;
+        } else { 
+            document.getElementById('manualSqft').value = r.sqft; 
+            document.getElementById('manualLft').value = r.lft; 
+        }
         
-        Array.from(document.getElementById('edgeStyle').options).forEach(opt => opt.selected = opt.text.includes(r.edge));
-        Array.from(document.getElementById('backingStyle').options).forEach(opt => opt.selected = opt.text.includes(r.backing));
-        Array.from(document.getElementById('padStyle').options).forEach(opt => opt.selected = opt.text.includes(r.pad));
+        document.getElementById('edgeStyle').value = r.edgeVal || "2.50";
+        document.getElementById('backingStyle').value = r.backingVal || "0";
+        document.getElementById('padStyle').value = r.padVal || "0";
         
-        document.getElementById('btnAddRug').innerText = "Update Room Details"; document.getElementById('btnCancelEdit').style.display = 'block';
-        window.scrollTo({top: 0, behavior: 'smooth'}); validateInputs();
+        document.getElementById('btnAddRug').innerText = "Save Changes to Room"; 
+        document.getElementById('btnCancelEdit').style.display = 'block';
+        window.scrollTo({top: 0, behavior: 'smooth'}); 
+        validateInputs();
     }
 
     function removeRug(i) { currentRugs.splice(i,1); renderRugs(); }
