@@ -18,7 +18,6 @@
         body { font-family: 'Inter', system-ui, sans-serif; margin: 0; background: #f1f5f9; color: var(--text); padding-bottom: 60px; }
         .app-shell { width: 100%; max-width: 480px; margin: auto; padding: 15px; box-sizing: border-box; }
         
-        /* Tabs */
         .tabs { display: flex; background: var(--choice-blue); padding: 6px; border-radius: 12px; margin-bottom: 20px; }
         .tab-btn { flex: 1; padding: 12px; border: none; background: none; color: white; font-weight: 700; cursor: pointer; border-radius: 8px; opacity: 0.7; transition: all 0.2s; }
         .tab-btn.active { background: var(--choice-green); opacity: 1; color: white; }
@@ -26,7 +25,6 @@
         .view { display: none; }
         .view.active { display: block; }
 
-        /* UI Cards */
         .live-result { background: var(--choice-blue); color: white; border-radius: 18px; padding: 25px; text-align: center; margin-bottom: 15px; position: relative; overflow: hidden; }
         .live-result::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 5px; background: var(--choice-green); }
         
@@ -60,8 +58,8 @@
 
         .history-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-radius: 12px; background: white; margin-bottom: 10px; border: 1px solid #e2e8f0; }
         .history-controls { display: flex; gap: 8px; }
-        .btn-hist-edit { background: var(--choice-blue); color: white; border: none; border-radius: 6px; padding: 8px 12px; font-weight: 800; font-size: 0.7rem; }
-        .btn-del-history { background: var(--danger); color: white; border: none; border-radius: 6px; padding: 8px 12px; font-weight: 800; font-size: 0.7rem; }
+        .btn-hist-edit { background: var(--choice-blue); color: white; border: none; border-radius: 6px; padding: 8px 12px; font-weight: 800; font-size: 0.7rem; cursor: pointer; }
+        .btn-del-history { background: var(--danger); color: white; border: none; border-radius: 6px; padding: 8px 12px; font-weight: 800; font-size: 0.7rem; cursor: pointer; }
 
         .shape-toggle { display: flex; background: #f1f5f9; padding: 4px; border-radius: 8px; margin-bottom: 12px; }
         .shape-btn { flex: 1; padding: 8px; border: none; background: none; font-size: 0.7rem; font-weight: 800; cursor: pointer; border-radius: 6px; color: #64748b; }
@@ -75,7 +73,6 @@
         .sig-container { display: none; border: 2px dashed #cbd5e1; border-radius: 10px; background: #fff; margin-top: 10px; overflow: hidden; }
         .signature-pad { width: 100%; height: 140px; }
 
-        /* PDF Styles */
         #pdf-template { position: absolute; left: -9999px; width: 850px; background: #fff; color: #1e293b; }
         .pdf-header { background: white; padding: 40px 60px 0 60px; display: flex; justify-content: space-between; align-items: flex-end; }
         .pdf-wave { line-height: 0; width: 100%; }
@@ -306,7 +303,6 @@
         currentHelperType = type;
         document.querySelectorAll('.quick-chip').forEach(c => c.classList.remove('active'));
         document.getElementById('chip-' + type).classList.add('active');
-        
         const panel = document.getElementById('helperPanel');
         const inputs = document.getElementById('helperInputs');
         panel.style.display = 'block'; inputs.innerHTML = '';
@@ -419,11 +415,9 @@
         document.getElementById('roomName').value = r.name; setShape(r.shape);
         if(r.shape === 'rect') { document.getElementById('wA').value = r.w; document.getElementById('lB').value = r.l; }
         else { document.getElementById('manualSqft').value = r.sqft; document.getElementById('manualLft').value = r.lft; }
-        
         Array.from(document.getElementById('edgeStyle').options).forEach(opt => opt.selected = opt.text === r.edge);
         Array.from(document.getElementById('backingStyle').options).forEach(opt => opt.selected = opt.text === r.backing);
         Array.from(document.getElementById('padStyle').options).forEach(opt => opt.selected = opt.text === r.pad);
-
         document.getElementById('btnAddRug').innerText = "Update Room Details";
         document.getElementById('btnCancelEdit').style.display = 'block';
         window.scrollTo({top: 0, behavior: 'smooth'});
@@ -482,13 +476,11 @@
         document.getElementById('pdf-client-email').innerText = `Email: ${document.getElementById('custEmail').value}`;
         document.getElementById('pdf-date').innerText = new Date().toLocaleDateString();
         document.getElementById('pdf-total-display').innerText = `Total: ${document.getElementById('displayTotal').innerText}`;
-        
         let rowsHtml = currentRugs.map(r => `<tr><td>${r.name}</td><td>${r.shape==='rect' ? r.w+'\' x '+r.l+'\'' : r.sqft+' SF'}</td><td>Edge: ${r.edge}<br>Backing: ${r.backing !== 'None' ? r.backing : r.pad}</td><td style="text-align:right">$${r.cost.toFixed(2)}</td></tr>`).join('');
         const d = parseFloat(document.getElementById('delv').value), i = parseFloat(document.getElementById('inst').value);
         if(d > 0) rowsHtml += `<tr><td>Standard Delivery</td><td>-</td><td>Standard</td><td style="text-align:right">$${d.toFixed(2)}</td></tr>`;
         if(i > 0) rowsHtml += `<tr><td>Professional Install</td><td>-</td><td>Pro</td><td style="text-align:right">$${i.toFixed(2)}</td></tr>`;
         document.getElementById('pdf-item-rows').innerHTML = rowsHtml;
-
         const sigImg = document.getElementById('pdf-sig-img'); if (!signaturePad.isEmpty()) sigImg.src = signaturePad.toDataURL();
         const canvas = await html2canvas(document.getElementById('pdf-template'), { scale: 2 });
         const pdf = new jsPDF('p', 'mm', 'a4'); pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
