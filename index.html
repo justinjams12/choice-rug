@@ -430,7 +430,9 @@
     function saveJob() {
         const job = { id: Date.now(), client: { first: document.getElementById('custFirst').value, last: document.getElementById('custLast').value, phone: document.getElementById('custPhone').value, email: document.getElementById('custEmail').value, street: document.getElementById('custStreet').value, city: document.getElementById('custCity').value, state: document.getElementById('custState').value, zip: document.getElementById('custZip').value }, rugs: [...currentRugs], delivery: document.getElementById('delv').value, install: document.getElementById('inst').value, total: document.getElementById('displayTotal').innerText, date: new Date().toLocaleDateString() };
         savedJobs.unshift(job); localStorage.setItem('rugJobsMaster', JSON.stringify(savedJobs));
-        alert("Quote Saved to History"); renderHistory();
+        renderHistory();
+        switchTab('history');
+        window.scrollTo({top: 0, behavior: 'smooth'});
     }
 
     function renderHistory() {
