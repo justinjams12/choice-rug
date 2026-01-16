@@ -455,11 +455,48 @@
     }
 
     function saveJob() {
-        const job = { id: Date.now(), client: { first: document.getElementById('custFirst').value, last: document.getElementById('custLast').value, phone: document.getElementById('custPhone').value, email: document.getElementById('custEmail').value, street: document.getElementById('custStreet').value, city: document.getElementById('custCity').value, state: document.getElementById('custState').value, zip: document.getElementById('custZip').value }, rugs: [...currentRugs], delivery: document.getElementById('delv').value, install: document.getElementById('inst').value, total: document.getElementById('displayTotal').innerText, date: new Date().toLocaleDateString() };
-        savedJobs.unshift(job); localStorage.setItem('rugJobsMaster', JSON.stringify(savedJobs));
+        // Collect customer data
+        const client = {
+            first: document.getElementById('custFirst').value,
+            last: document.getElementById('custLast').value,
+            phone: document.getElementById('custPhone').value,
+            email: document.getElementById('custEmail').value,
+            street: document.getElementById('custStreet').value,
+            city: document.getElementById('custCity').value,
+            state: document.getElementById('custState').value,
+            zip: document.getElementById('custZip').value
+        };
+
+        // Create the job object
+        const job = { 
+            id: Date.now(), 
+            client: client, 
+            rugs: [...currentRugs], 
+            delivery: document.getElementById('delv').value, 
+            install: document.getElementById('inst').value, 
+            total: document.getElementById('displayTotal').innerText, 
+            date: new Date().toLocaleDateString() 
+        };
+
+        // Push and Save to LocalStorage
+        savedJobs.unshift(job); 
+        localStorage.setItem('rugJobsMaster', JSON.stringify(savedJobs));
+        
+        // Reset Builder State
+        currentRugs = [];
+        renderRugs();
+        
+        // Clear customer form fields
+        ['custFirst','custLast','custPhone','custEmail','custStreet','custCity','custState','custZip'].forEach(id => {
+            document.getElementById(id).value = "";
+        });
+        
+        // Refresh History and Switch Tab
         renderHistory();
         switchTab('history');
         window.scrollTo({top: 0, behavior: 'smooth'});
+        
+        alert("Order Saved Successfully!");
     }
 
     function renderHistory() {
