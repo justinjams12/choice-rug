@@ -138,6 +138,10 @@
                 </select>
                 <input type="text" id="custZip" placeholder="Zip *" maxlength="5" oninput="handleZipChange()">
             </div>
+            <div>
+                <label>Tax Rate (%)</label>
+                <input type="number" id="manualTax" step="0.01" placeholder="Override Tax Rate (e.g. 6.5)" oninput="updateLiveTotals()">
+            </div>
         </div>
 
         <div class="card">
@@ -258,6 +262,8 @@
             <tbody id="pdf-item-rows"></tbody>
         </table>
         <div style="float:right; text-align:right; width:250px; background:var(--choice-blue-light); padding:20px; border-radius:10px;">
+            <div style="font-size:18px; font-weight:700; color:#475569;" id="pdf-subtotal-display"></div>
+            <div style="font-size:18px; font-weight:700; color:#475569; margin-bottom:5px;" id="pdf-tax-display"></div>
             <div style="font-size:24px; font-weight:900; color:var(--choice-blue);" id="pdf-total-display"></div>
         </div>
         <div style="margin-top:100px; border-bottom:2px solid #000; width:300px; position:relative;">
@@ -359,11 +365,17 @@
             activeSqft = parseFloat(document.getElementById('manualSqft').value) || 0;
             activeLft = parseFloat(document.getElementById('manualLft').value) || 0;
         }
+
+        const manualTaxInput = document.getElementById('manualTax').value;
+        if (manualTaxInput !== "") {
+            currentTaxRate = parseFloat(manualTaxInput) / 100;
+        }
+
         const eR = parseFloat(document.getElementById('edgeStyle').value), bR = parseFloat(document.getElementById('backingStyle').value), pR = parseFloat(document.getElementById('padStyle').value);
         const activeCost = (activeLft * eR) + (activeSqft * bR) + (activeSqft * pR);
         const subtotal = rugSub + activeCost + parseFloat(document.getElementById('delv').value) + parseFloat(document.getElementById('inst').value);
         document.getElementById('displayTotal').innerText = `$${(subtotal * (1 + currentTaxRate)).toFixed(2)}`;
-        document.getElementById('taxInfo').innerText = `Subtotal: $${subtotal.toFixed(2)} | Tax: $${(subtotal * currentTaxRate).toFixed(2)}`;
+        document.getElementById('taxInfo').innerText = `Subtotal: $${subtotal.toFixed(2)} | Tax (${(currentTaxRate * 100).toFixed(2)}%): $${(subtotal * currentTaxRate).toFixed(2)}`;
     }
 
     function addRug() {
@@ -440,7 +452,8 @@
                 street: document.getElementById('custStreet')?.value || "N/A", 
                 city: document.getElementById('custCity')?.value || "N/A",
                 state: document.getElementById('custState')?.value || "N/A", 
-                zip: document.getElementById('custZip')?.value || "N/A"
+                zip: document.getElementById('custZip')?.value || "N/A",
+                taxRate: document.getElementById('manualTax').value
             };
             
             const rugClone = currentRugs.map(r => ({...r}));
@@ -510,6 +523,7 @@
         document.getElementById('custCity').value = job.client.city || "";
         document.getElementById('custState').value = job.client.state || ""; 
         document.getElementById('custZip').value = job.client.zip || "";
+        document.getElementById('manualTax').value = job.client.taxRate || "";
         currentRugs = [...(job.rugs || [])]; 
         document.getElementById('delv').value = job.delivery || 0; 
         document.getElementById('inst').value = job.install || 0;
@@ -526,7 +540,12 @@
         renderRugs(); lookupTax(); switchTab('workspace');
     }
 
-    function lookupTax() { const r = {"PA":0.06, "DE":0.00, "MD":0.06, "NJ":0.066, "VA":0.053, "NY":0.088}; currentTaxRate = r[document.getElementById('custState').value] || 0; updateLiveTotals(); }
+    function lookupTax() { 
+        if(document.getElementById('manualTax').value !== "") return;
+        const r = {"PA":0.06, "DE":0.00, "MD":0.06, "NJ":0.066, "VA":0.053, "NY":0.088}; 
+        currentTaxRate = r[document.getElementById('custState').value] || 0; 
+        updateLiveTotals(); 
+    }
     function handleZipChange() { if(document.getElementById('custZip').value.length === 5) lookupTax(); validateInputs(); }
     
     function toggleSigPad() { 
@@ -555,7 +574,17 @@
         document.getElementById('pdf-client-phone').innerText = `Phone: ${document.getElementById('custPhone').value}`;
         document.getElementById('pdf-client-email').innerText = `Email: ${document.getElementById('custEmail').value}`;
         document.getElementById('pdf-date').innerText = new Date().toLocaleDateString();
-        document.getElementById('pdf-total-display').innerText = `Total: ${document.getElementById('displayTotal').innerText}`;
+        
+        const rugSub = currentRugs.reduce((a, b) => a + (b.cost || 0), 0);
+        const delv = parseFloat(document.getElementById('delv').value) || 0;
+        const inst = parseFloat(document.getElementById('inst').value) || 0;
+        const subtotal = rugSub + delv + inst;
+        const taxAmount = subtotal * currentTaxRate;
+        const total = subtotal + taxAmount;
+
+        document.getElementById('pdf-subtotal-display').innerText = `Subtotal: $${subtotal.toFixed(2)}`;
+        document.getElementById('pdf-tax-display').innerText = `Tax (${(currentTaxRate * 100).toFixed(2)}%): $${taxAmount.toFixed(2)}`;
+        document.getElementById('pdf-total-display').innerText = `Total: $${total.toFixed(2)}`;
         
         let rowsHtml = currentRugs.map(r => `
             <tr>
@@ -571,9 +600,8 @@
                 <td style="text-align:right">$${(r.cost || 0).toFixed(2)}</td>
             </tr>`).join('');
             
-        const d = parseFloat(document.getElementById('delv').value), i = parseFloat(document.getElementById('inst').value);
-        if(d > 0) rowsHtml += `<tr><td style="font-weight:bold;">Delivery</td><td>-</td><td>Standard Service</td><td style="text-align:right">$${d.toFixed(2)}</td></tr>`;
-        if(i > 0) rowsHtml += `<tr><td style="font-weight:bold;">Installation</td><td>-</td><td>Professional Install</td><td style="text-align:right">$${i.toFixed(2)}</td></tr>`;
+        if(delv > 0) rowsHtml += `<tr><td style="font-weight:bold;">Delivery</td><td>-</td><td>Standard Service</td><td style="text-align:right">$${delv.toFixed(2)}</td></tr>`;
+        if(inst > 0) rowsHtml += `<tr><td style="font-weight:bold;">Installation</td><td>-</td><td>Professional Install</td><td style="text-align:right">$${inst.toFixed(2)}</td></tr>`;
         document.getElementById('pdf-item-rows').innerHTML = rowsHtml;
 
         const sigImg = document.getElementById('pdf-sig-img'); 
