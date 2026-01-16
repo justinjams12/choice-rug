@@ -389,9 +389,15 @@
         const rug = { name: document.getElementById('roomName').value, w, l, lft, sqft, edge: e.options[e.selectedIndex].text, backing: b.options[b.selectedIndex].text, pad: p.options[p.selectedIndex].text, cost, shape: currentShape, sides: sidesText };
         
         if(editingRugIndex !== null) currentRugs[editingRugIndex] = rug; else currentRugs.push(rug);
-        editingRugIndex = null; renderRugs(); 
+        clearRugForm();
+    }
+
+    function clearRugForm() {
+        editingRugIndex = null;
         ['roomName','wA','lB','manualSqft','manualLft'].forEach(id => document.getElementById(id).value = "");
-        document.getElementById('btnAddRug').innerText = "+ Add to Quote"; document.getElementById('btnCancelEdit').style.display = 'none';
+        document.getElementById('btnAddRug').innerText = "+ Add to Quote";
+        document.getElementById('btnCancelEdit').style.display = 'none';
+        renderRugs();
     }
 
     function renderRugs() {
@@ -425,7 +431,10 @@
     }
 
     function removeRug(i) { currentRugs.splice(i,1); renderRugs(); }
-    function cancelEdit() { editingRugIndex = null; addRug(); }
+    
+    function cancelEdit() { 
+        clearRugForm(); 
+    }
 
     function saveJob() {
         const job = { id: Date.now(), client: { first: document.getElementById('custFirst').value, last: document.getElementById('custLast').value, phone: document.getElementById('custPhone').value, email: document.getElementById('custEmail').value, street: document.getElementById('custStreet').value, city: document.getElementById('custCity').value, state: document.getElementById('custState').value, zip: document.getElementById('custZip').value }, rugs: [...currentRugs], delivery: document.getElementById('delv').value, install: document.getElementById('inst').value, total: document.getElementById('displayTotal').innerText, date: new Date().toLocaleDateString() };
