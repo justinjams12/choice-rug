@@ -465,7 +465,6 @@
 
     function renderHistory() {
         const search = (document.getElementById('jobSearch')?.value || "").toLowerCase();
-        // Critical fix: filter out any corrupted/broken entries before rendering
         const filtered = savedJobs.filter(j => j && j.client && (j.client.last || "").toLowerCase().includes(search));
         
         document.getElementById('historyList').innerHTML = filtered.map(j => {
@@ -477,7 +476,10 @@
                     <small style="color: var(--choice-blue); font-weight: 600;">${rugSummary}</small><br>
                     <small>${j.date} — ${j.total}</small>
                 </div>
-                <button class="btn-del-history" onclick="deleteHistory(${j.id})">X</button>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn-del-history" style="background: var(--choice-blue);" onclick="viewJob(${j.id})">✎</button>
+                    <button class="btn-del-history" onclick="deleteHistory(${j.id})">X</button>
+                </div>
             </div>`;
         }).join('');
     }
