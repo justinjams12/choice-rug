@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Choice Floors - Rug Fabrication Pro</title>
+    <title>Choice Floors - Master Rug Pro</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
@@ -14,11 +14,11 @@
             --choice-blue-light: #eef4f9;
             --text: #1e293b;
             --danger: #ef4444;
-            --warning: #f59e0b;
         }
         body { font-family: 'Inter', system-ui, sans-serif; margin: 0; background: #f1f5f9; color: var(--text); padding-bottom: 60px; }
         .app-shell { width: 100%; max-width: 480px; margin: auto; padding: 15px; box-sizing: border-box; }
         
+        /* Tabs */
         .tabs { display: flex; background: var(--choice-blue); padding: 6px; border-radius: 12px; margin-bottom: 20px; }
         .tab-btn { flex: 1; padding: 12px; border: none; background: none; color: white; font-weight: 700; cursor: pointer; border-radius: 8px; opacity: 0.7; transition: all 0.2s; }
         .tab-btn.active { background: var(--choice-green); opacity: 1; color: white; }
@@ -26,6 +26,7 @@
         .view { display: none; }
         .view.active { display: block; }
 
+        /* UI Cards */
         .live-result { background: var(--choice-blue); color: white; border-radius: 18px; padding: 25px; text-align: center; margin-bottom: 15px; position: relative; overflow: hidden; }
         .live-result::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 5px; background: var(--choice-green); }
         
@@ -41,7 +42,7 @@
 
         .side-selector { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 15px; background: #f8fafc; padding: 12px; border-radius: 10px; border: 1px solid #e2e8f0; }
         .side-option { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
-        .side-option input { width: auto; margin: 0; cursor: pointer; }
+        .side-option input { width: auto; margin: 0; }
 
         .btn { width: 100%; padding: 16px; border-radius: 10px; border: none; font-weight: 800; cursor: pointer; transition: all 0.2s; }
         .btn-add { background: var(--choice-blue); color: white; }
@@ -51,49 +52,41 @@
 
         .error-msg { color: var(--danger); font-size: 0.7rem; font-weight: bold; margin-bottom: 10px; display: none; }
 
-        .room-tag { background: var(--choice-blue-light); padding: 12px; border-radius: 10px; margin-bottom: 8px; border-left: 4px solid var(--choice-green); transition: all 0.3s; }
-        .room-tag-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;}
-        .room-tag-btns { display: flex; gap: 10px; }
-        .btn-inline { background: none; border: none; font-size: 0.7rem; font-weight: bold; cursor: pointer; padding: 4px; border-radius: 4px;}
+        .room-tag { background: var(--choice-blue-light); padding: 12px; border-radius: 10px; margin-bottom: 8px; border-left: 4px solid var(--choice-green); }
+        .room-tag-btns { display: flex; gap: 10px; margin-top: 5px; }
+        .btn-inline { background: none; border: none; font-size: 0.7rem; font-weight: bold; cursor: pointer; padding: 4px; }
         .btn-edit { color: var(--choice-blue); }
         .btn-remove { color: var(--danger); }
+
+        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-radius: 12px; background: white; margin-bottom: 10px; border: 1px solid #e2e8f0; cursor: pointer; }
+        .btn-del-history { background: var(--danger); color: white; border: none; border-radius: 6px; padding: 8px 12px; font-weight: 800; font-size: 0.7rem; }
 
         .shape-toggle { display: flex; background: #f1f5f9; padding: 4px; border-radius: 8px; margin-bottom: 12px; }
         .shape-btn { flex: 1; padding: 8px; border: none; background: none; font-size: 0.7rem; font-weight: 800; cursor: pointer; border-radius: 6px; color: #64748b; }
         .shape-btn.active { background: white; color: var(--choice-blue); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
 
         .calc-helper { background: #f8fafc; border: 1px solid var(--choice-blue); border-radius: 12px; padding: 15px; margin-bottom: 15px; display: none; }
-        .calc-title { font-size: 0.7rem; font-weight: 900; color: var(--choice-blue); margin-bottom: 8px; text-transform: uppercase; }
         .shape-quick-select { display: flex; gap: 5px; margin-bottom: 12px; flex-wrap: wrap; }
         .quick-chip { background: white; border: 1px solid #cbd5e1; padding: 5px 10px; border-radius: 20px; font-size: 0.65rem; font-weight: 700; cursor: pointer; }
-        .quick-chip:hover { border-color: var(--choice-blue); background: var(--choice-blue-light); }
 
         .sig-container { display: none; border: 2px dashed #cbd5e1; border-radius: 10px; background: #fff; margin-top: 10px; overflow: hidden; }
-        .signature-pad { width: 100%; height: 140px; cursor: crosshair; }
-        .sig-controls { display: flex; justify-content: space-between; padding: 5px 10px; background: #f8fafc; border-top: 1px solid #e2e8f0; }
+        .signature-pad { width: 100%; height: 140px; }
 
-        #pdf-template { position: absolute; left: -9999px; width: 850px; background: #fff; color: #1e293b; padding: 0; }
-        .pdf-header-wrapper { background: white; padding: 40px 60px 0 60px; display: flex; justify-content: space-between; align-items: flex-end; }
-        .pdf-logo-img { height: 95px; width: auto; margin-bottom: 10px; }
-        .pdf-title-block { text-align: right; padding-bottom: 15px; }
-        .pdf-title-text { color: var(--choice-blue); margin: 0; font-size: 26px; font-weight: 900; text-transform: uppercase; }
-        .pdf-wave-container { line-height: 0; margin-top: -1px; width: 100%; position: relative; }
+        /* PDF Styles */
+        #pdf-template { position: absolute; left: -9999px; width: 850px; background: #fff; color: #1e293b; }
+        .pdf-header { background: white; padding: 40px 60px 0 60px; display: flex; justify-content: space-between; align-items: flex-end; }
+        .pdf-wave { line-height: 0; width: 100%; }
         .pdf-body { padding: 40px 60px; }
         .pdf-table { width: 100%; border-collapse: collapse; margin: 25px 0; }
-        .pdf-table th { text-align: left; padding: 14px; background: #f8fafc; border-bottom: 2px solid #e2e8f0; font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 800; }
-        .pdf-table td { padding: 14px; border-bottom: 1px solid #f1f5f9; font-size: 13px; vertical-align: top; }
-        .pdf-total-card { background: var(--choice-blue-light); padding: 25px; border-radius: 12px; width: 280px; float: right; text-align: right; border: 1px solid #dbeafe; }
-        .pdf-auth-section { margin-top: 60px; display: flex; justify-content: space-between; align-items: flex-end; }
-        .pdf-sig-block { width: 400px; }
-        .pdf-sig-line { border-bottom: 2px solid #1e293b; position: relative; height: 60px; margin-bottom: 5px; }
-        .pdf-signature-img { position: absolute; bottom: 2px; left: 10px; max-height: 70px; width: auto; }
+        .pdf-table th { text-align: left; padding: 14px; background: #f8fafc; border-bottom: 2px solid #e2e8f0; font-size: 11px; text-transform: uppercase; color: #64748b; }
+        .pdf-table td { padding: 14px; border-bottom: 1px solid #f1f5f9; font-size: 13px; }
     </style>
 </head>
 <body>
 
 <div class="app-shell">
-    <header style="text-align:center; padding: 10px 0 10px 0;">
-        <img src="choice-floors-logo.png" style="max-height: 55px; width: auto;" alt="Choice Floors">
+    <header style="text-align:center; padding: 10px 0;">
+        <img src="choice-floors-logo.png" style="max-height: 55px;" alt="Choice Floors">
     </header>
 
     <div class="tabs">
@@ -103,15 +96,15 @@
 
     <div id="workspace" class="view active">
         <div class="live-result">
-            <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; opacity: 0.9; margin-bottom: 5px;">Quote Total (Tax Inc.)</div>
+            <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; opacity: 0.9;">Total Quote</div>
             <div id="displayTotal" style="font-size: 2.2rem; font-weight: 900;">$0.00</div>
-            <div id="taxInfo" style="font-size: 0.75rem; opacity: 0.8;">Enter location for tax...</div>
+            <div id="taxInfo" style="font-size: 0.75rem; opacity: 0.8;">Tax will calculate by State</div>
         </div>
 
-        <button class="btn" style="background: #e2e8f0; color: #475569; margin-bottom: 15px; padding: 10px; font-size: 0.8rem;" onclick="newQuote()">↺ Clear & New Quote</button>
+        <button class="btn" style="background: #e2e8f0; color: #475569; margin-bottom: 15px; padding: 10px; font-size: 0.7rem;" onclick="newQuote()">↺ Reset Builder</button>
 
         <div class="card">
-            <div class="section-title">Client Information</div>
+            <div class="section-title">Client Details</div>
             <div class="grid-2">
                 <input type="text" id="custFirst" placeholder="First Name *" oninput="autoCap(this); validateInputs()">
                 <input type="text" id="custLast" placeholder="Last Name *" oninput="autoCap(this); validateInputs()">
@@ -120,125 +113,102 @@
                 <input type="tel" id="custPhone" placeholder="Phone *" maxlength="14" oninput="formatPhoneNumber(this); validateInputs()">
                 <input type="email" id="custEmail" placeholder="Email *" oninput="validateInputs()">
             </div>
-            <input type="text" id="custStreet" placeholder="Street Address *" oninput="autoCap(this); validateInputs()">
+            <input type="text" id="custStreet" placeholder="Address *" oninput="autoCap(this); validateInputs()">
             <div class="grid-3">
                 <input type="text" id="custCity" placeholder="City *" oninput="autoCap(this); validateInputs()">
                 <select id="custState" onchange="lookupTax(); validateInputs()">
                     <option value="" disabled selected>ST *</option>
-                    <option value="AL">AL</option><option value="AK">AK</option><option value="AZ">AZ</option><option value="AR">AR</option><option value="CA">CA</option>
-                    <option value="CO">CO</option><option value="CT">CT</option><option value="DE">DE</option><option value="FL">FL</option><option value="GA">GA</option>
-                    <option value="HI">HI</option><option value="ID">ID</option><option value="IL">IL</option><option value="IN">IN</option><option value="IA">IA</option>
-                    <option value="KS">KS</option><option value="KY">KY</option><option value="LA">LA</option><option value="ME">ME</option><option value="MD">MD</option>
-                    <option value="MA">MA</option><option value="MI">MI</option><option value="MN">MN</option><option value="MS">MS</option><option value="MO">MO</option>
-                    <option value="MT">MT</option><option value="NE">NE</option><option value="NV">NV</option><option value="NH">NH</option><option value="NJ">NJ</option>
-                    <option value="NM">NM</option><option value="NY">NY</option><option value="NC">NC</option><option value="ND">ND</option><option value="OH">OH</option>
-                    <option value="OK">OK</option><option value="OR">OR</option><option value="PA">PA</option><option value="RI">RI</option><option value="SC">SC</option>
-                    <option value="SD">SD</option><option value="TN">TN</option><option value="TX">TX</option><option value="UT">UT</option><option value="VT">VT</option>
-                    <option value="VA">VA</option><option value="WA">WA</option><option value="WV">WV</option><option value="WI">WI</option><option value="WY">WY</option>
+                    <option value="PA">PA</option><option value="DE">DE</option><option value="MD">MD</option><option value="NJ">NJ</option>
+                    <option value="VA">VA</option><option value="NY">NY</option>
                 </select>
                 <input type="text" id="custZip" placeholder="Zip *" maxlength="5" oninput="handleZipChange()">
             </div>
         </div>
 
         <div class="card">
-            <div class="section-title">Fabrication Specs</div>
-            
+            <div class="section-title">Fabrication</div>
             <div class="shape-toggle">
-                <button id="shapeRect" class="shape-btn active" onclick="setShape('rect')">Standard Rectangle</button>
-                <button id="shapeIrreg" class="shape-btn" onclick="setShape('irreg')">Irregular / Custom</button>
+                <button id="shapeRect" class="shape-btn active" onclick="setShape('rect')">Rectangle</button>
+                <button id="shapeIrreg" class="shape-btn" onclick="setShape('irreg')">Custom/Irreg</button>
             </div>
 
-            <input type="text" id="roomName" placeholder="Room/Area Name *" oninput="autoCap(this); validateInputs()">
+            <input type="text" id="roomName" placeholder="Room Name (e.g. Living Room) *" oninput="autoCap(this); validateInputs()">
             
             <div id="standardInputs">
                 <div class="grid-2">
-                    <div><label>Width (ft) *</label><input type="number" id="wA" oninput="validateInputs()"></div>
-                    <div><label>Length (ft) *</label><input type="number" id="lB" oninput="validateInputs()"></div>
+                    <div><label>Width (ft)</label><input type="number" id="wA" oninput="validateInputs()"></div>
+                    <div><label>Length (ft)</label><input type="number" id="lB" oninput="validateInputs()"></div>
                 </div>
                 <label>Finished Sides</label>
                 <div class="side-selector">
-                    <label class="side-option"><input type="checkbox" id="sideTop" checked onchange="validateInputs()"> Top (Width)</label>
-                    <label class="side-option"><input type="checkbox" id="sideBottom" checked onchange="validateInputs()"> Bottom (Width)</label>
-                    <label class="side-option"><input type="checkbox" id="sideLeft" checked onchange="validateInputs()"> Left (Length)</label>
-                    <label class="side-option"><input type="checkbox" id="sideRight" checked onchange="validateInputs()"> Right (Length)</label>
+                    <label class="side-option"><input type="checkbox" id="sideTop" checked onchange="validateInputs()"> Top</label>
+                    <label class="side-option"><input type="checkbox" id="sideBottom" checked onchange="validateInputs()"> Bottom</label>
+                    <label class="side-option"><input type="checkbox" id="sideLeft" checked onchange="validateInputs()"> Left</label>
+                    <label class="side-option"><input type="checkbox" id="sideRight" checked onchange="validateInputs()"> Right</label>
                 </div>
             </div>
 
             <div id="irregularInputs" style="display:none;">
                 <div class="shape-quick-select">
-                    <span style="font-size:0.6rem; width:100%; color:#64748b; font-weight:800; margin-bottom:5px;">SHAPE AUTO-MATH:</span>
                     <div class="quick-chip" onclick="showHelper('circle')">Circle</div>
                     <div class="quick-chip" onclick="showHelper('lshape')">L-Shape</div>
-                    <div class="quick-chip" onclick="showHelper('oval')">Oval/Ellipse</div>
+                    <div class="quick-chip" onclick="showHelper('oval')">Oval</div>
                     <div class="quick-chip" onclick="showHelper('octagon')">Octagon</div>
                 </div>
-
                 <div id="helperPanel" class="calc-helper">
-                    <div class="calc-title" id="helperTitle">Shape Helper</div>
-                    <p id="helperDesc" style="font-size:0.65rem; color:#475569; line-height:1.3; margin-bottom:10px;"></p>
                     <div id="helperInputs" class="grid-2"></div>
-                    <button class="btn" style="padding:8px; font-size:0.7rem; background:var(--choice-blue); color:white; margin-top:10px;" onclick="calculateHelper()">Auto-Calculate SQFT & LFT</button>
+                    <button class="btn" style="padding:8px; font-size:0.7rem; background:var(--choice-blue); color:white; margin-top:10px;" onclick="calculateHelper()">Auto-Fill</button>
                 </div>
-
                 <div class="grid-2">
-                    <div><label>Total Area (SqFt) *</label><input type="number" id="manualSqft" oninput="validateInputs()"></div>
-                    <div><label>Total Perimeter (Lft) *</label><input type="number" id="manualLft" oninput="validateInputs()"></div>
+                    <div><label>Total Area (SF)</label><input type="number" id="manualSqft" oninput="validateInputs()"></div>
+                    <div><label>Perimeter (LF)</label><input type="number" id="manualLft" oninput="validateInputs()"></div>
                 </div>
             </div>
             
             <div class="grid-2">
-                <div><label>Edge Method</label><select id="edgeStyle" onchange="validateInputs()">
-                    <option value="2.50">Binding ($2.50/Lft)</option>
-                    <option value="6.00">Serging ($6.00/Lft)</option>
+                <div><label>Edge</label><select id="edgeStyle" onchange="validateInputs()">
+                    <option value="2.50">Binding ($2.50)</option>
+                    <option value="6.00">Serging ($6.00)</option>
                 </select></div>
-                <div><label>Attached Backing</label><select id="backingStyle" onchange="handleMutualExclusion('backing')">
+                <div><label>Backing</label><select id="backingStyle" onchange="handleMutualExclusion('backing')">
                     <option value="0">None</option>
-                    <option value="1.50">Soft Felt ($1.50/sf)</option>
-                    <option value="2.25">Teebaud ($2.25/sf)</option>
-                    <option value="1.25">Quad Back ($1.25/sf)</option>
+                    <option value="1.50">Soft Felt ($1.50)</option>
+                    <option value="2.25">Teebaud ($2.25)</option>
                 </select></div>
             </div>
-            <label>Area Rug Pad (Loose)</label>
+            <label>Loose Pad</label>
             <select id="padStyle" onchange="handleMutualExclusion('pad')">
                 <option value="0" data-limit="999">No Pad</option>
-                <option value="1.15" data-limit="12.0">Value Hold ($1.15/sf)</option>
-                <option value="2.35" data-limit="12.0">Double Grip ($2.35/sf)</option>
-                <option value="3.00" data-limit="9.0">Teebaud ($3.00/sf)</option>
+                <option value="1.15" data-limit="12.0">Value Hold (12' limit)</option>
+                <option value="2.35" data-limit="12.0">Double Grip (12' limit)</option>
+                <option value="3.00" data-limit="9.0">Teebaud (9' limit)</option>
             </select>
-            <div id="padError" class="error-msg">⚠️ Dimension exceeds pad width limit.</div>
-            
-            <div class="grid-2">
-                <div><label>Delivery (Flat)</label><select id="delv" onchange="updateLiveTotals()">
-                    <option value="0">N/A</option>
-                    <option value="125">Standard Delivery ($125)</option>
-                </select></div>
-                <div><label>Install (Flat)</label><select id="inst" onchange="updateLiveTotals()">
-                    <option value="0">N/A</option>
-                    <option value="100">Professional Install ($100)</option>
-                </select></div>
-            </div>
+            <div id="padError" class="error-msg">⚠️ Too wide for this pad type.</div>
             
             <button class="btn btn-add" id="btnAddRug" disabled onclick="addRug()">+ Add to Quote</button>
             <button class="btn btn-add" id="btnCancelEdit" style="display:none; background:#94a3b8; margin-top:8px;" onclick="cancelEdit()">Cancel Edit</button>
         </div>
 
         <div class="card" id="summaryCard" style="display:none;">
-            <div class="section-title">Quote Breakdown</div>
+            <div class="section-title">Current Items</div>
             <div id="roomList"></div>
-            <div id="feeList"></div>
+            
+            <div class="grid-2" style="margin-top:10px;">
+                <div><label>Delivery</label><select id="delv" onchange="updateLiveTotals()">
+                    <option value="0">None</option><option value="125">Standard ($125)</option>
+                </select></div>
+                <div><label>Install</label><select id="inst" onchange="updateLiveTotals()">
+                    <option value="0">None</option><option value="100">Pro ($100)</option>
+                </select></div>
+            </div>
 
-            <div style="margin-top: 15px; background: #f8fafc; padding: 12px; border-radius: 10px; border: 1px solid #e2e8f0;">
-                <label class="side-option" style="margin-bottom: 0;">
-                    <input type="checkbox" id="useSig" onchange="toggleSigPad()"> 
-                    <span style="font-size: 0.85rem; color: var(--choice-blue);">Add Electronic Signature</span>
-                </label>
+            <div style="margin-top: 15px; background: #f8fafc; padding: 10px; border-radius: 10px;">
+                <label class="side-option"><input type="checkbox" id="useSig" onchange="toggleSigPad()"> Add Customer Signature</label>
             </div>
 
             <div id="sig-pad-container" class="sig-container">
                 <canvas id="sig-pad" class="signature-pad"></canvas>
-                <div class="sig-controls">
-                    <button onclick="clearSig()" style="background:none; border:none; color:var(--danger); font-size: 0.7rem; font-weight: bold; cursor: pointer;">Clear</button>
-                </div>
+                <button onclick="clearSig()" style="padding:10px; color:var(--danger); border:none; background:none; font-weight:800; cursor:pointer;">Clear</button>
             </div>
 
             <button class="btn btn-save" onclick="saveJob()">Save Order History</button>
@@ -247,22 +217,38 @@
     </div>
 
     <div id="history" class="view">
-        <input type="text" id="jobSearch" class="search-input" style="width:100%; padding:12px; border:2px solid var(--choice-blue); border-radius:10px; margin-bottom:15px;" placeholder="🔍 Search Client Last Name..." oninput="renderHistory()">
+        <input type="text" id="jobSearch" style="width:100%; padding:12px; border-radius:10px; border:1px solid #cbd5e1; margin-bottom:15px;" placeholder="Search Last Name..." oninput="renderHistory()">
         <div id="historyList"></div>
     </div>
 </div>
 
 <div id="pdf-template">
-    <div class="pdf-header-wrapper"><img src="choice-floors-logo.png" class="pdf-logo-img"><div class="pdf-title-block"><h1 class="pdf-title-text">Choice Floors Rug Estimate</h1><p style="margin:5px 0 0 0; font-weight: 600; font-size: 13px;">Date: <span id="pdf-date"></span></p></div></div>
-    <div class="pdf-wave-container"><svg viewBox="0 0 850 80" xmlns="http://www.w3.org/2000/svg"><path d="M0,40 C200,80 400,0 600,40 C800,80 850,50 850,50 L850,80 L0,80 Z" fill="#9dbb4c" opacity="0.8"/><path d="M0,50 C200,10 400,90 600,50 C800,10 850,40 850,40 L850,80 L0,80 Z" fill="#2b6291"/></svg></div>
-    <div class="pdf-body"><div style="margin-bottom: 25px;"><h2 id="pdf-client-name" style="margin:0; color: var(--choice-blue);"></h2><p id="pdf-client-address" style="margin:5px 0 2px 0; color: #475569; font-weight: 600;"></p><p id="pdf-client-contact" style="margin:0; color: #475569; font-size: 13px;"></p></div><table class="pdf-table"><thead><tr><th style="width:35%">Area</th><th style="width:15%">Calculations</th><th style="width:30%">Specifications</th><th style="width:20%; text-align:right">Cost</th></tr></thead><tbody id="pdf-item-rows"></tbody></table><div class="pdf-total-card"><div>Subtotal: <span id="pdf-subtotal"></span></div><div>Sales Tax (<span id="pdf-tax-rate"></span>%): <span id="pdf-tax-amount"></span></div><div style="border-top: 2px solid #cbd5e1; margin-top: 10px; padding-top: 10px; font-size: 24px; font-weight: 900; color: var(--choice-blue);">Total: <span id="pdf-total-display"></span></div></div><div style="clear: both; margin-top: 80px;"><div class="pdf-auth-section"><div class="pdf-sig-block"><div class="pdf-sig-line"><img id="pdf-sig-img" class="pdf-signature-img" src=""></div><p style="font-size: 10px; font-weight: 800; text-transform: uppercase;">Customer Signature</p></div></div></div></div>
+    <div class="pdf-header">
+        <img src="choice-floors-logo.png" style="height:80px;">
+        <div style="text-align:right"><h1 style="color:var(--choice-blue); margin:0;">Rug Fabrication Quote</h1><p>Date: <span id="pdf-date"></span></p></div>
+    </div>
+    <div class="pdf-wave"><svg viewBox="0 0 850 80" xmlns="http://www.w3.org/2000/svg"><path d="M0,40 C200,80 400,0 600,40 C800,80 850,50 850,50 L850,80 L0,80 Z" fill="#9dbb4c"/><path d="M0,50 C200,10 400,90 600,50 C800,10 850,40 850,40 L850,80 L0,80 Z" fill="#2b6291"/></svg></div>
+    <div class="pdf-body">
+        <h2 id="pdf-client-name"></h2>
+        <p id="pdf-client-address"></p>
+        <table class="pdf-table">
+            <thead><tr><th>Room</th><th>Dimensions</th><th>Finishing Specs</th><th style="text-align:right">Total</th></tr></thead>
+            <tbody id="pdf-item-rows"></tbody>
+        </table>
+        <div style="float:right; text-align:right; width:250px; background:var(--choice-blue-light); padding:20px; border-radius:10px;">
+            <div style="font-size:24px; font-weight:900; color:var(--choice-blue);" id="pdf-total-display"></div>
+        </div>
+        <div style="margin-top:100px; border-bottom:2px solid #000; width:300px; position:relative;">
+            <img id="pdf-sig-img" style="position:absolute; bottom:5px; left:10px; max-height:60px;">
+            <p style="margin-top:5px; font-size:10px; font-weight:800;">CUSTOMER SIGNATURE</p>
+        </div>
+    </div>
 </div>
 
 <script>
     let currentRugs = [];
     let savedJobs = JSON.parse(localStorage.getItem('rugJobsMaster')) || [];
     let currentTaxRate = 0.00;
-    let editingJobId = null;
     let signaturePad;
     let editingRugIndex = null;
     let currentShape = 'rect';
@@ -276,15 +262,13 @@
             canvas.width = canvas.offsetWidth * ratio;
             canvas.height = canvas.offsetHeight * ratio;
             canvas.getContext("2d").scale(ratio, ratio);
-            signaturePad.clear();
         }
-        window.onresize = resizeCanvas;
-        resizeCanvas();
+        window.onresize = resizeCanvas; resizeCanvas();
+        renderHistory();
     };
 
     function switchTab(t) {
-        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.view, .tab-btn').forEach(el => el.classList.remove('active'));
         document.getElementById(t).classList.add('active');
         document.getElementById('tab-btn-' + t).classList.add('active');
     }
@@ -295,95 +279,51 @@
         document.getElementById('shapeIrreg').classList.toggle('active', type === 'irreg');
         document.getElementById('standardInputs').style.display = type === 'rect' ? 'block' : 'none';
         document.getElementById('irregularInputs').style.display = type === 'irreg' ? 'block' : 'none';
-        if(type === 'rect') document.getElementById('helperPanel').style.display = 'none';
         validateInputs();
     }
 
     function showHelper(type) {
         currentHelperType = type;
         const panel = document.getElementById('helperPanel');
-        const title = document.getElementById('helperTitle');
-        const desc = document.getElementById('helperDesc');
         const inputs = document.getElementById('helperInputs');
-        panel.style.display = 'block';
-        inputs.innerHTML = '';
-
-        if(type === 'circle') {
-            title.innerText = "Circle Calculator";
-            desc.innerText = "Diameter is the measurement from edge to edge through the center.";
-            inputs.innerHTML = '<div><label>Diameter (ft)</label><input type="number" id="h1"></div>';
-        } else if(type === 'lshape') {
-            title.innerText = "L-Shape Calculator";
-            desc.innerText = "Enter the two longest outer walls.";
-            inputs.innerHTML = '<div><label>Long Width (ft)</label><input type="number" id="h1"></div><div><label>Long Length (ft)</label><input type="number" id="h2"></div>';
-        } else if(type === 'oval') {
-            title.innerText = "Oval/Ellipse Calculator";
-            desc.innerText = "Measure the maximum length and maximum width.";
-            inputs.innerHTML = '<div><label>Max Width (ft)</label><input type="number" id="h1"></div><div><label>Max Length (ft)</label><input type="number" id="h2"></div>';
-        } else if(type === 'octagon') {
-            title.innerText = "Octagon Calculator";
-            desc.innerText = "Enter measurement from flat side to flat side.";
-            inputs.innerHTML = '<div><label>Full Width (ft)</label><input type="number" id="h1"></div>';
-        }
+        panel.style.display = 'block'; inputs.innerHTML = '';
+        if(type === 'circle') inputs.innerHTML = '<div><label>Diameter</label><input type="number" id="h1"></div>';
+        else if(type === 'lshape') inputs.innerHTML = '<div><label>W</label><input type="number" id="h1"></div><div><label>L</label><input type="number" id="h2"></div>';
+        else if(type === 'oval') inputs.innerHTML = '<div><label>Max W</label><input type="number" id="h1"></div><div><label>Max L</label><input type="number" id="h2"></div>';
+        else if(type === 'octagon') inputs.innerHTML = '<div><label>Width</label><input type="number" id="h1"></div>';
     }
 
     function calculateHelper() {
-        const h1 = parseFloat(document.getElementById('h1').value) || 0;
-        const h2 = parseFloat(document.getElementById('h2')?.value) || 0;
+        const h1 = parseFloat(document.getElementById('h1').value) || 0, h2 = parseFloat(document.getElementById('h2')?.value) || 0;
         let sqft = 0, lft = 0;
-
-        if(currentHelperType === 'circle') {
-            const r = h1 / 2;
-            sqft = Math.PI * Math.pow(r, 2);
-            lft = 2 * Math.PI * r;
-        } else if(currentHelperType === 'lshape') {
-            sqft = (h1 * h2) * 0.75; 
-            lft = (h1 + h2) * 2;
-        } else if(currentHelperType === 'oval') {
-            const r1 = h1 / 2, r2 = h2 / 2;
-            sqft = Math.PI * r1 * r2;
-            lft = Math.PI * (3*(r1+r2) - Math.sqrt((3*r1+r2)*(r1+3*r2)));
-        } else if(currentHelperType === 'octagon') {
-            sqft = 0.828 * Math.pow(h1, 2);
-            lft = h1 * 3.31;
-        }
-
+        if(currentHelperType === 'circle') { sqft = Math.PI * Math.pow(h1/2,2); lft = Math.PI * h1; }
+        else if(currentHelperType === 'lshape') { sqft = (h1*h2)*0.75; lft = (h1+h2)*2; }
+        else if(currentHelperType === 'oval') { sqft = Math.PI*(h1/2)*(h2/2); lft = Math.PI*(h1+h2)/2; }
+        else if(currentHelperType === 'octagon') { sqft = 0.828*Math.pow(h1,2); lft = h1*3.31; }
         document.getElementById('manualSqft').value = sqft.toFixed(2);
         document.getElementById('manualLft').value = lft.toFixed(2);
-        document.getElementById('helperPanel').style.display = 'none';
-        validateInputs();
+        document.getElementById('helperPanel').style.display = 'none'; validateInputs();
     }
 
     function handleMutualExclusion(trigger) {
-        const backing = document.getElementById('backingStyle');
-        const pad = document.getElementById('padStyle');
-        if (trigger === 'backing' && backing.value !== "0") pad.value = "0";
-        if (trigger === 'pad' && pad.value !== "0") backing.value = "0";
+        if (trigger === 'backing' && document.getElementById('backingStyle').value !== "0") document.getElementById('padStyle').value = "0";
+        if (trigger === 'pad' && document.getElementById('padStyle').value !== "0") document.getElementById('backingStyle').value = "0";
         validateInputs();
     }
 
     function validateInputs() {
         const fields = ['custFirst','custLast','custPhone','custEmail','custStreet','custCity','custState','custZip','roomName'];
-        let subValid = false;
-        let widthCheck = 0;
-        
+        let subValid = false, widthCheck = 0;
         if(currentShape === 'rect') {
-            const w = parseFloat(document.getElementById('wA').value) || 0;
-            const l = parseFloat(document.getElementById('lB').value) || 0;
-            widthCheck = Math.min(w, l);
-            subValid = w > 0 && l > 0;
+            const w = parseFloat(document.getElementById('wA').value) || 0, l = parseFloat(document.getElementById('lB').value) || 0;
+            widthCheck = Math.min(w, l); subValid = w > 0 && l > 0;
         } else {
             const s = parseFloat(document.getElementById('manualSqft').value) || 0;
-            const lf = parseFloat(document.getElementById('manualLft').value) || 0;
-            widthCheck = Math.sqrt(s); 
-            subValid = s > 0 && lf > 0;
+            widthCheck = Math.sqrt(s); subValid = s > 0;
         }
-
-        const padSelect = document.getElementById('padStyle');
-        const padLimit = parseFloat(padSelect.options[padSelect.selectedIndex].getAttribute('data-limit'));
+        const padSelect = document.getElementById('padStyle'), padLimit = parseFloat(padSelect.options[padSelect.selectedIndex].getAttribute('data-limit'));
         const isPadTooBig = widthCheck > padLimit;
         document.getElementById('padError').style.display = isPadTooBig ? 'block' : 'none';
-
         const allFieldsFilled = fields.every(id => document.getElementById(id).value.trim() !== "");
         document.getElementById('btnAddRug').disabled = !allFieldsFilled || !subValid || isPadTooBig;
         updateLiveTotals();
@@ -392,113 +332,127 @@
     function updateLiveTotals() {
         const rugSub = currentRugs.reduce((a, b) => a + b.cost, 0);
         let activeLft = 0, activeSqft = 0;
-
         if(currentShape === 'rect') {
-            const w = parseFloat(document.getElementById('wA').value) || 0;
-            const l = parseFloat(document.getElementById('lB').value) || 0;
+            const w = parseFloat(document.getElementById('wA').value) || 0, l = parseFloat(document.getElementById('lB').value) || 0;
             activeSqft = w * l;
-            if(document.getElementById('sideTop').checked) activeLft += w;
-            if(document.getElementById('sideBottom').checked) activeLft += w;
-            if(document.getElementById('sideLeft').checked) activeLft += l;
-            if(document.getElementById('sideRight').checked) activeLft += l;
+            if(document.getElementById('sideTop').checked) activeLft += w; if(document.getElementById('sideBottom').checked) activeLft += w;
+            if(document.getElementById('sideLeft').checked) activeLft += l; if(document.getElementById('sideRight').checked) activeLft += l;
         } else {
             activeSqft = parseFloat(document.getElementById('manualSqft').value) || 0;
             activeLft = parseFloat(document.getElementById('manualLft').value) || 0;
         }
-
-        const eR = parseFloat(document.getElementById('edgeStyle').value) || 0;
-        const bR = parseFloat(document.getElementById('backingStyle').value) || 0;
-        const pR = parseFloat(document.getElementById('padStyle').value) || 0;
-        
+        const eR = parseFloat(document.getElementById('edgeStyle').value), bR = parseFloat(document.getElementById('backingStyle').value), pR = parseFloat(document.getElementById('padStyle').value);
         const activeCost = (activeLft * eR) + (activeSqft * bR) + (activeSqft * pR);
         const subtotal = rugSub + activeCost + parseFloat(document.getElementById('delv').value) + parseFloat(document.getElementById('inst').value);
-        const total = subtotal + (subtotal * currentTaxRate);
-        
-        document.getElementById('displayTotal').innerText = `$${total.toFixed(2)}`;
-        document.getElementById('taxInfo').innerText = `Subtotal: $${subtotal.toFixed(2)} | Tax: $${(subtotal*currentTaxRate).toFixed(2)}`;
-        renderFees();
+        document.getElementById('displayTotal').innerText = `$${(subtotal * (1 + currentTaxRate)).toFixed(2)}`;
+        document.getElementById('taxInfo').innerText = `Subtotal: $${subtotal.toFixed(2)} | Tax: $${(subtotal * currentTaxRate).toFixed(2)}`;
     }
 
     function addRug() {
-        let w, l, lft, sqft, sidesDisplay;
+        let w, l, lft, sqft, sidesText = "Custom Perimeter";
         const e = document.getElementById('edgeStyle'), b = document.getElementById('backingStyle'), p = document.getElementById('padStyle');
         if(currentShape === 'rect') {
-            w = parseFloat(document.getElementById('wA').value); l = parseFloat(document.getElementById('lB').value);
-            sqft = w * l; lft = 0;
+            w = parseFloat(document.getElementById('wA').value); l = parseFloat(document.getElementById('lB').value); sqft = w * l; lft = 0;
             let sides = [];
             if(document.getElementById('sideTop').checked) { lft += w; sides.push("Top"); }
             if(document.getElementById('sideBottom').checked) { lft += w; sides.push("Bottom"); }
             if(document.getElementById('sideLeft').checked) { lft += l; sides.push("Left"); }
             if(document.getElementById('sideRight').checked) { lft += l; sides.push("Right"); }
-            sidesDisplay = sides.join(", ");
-        } else {
-            sqft = parseFloat(document.getElementById('manualSqft').value); lft = parseFloat(document.getElementById('manualLft').value);
-            w = "Irreg"; l = "Irreg"; sidesDisplay = "Custom Perimeter";
-        }
+            sidesText = sides.join(", ");
+        } else { sqft = parseFloat(document.getElementById('manualSqft').value); lft = parseFloat(document.getElementById('manualLft').value); w = "Irreg"; l = "Irreg"; }
+        
         const cost = (lft * parseFloat(e.value)) + (sqft * parseFloat(b.value)) + (sqft * parseFloat(p.value));
-        const rugData = { name: document.getElementById('roomName').value, w, l, lft, sqft, edge: e.options[e.selectedIndex].text, backing: b.options[b.selectedIndex].text, pad: p.options[p.selectedIndex].text, cost, sides: sidesDisplay, shape: currentShape };
-        if(editingRugIndex !== null) { currentRugs[editingRugIndex] = rugData; editingRugIndex = null; } else { currentRugs.push(rugData); }
-        renderRugs();
+        const rug = { name: document.getElementById('roomName').value, w, l, lft, sqft, edge: e.options[e.selectedIndex].text, backing: b.options[b.selectedIndex].text, pad: p.options[p.selectedIndex].text, cost, shape: currentShape, sides: sidesText };
+        
+        if(editingRugIndex !== null) currentRugs[editingRugIndex] = rug; else currentRugs.push(rug);
+        editingRugIndex = null; renderRugs(); 
         ['roomName','wA','lB','manualSqft','manualLft'].forEach(id => document.getElementById(id).value = "");
-        document.getElementById('btnCancelEdit').style.display = "none";
-        document.getElementById('btnAddRug').innerText = "+ Add to Quote";
-        setShape('rect');
+        document.getElementById('btnAddRug').innerText = "+ Add to Quote"; document.getElementById('btnCancelEdit').style.display = 'none';
     }
 
     function renderRugs() {
-        document.getElementById('roomList').innerHTML = currentRugs.map((r, i) => `<div class="room-tag"><div class="room-tag-header"><b>${r.name}</b><div class="room-tag-btns"><button class="btn-inline btn-edit" onclick="editRug(${i})">EDIT</button><button class="btn-inline btn-remove" onclick="removeRug(${i})">X</button></div></div><div style="font-size: 0.75rem; opacity: 0.7;">$${r.cost.toFixed(2)} | ${r.edge}</div></div>`).join('');
-        document.getElementById('summaryCard').style.display = 'block';
-    }
-
-    function renderFees() {
-        const d = parseFloat(document.getElementById('delv').value), i = parseFloat(document.getElementById('inst').value);
-        let html = "";
-        if(d > 0) html += `<div style="font-size:0.8rem; display:flex; justify-content:space-between; padding:5px 0;"><span>Delivery</span><b>$${d.toFixed(2)}</b></div>`;
-        if(i > 0) html += `<div style="font-size:0.8rem; display:flex; justify-content:space-between; padding:5px 0;"><span>Installation</span><b>$${i.toFixed(2)}</b></div>`;
-        document.getElementById('feeList').innerHTML = html;
+        document.getElementById('roomList').innerHTML = currentRugs.map((r, i) => `
+            <div class="room-tag">
+                <b>${r.name}</b> ($${r.cost.toFixed(2)})<br>
+                <small>${r.shape === 'rect' ? r.w+'x'+r.l : 'Irregular Shape'}</small>
+                <div class="room-tag-btns">
+                    <button class="btn-inline btn-edit" onclick="editRug(${i})">Edit</button>
+                    <button class="btn-inline btn-remove" onclick="removeRug(${i})">Delete</button>
+                </div>
+            </div>`).join('');
+        document.getElementById('summaryCard').style.display = currentRugs.length ? 'block' : 'none';
+        updateLiveTotals();
     }
 
     function editRug(i) {
         editingRugIndex = i; const r = currentRugs[i];
-        document.getElementById('roomName').value = r.name;
-        setShape(r.shape || 'rect');
-        if(r.shape === 'rect') {
-            document.getElementById('wA').value = r.w; document.getElementById('lB').value = r.l;
-            document.getElementById('sideTop').checked = r.sides.includes("Top");
-            document.getElementById('sideBottom').checked = r.sides.includes("Bottom");
-            document.getElementById('sideLeft').checked = r.sides.includes("Left");
-            document.getElementById('sideRight').checked = r.sides.includes("Right");
-        } else {
-            document.getElementById('manualSqft').value = r.sqft; document.getElementById('manualLft').value = r.lft;
-        }
-        document.getElementById('btnAddRug').innerText = "💾 Update Room";
-        document.getElementById('btnCancelEdit').style.display = "block";
+        document.getElementById('roomName').value = r.name; setShape(r.shape);
+        if(r.shape === 'rect') { document.getElementById('wA').value = r.w; document.getElementById('lB').value = r.l; }
+        else { document.getElementById('manualSqft').value = r.sqft; document.getElementById('manualLft').value = r.lft; }
+        document.getElementById('btnAddRug').innerText = "Update Room";
+        document.getElementById('btnCancelEdit').style.display = 'block';
     }
 
+    function removeRug(i) { currentRugs.splice(i,1); renderRugs(); }
     function cancelEdit() { editingRugIndex = null; addRug(); }
-    function removeRug(i) { currentRugs.splice(i,1); renderRugs(); updateLiveTotals(); }
-    function lookupTax() { const r = {"PA":0.06, "DE":0.00, "MD":0.06, "NJ":0.066}; currentTaxRate = r[document.getElementById('custState').value] || 0; updateLiveTotals(); }
+
+    function saveJob() {
+        const job = { id: Date.now(), client: { first: document.getElementById('custFirst').value, last: document.getElementById('custLast').value, phone: document.getElementById('custPhone').value, email: document.getElementById('custEmail').value, street: document.getElementById('custStreet').value, city: document.getElementById('custCity').value, state: document.getElementById('custState').value, zip: document.getElementById('custZip').value }, rugs: [...currentRugs], delivery: document.getElementById('delv').value, install: document.getElementById('inst').value, total: document.getElementById('displayTotal').innerText, date: new Date().toLocaleDateString() };
+        savedJobs.unshift(job); localStorage.setItem('rugJobsMaster', JSON.stringify(savedJobs));
+        alert("Quote Saved to History"); renderHistory();
+    }
+
+    function renderHistory() {
+        const search = document.getElementById('jobSearch').value.toLowerCase();
+        const filtered = savedJobs.filter(j => j.client.last.toLowerCase().includes(search));
+        document.getElementById('historyList').innerHTML = filtered.map(j => `
+            <div class="history-item">
+                <div style="flex-grow:1" onclick="viewJob(${j.id})">
+                    <b>${j.client.last}, ${j.client.first}</b><br>
+                    <small>${j.date} — ${j.total}</small>
+                </div>
+                <button class="btn-del-history" onclick="deleteHistory(${j.id})">X</button>
+            </div>`).join('');
+    }
+
+    function deleteHistory(id) { if(confirm("Delete this record?")) { savedJobs = savedJobs.filter(j => j.id !== id); localStorage.setItem('rugJobsMaster', JSON.stringify(savedJobs)); renderHistory(); } }
+
+    function viewJob(id) {
+        const job = savedJobs.find(j => j.id === id); if(!job) return;
+        document.getElementById('custFirst').value = job.client.first; document.getElementById('custLast').value = job.client.last;
+        document.getElementById('custPhone').value = job.client.phone; document.getElementById('custEmail').value = job.client.email;
+        document.getElementById('custStreet').value = job.client.street; document.getElementById('custCity').value = job.client.city;
+        document.getElementById('custState').value = job.client.state; document.getElementById('custZip').value = job.client.zip;
+        currentRugs = [...job.rugs]; document.getElementById('delv').value = job.delivery; document.getElementById('inst').value = job.install;
+        renderRugs(); lookupTax(); switchTab('workspace');
+    }
+
+    function lookupTax() { const r = {"PA":0.06, "DE":0.00, "MD":0.06, "NJ":0.066, "VA":0.053, "NY":0.088}; currentTaxRate = r[document.getElementById('custState').value] || 0; updateLiveTotals(); }
     function handleZipChange() { if(document.getElementById('custZip').value.length === 5) lookupTax(); validateInputs(); }
     function toggleSigPad() { document.getElementById('sig-pad-container').style.display = document.getElementById('useSig').checked ? 'block' : 'none'; }
     function clearSig() { signaturePad.clear(); }
     function newQuote() { if(confirm("Clear builder?")) location.reload(); }
+    function autoCap(el) { el.value = el.value.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '); }
+    function formatPhoneNumber(el) { let v = el.value.replace(/\D/g,''); if(v.length > 6) el.value = `(${v.slice(0,3)}) ${v.slice(3,6)}-${v.slice(6,10)}`; }
 
     async function generatePDF() {
         const { jsPDF } = window.jspdf;
         document.getElementById('pdf-client-name').innerText = `${document.getElementById('custFirst').value} ${document.getElementById('custLast').value}`;
         document.getElementById('pdf-client-address').innerText = `${document.getElementById('custStreet').value}, ${document.getElementById('custCity').value}, ${document.getElementById('custState').value}`;
         document.getElementById('pdf-date').innerText = new Date().toLocaleDateString();
-        const sigImg = document.getElementById('pdf-sig-img');
-        if (!signaturePad.isEmpty()) sigImg.src = signaturePad.toDataURL();
-        const canvas = await html2canvas(document.getElementById('pdf-template'), { scale: 2 });
-        const pdf = new jsPDF('p', 'mm', 'a4');
-        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
-        pdf.save(`Rug_Estimate_${document.getElementById('custLast').value}.pdf`);
-    }
+        document.getElementById('pdf-total-display').innerText = `Total: ${document.getElementById('displayTotal').innerText}`;
+        
+        let rowsHtml = currentRugs.map(r => `<tr><td>${r.name}</td><td>${r.shape==='rect' ? r.w+'\' x '+r.l+'\'' : r.sqft+' SF'}</td><td>Edge: ${r.edge}<br>Backing/Pad: ${r.backing !== 'None' ? r.backing : r.pad}</td><td style="text-align:right">$${r.cost.toFixed(2)}</td></tr>`).join('');
+        const d = parseFloat(document.getElementById('delv').value), i = parseFloat(document.getElementById('inst').value);
+        if(d > 0) rowsHtml += `<tr><td>Delivery</td><td>-</td><td>Standard</td><td style="text-align:right">$${d.toFixed(2)}</td></tr>`;
+        if(i > 0) rowsHtml += `<tr><td>Installation</td><td>-</td><td>Pro</td><td style="text-align:right">$${i.toFixed(2)}</td></tr>`;
+        document.getElementById('pdf-item-rows').innerHTML = rowsHtml;
 
-    function saveJob() { localStorage.setItem('rugJobsMaster', JSON.stringify(savedJobs)); alert("Saved to history."); }
-    function autoCap(el) { el.value = el.value.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '); }
-    function formatPhoneNumber(el) { let v = el.value.replace(/\D/g,''); if(v.length > 6) el.value = `(${v.slice(0,3)}) ${v.slice(3,6)}-${v.slice(6,10)}`; }
+        const sigImg = document.getElementById('pdf-sig-img'); if (!signaturePad.isEmpty()) sigImg.src = signaturePad.toDataURL();
+        const canvas = await html2canvas(document.getElementById('pdf-template'), { scale: 2 });
+        const pdf = new jsPDF('p', 'mm', 'a4'); pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
+        pdf.save(`Estimate_${document.getElementById('custLast').value}.pdf`);
+    }
 </script>
 </body>
 </html>
