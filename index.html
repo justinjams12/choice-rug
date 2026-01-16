@@ -18,6 +18,7 @@
         body { font-family: 'Inter', system-ui, sans-serif; margin: 0; background: #f1f5f9; color: var(--text); padding-bottom: 60px; }
         .app-shell { width: 100%; max-width: 480px; margin: auto; padding: 15px; box-sizing: border-box; }
         
+        /* Tabs */
         .tabs { display: flex; background: var(--choice-blue); padding: 6px; border-radius: 12px; margin-bottom: 20px; }
         .tab-btn { flex: 1; padding: 12px; border: none; background: none; color: white; font-weight: 700; cursor: pointer; border-radius: 8px; opacity: 0.7; transition: all 0.2s; }
         .tab-btn.active { background: var(--choice-green); opacity: 1; color: white; }
@@ -25,6 +26,7 @@
         .view { display: none; }
         .view.active { display: block; }
 
+        /* UI Cards */
         .live-result { background: var(--choice-blue); color: white; border-radius: 18px; padding: 25px; text-align: center; margin-bottom: 15px; position: relative; overflow: hidden; }
         .live-result::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 5px; background: var(--choice-green); }
         
@@ -42,6 +44,7 @@
         .side-option { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
         .side-option input { width: auto; margin: 0; }
 
+        /* Buttons */
         .btn { width: 100%; padding: 16px; border-radius: 10px; border: none; font-weight: 800; cursor: pointer; transition: all 0.2s; }
         .btn:active { transform: scale(0.98); opacity: 0.9; }
         .btn-add { background: var(--choice-blue); color: white; }
@@ -69,9 +72,11 @@
         .quick-chip { background: white; border: 1px solid #cbd5e1; padding: 5px 10px; border-radius: 20px; font-size: 0.65rem; font-weight: 700; cursor: pointer; }
         .quick-chip.active { background: var(--choice-blue); color: white; border-color: var(--choice-blue); }
 
+        /* Signature Container */
         .sig-container { display: none; border: 2px dashed #cbd5e1; border-radius: 10px; background: #fff; margin-top: 10px; margin-bottom: 15px; overflow: hidden; touch-action: none; }
         .signature-pad { width: 100%; height: 160px; background: #fff; cursor: crosshair; }
 
+        /* PDF Styles */
         #pdf-template { position: absolute; left: -9999px; width: 850px; background: #fff; color: #1e293b; }
         .pdf-header { background: white; padding: 40px 60px 0 60px; display: flex; justify-content: space-between; align-items: flex-end; }
         .pdf-wave { line-height: 0; width: 100%; }
@@ -422,6 +427,12 @@
 
     function saveJob() {
         try {
+            // Check if we actually have rooms to save
+            if (!currentRugs || currentRugs.length === 0) {
+                alert("Error: You must add at least one room to the quote before saving.");
+                return;
+            }
+
             const client = {
                 first: document.getElementById('custFirst').value || "N/A", 
                 last: document.getElementById('custLast').value || "N/A",
@@ -433,10 +444,13 @@
                 zip: document.getElementById('custZip').value || "N/A"
             };
             
+            // Deep clone the rugs array to break references
+            const rugClone = currentRugs.map(r => ({...r}));
+
             const job = { 
                 id: Date.now(), 
                 client: client, 
-                rugs: JSON.parse(JSON.stringify(currentRugs)), 
+                rugs: rugClone, 
                 delivery: document.getElementById('delv').value || 0, 
                 install: document.getElementById('inst').value || 0, 
                 total: document.getElementById('displayTotal').innerText || "$0.00", 
@@ -448,8 +462,8 @@
             renderHistory();
             alert("Order successfully saved to history.");
         } catch (err) {
-            console.error("Save failed:", err);
-            alert("Error saving: Please ensure at least one room is added.");
+            console.error("Save failed detailed error:", err);
+            alert("System Error: " + err.message);
         }
     }
 
