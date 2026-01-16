@@ -279,7 +279,7 @@
     let currentTaxRate = 0.00;
     let signaturePad;
     let editingRugIndex = null;
-    let currentJobId = null; // Track if we are editing an existing job
+    let currentJobId = null;
     let currentShape = 'rect';
     let currentHelperType = '';
 
@@ -367,11 +367,7 @@
         }
 
         const manualTaxInput = document.getElementById('manualTax').value;
-        if (manualTaxInput !== "") {
-            currentTaxRate = parseFloat(manualTaxInput) / 100;
-        } else {
-            currentTaxRate = 0;
-        }
+        currentTaxRate = manualTaxInput !== "" ? parseFloat(manualTaxInput) / 100 : 0;
 
         const eR = parseFloat(document.getElementById('edgeStyle').value), bR = parseFloat(document.getElementById('backingStyle').value), pR = parseFloat(document.getElementById('padStyle').value);
         const activeCost = (activeLft * eR) + (activeSqft * bR) + (activeSqft * pR);
@@ -384,6 +380,12 @@
         let w, l, lft, sqft, sidesText = "Custom Perimeter";
         let sideStates = { top: true, bottom: true, left: true, right: true };
         const e = document.getElementById('edgeStyle'), b = document.getElementById('backingStyle'), p = document.getElementById('padStyle');
+        
+        // Use regex to remove pricing from the string (e.g., "Binding ($2.50)" becomes "Binding")
+        const edgeName = e.options[e.selectedIndex].text.replace(/\s*\(\$.*?\)/g, '');
+        const backingName = b.options[b.selectedIndex].text.replace(/\s*\(\$.*?\)/g, '');
+        const padName = p.options[p.selectedIndex].text.replace(/\s*\(\$.*?\)/g, '');
+
         if(currentShape === 'rect') {
             w = parseFloat(document.getElementById('wA').value); l = parseFloat(document.getElementById('lB').value); sqft = w * l; lft = 0;
             let sides = [];
@@ -395,8 +397,9 @@
             if(sideStates.right) { lft += l; sides.push("Right"); }
             sidesText = sides.join(", ");
         } else { sqft = parseFloat(document.getElementById('manualSqft').value); lft = parseFloat(document.getElementById('manualLft').value); w = "Irreg"; l = "Irreg"; }
+        
         const cost = (lft * parseFloat(e.value)) + (sqft * parseFloat(b.value)) + (sqft * parseFloat(p.value));
-        const rug = { name: document.getElementById('roomName').value || "Unnamed Room", w, l, lft, sqft, edge: e.options[e.selectedIndex].text, backing: b.options[b.selectedIndex].text, pad: p.options[p.selectedIndex].text, cost, shape: currentShape, sides: sidesText, sideStates: sideStates };
+        const rug = { name: document.getElementById('roomName').value || "Unnamed Room", w, l, lft, sqft, edge: edgeName, backing: backingName, pad: padName, cost, shape: currentShape, sides: sidesText, sideStates: sideStates };
         if(editingRugIndex !== null) currentRugs[editingRugIndex] = rug; else currentRugs.push(rug);
         clearRugForm();
     }
@@ -430,9 +433,13 @@
             document.getElementById('sideTop').checked = r.sideStates.top; document.getElementById('sideBottom').checked = r.sideStates.bottom;
             document.getElementById('sideLeft').checked = r.sideStates.left; document.getElementById('sideRight').checked = r.sideStates.right;
         } else { document.getElementById('manualSqft').value = r.sqft; document.getElementById('manualLft').value = r.lft; }
-        Array.from(document.getElementById('edgeStyle').options).forEach(opt => opt.selected = opt.text === r.edge);
-        Array.from(document.getElementById('backingStyle').options).forEach(opt => opt.selected = opt.text === r.backing);
-        Array.from(document.getElementById('padStyle').options).forEach(opt => opt.selected = opt.text === r.pad);
+        
+        // Mapping back to the original text that includes pricing for the select menu to match
+        const findOption = (id, text) => Array.from(document.getElementById(id).options).find(opt => opt.text.includes(text));
+        const eOpt = findOption('edgeStyle', r.edge); if(eOpt) eOpt.selected = true;
+        const bOpt = findOption('backingStyle', r.backing); if(bOpt) bOpt.selected = true;
+        const pOpt = findOption('padStyle', r.pad); if(pOpt) pOpt.selected = true;
+
         document.getElementById('btnAddRug').innerText = "Update Room Details"; document.getElementById('btnCancelEdit').style.display = 'block';
         window.scrollTo({top: 0, behavior: 'smooth'}); validateInputs();
     }
@@ -445,100 +452,58 @@
             alert("Tax Rate (%) must be added before continuing."); return;
         }
         try {
-            if (!currentRugs || currentRugs.length === 0) {
-                alert("Error: Add at least one room before saving."); return;
-            }
-
+            if (!currentRugs.length) { alert("Error: Add at least one room."); return; }
             const client = {
-                first: document.getElementById('custFirst')?.value || "N/A", 
-                last: document.getElementById('custLast')?.value || "N/A",
-                phone: document.getElementById('custPhone')?.value || "N/A", 
-                email: document.getElementById('custEmail')?.value || "N/A",
-                street: document.getElementById('custStreet')?.value || "N/A", 
-                city: document.getElementById('custCity')?.value || "N/A",
-                state: document.getElementById('custState')?.value || "N/A", 
-                zip: document.getElementById('custZip')?.value || "N/A",
+                first: document.getElementById('custFirst').value, last: document.getElementById('custLast').value,
+                phone: document.getElementById('custPhone').value, email: document.getElementById('custEmail').value,
+                street: document.getElementById('custStreet').value, city: document.getElementById('custCity').value,
+                state: document.getElementById('custState').value, zip: document.getElementById('custZip').value,
                 taxRate: document.getElementById('manualTax').value
             };
-            
-            const rugClone = currentRugs.map(r => ({...r}));
-            const signatureData = signaturePad.isEmpty() ? null : signaturePad.toDataURL();
-
             const job = { 
-                id: currentJobId || Date.now(), 
-                client: client, 
-                rugs: rugClone, 
-                signature: signatureData,
-                delivery: document.getElementById('delv').value || 0, 
-                install: document.getElementById('inst').value || 0, 
-                total: document.getElementById('displayTotal').innerText || "$0.00", 
-                date: new Date().toLocaleDateString() 
+                id: currentJobId || Date.now(), client, rugs: [...currentRugs], 
+                signature: signaturePad.isEmpty() ? null : signaturePad.toDataURL(),
+                delivery: document.getElementById('delv').value, install: document.getElementById('inst').value, 
+                total: document.getElementById('displayTotal').innerText, date: new Date().toLocaleDateString() 
             };
-
             if (currentJobId) {
-                const index = savedJobs.findIndex(j => j.id === currentJobId);
-                if (index !== -1) savedJobs[index] = job;
-            } else {
-                savedJobs.unshift(job);
-            }
-
+                const idx = savedJobs.findIndex(j => j.id === currentJobId);
+                if (idx !== -1) savedJobs[idx] = job;
+            } else savedJobs.unshift(job);
             localStorage.setItem('rugJobsMaster', JSON.stringify(savedJobs));
-            renderHistory();
-            alert(currentJobId ? "Order updated successfully." : "Order successfully saved to history.");
-            currentJobId = job.id;
-        } catch (err) {
-            console.error("Save Error:", err);
-            alert("Error: " + err.message);
-        }
+            renderHistory(); alert("Order saved successfully."); currentJobId = job.id;
+        } catch (err) { alert("Error: " + err.message); }
     }
 
     function renderHistory() {
         const search = (document.getElementById('jobSearch')?.value || "").toLowerCase();
-        const filtered = savedJobs.filter(j => j && j.client && (j.client.last || "").toLowerCase().includes(search));
-        
-        document.getElementById('historyList').innerHTML = filtered.map(j => {
-            const rugSummary = (j.rugs || []).map(r => `${r.name}: ${r.shape === 'rect' ? r.w + 'x' + r.l : r.sqft + 'sf'}`).join(', ');
-            return `
+        const filtered = savedJobs.filter(j => j.client.last.toLowerCase().includes(search));
+        document.getElementById('historyList').innerHTML = filtered.map(j => `
             <div class="history-item">
                 <div style="flex-grow:1" onclick="viewJob(${j.id})">
-                    <b>${j.client.last || "N/A"}, ${j.client.first || "N/A"}</b><br>
-                    <small style="color: var(--choice-blue); font-weight: 600;">${rugSummary}</small><br>
+                    <b>${j.client.last}, ${j.client.first}</b><br>
                     <small>${j.date} — ${j.total}</small>
                 </div>
                 <div style="display: flex; gap: 8px;">
                     <button class="btn-del-history" style="background: var(--choice-blue);" onclick="viewJob(${j.id})">✎</button>
                     <button class="btn-del-history" onclick="deleteHistory(${j.id})">X</button>
                 </div>
-            </div>`;
-        }).join('');
+            </div>`).join('');
     }
 
-    function deleteHistory(id) { if(confirm("Delete this permanent record?")) { savedJobs = savedJobs.filter(j => j.id !== id); localStorage.setItem('rugJobsMaster', JSON.stringify(savedJobs)); renderHistory(); } }
+    function deleteHistory(id) { if(confirm("Delete record?")) { savedJobs = savedJobs.filter(j => j.id !== id); localStorage.setItem('rugJobsMaster', JSON.stringify(savedJobs)); renderHistory(); } }
 
     function viewJob(id) {
         const job = savedJobs.find(j => j.id === id); if(!job) return;
         currentJobId = job.id;
-        document.getElementById('custFirst').value = job.client.first || ""; 
-        document.getElementById('custLast').value = job.client.last || "";
-        document.getElementById('custPhone').value = job.client.phone || ""; 
-        document.getElementById('custEmail').value = job.client.email || "";
-        document.getElementById('custStreet').value = job.client.street || ""; 
-        document.getElementById('custCity').value = job.client.city || "";
-        document.getElementById('custState').value = job.client.state || ""; 
-        document.getElementById('custZip').value = job.client.zip || "";
-        document.getElementById('manualTax').value = job.client.taxRate || "";
-        currentRugs = [...(job.rugs || [])]; 
-        document.getElementById('delv').value = job.delivery || 0; 
-        document.getElementById('inst').value = job.install || 0;
-        
-        if (job.signature) {
-            document.getElementById('useSig').checked = true;
-            toggleSigPad();
-            setTimeout(() => {
-                signaturePad.fromDataURL(job.signature);
-            }, 100);
-        }
-
+        document.getElementById('custFirst').value = job.client.first; document.getElementById('custLast').value = job.client.last;
+        document.getElementById('custPhone').value = job.client.phone; document.getElementById('custEmail').value = job.client.email;
+        document.getElementById('custStreet').value = job.client.street; document.getElementById('custCity').value = job.client.city;
+        document.getElementById('custState').value = job.client.state; document.getElementById('custZip').value = job.client.zip;
+        document.getElementById('manualTax').value = job.client.taxRate;
+        currentRugs = [...job.rugs]; 
+        document.getElementById('delv').value = job.delivery; document.getElementById('inst').value = job.install;
+        if (job.signature) { document.getElementById('useSig').checked = true; toggleSigPad(); setTimeout(() => signaturePad.fromDataURL(job.signature), 100); }
         renderRugs(); lookupTax(); switchTab('workspace');
     }
 
@@ -570,9 +535,7 @@
     function formatPhoneNumber(el) { let v = el.value.replace(/\D/g,''); if(v.length > 6) el.value = `(${v.slice(0,3)}) ${v.slice(3,6)}-${v.slice(6,10)}`; }
 
     async function generatePDF() {
-        if (document.getElementById('manualTax').value === "") {
-            alert("Tax Rate (%) must be added before continuing."); return;
-        }
+        if (document.getElementById('manualTax').value === "") { alert("Tax Rate (%) must be added before continuing."); return; }
         const { jsPDF } = window.jspdf;
         document.getElementById('pdf-client-name').innerText = `${document.getElementById('custFirst').value} ${document.getElementById('custLast').value}`;
         document.getElementById('pdf-client-address').innerText = `${document.getElementById('custStreet').value}, ${document.getElementById('custCity').value}, ${document.getElementById('custState').value} ${document.getElementById('custZip').value}`;
@@ -585,13 +548,12 @@
         const inst = parseFloat(document.getElementById('inst').value) || 0;
         const subtotal = rugSub + delv + inst;
         const taxAmount = subtotal * currentTaxRate;
-        const total = subtotal + taxAmount;
 
         document.getElementById('pdf-subtotal-display').innerText = `Subtotal: $${subtotal.toFixed(2)}`;
         document.getElementById('pdf-tax-display').innerText = `Tax (${(currentTaxRate * 100).toFixed(2)}%): $${taxAmount.toFixed(2)}`;
-        document.getElementById('pdf-total-display').innerText = `Total: $${total.toFixed(2)}`;
+        document.getElementById('pdf-total-display').innerText = `Total: $${(subtotal + taxAmount).toFixed(2)}`;
         
-        let rowsHtml = currentRugs.map(r => `
+        document.getElementById('pdf-item-rows').innerHTML = currentRugs.map(r => `
             <tr>
                 <td style="font-weight: bold; color: var(--choice-blue);">${r.name}</td>
                 <td>${r.shape==='rect' ? r.w+'\' x '+r.l+'\'' : r.sqft+' SF'}<br><small style="color: #64748b;">${r.shape==='rect' ? r.sides : 'Irregular Shape'}</small></td>
@@ -603,19 +565,10 @@
                     </div>
                 </td>
                 <td style="text-align:right">$${(r.cost || 0).toFixed(2)}</td>
-            </tr>`).join('');
-            
-        if(delv > 0) rowsHtml += `<tr><td style="font-weight:bold;">Delivery</td><td>-</td><td>Standard Service</td><td style="text-align:right">$${delv.toFixed(2)}</td></tr>`;
-        if(inst > 0) rowsHtml += `<tr><td style="font-weight:bold;">Installation</td><td>-</td><td>Professional Install</td><td style="text-align:right">$${inst.toFixed(2)}</td></tr>`;
-        document.getElementById('pdf-item-rows').innerHTML = rowsHtml;
+            </tr>`).join('') + (delv > 0 ? `<tr><td style="font-weight:bold;">Delivery</td><td>-</td><td>Standard Service</td><td style="text-align:right">$${delv.toFixed(2)}</td></tr>` : '') + (inst > 0 ? `<tr><td style="font-weight:bold;">Installation</td><td>-</td><td>Professional Install</td><td style="text-align:right">$${inst.toFixed(2)}</td></tr>` : '');
 
         const sigImg = document.getElementById('pdf-sig-img'); 
-        if (!signaturePad.isEmpty()) {
-            sigImg.src = signaturePad.toDataURL();
-            sigImg.style.display = 'block';
-        } else {
-            sigImg.style.display = 'none';
-        }
+        if (!signaturePad.isEmpty()) { sigImg.src = signaturePad.toDataURL(); sigImg.style.display = 'block'; } else sigImg.style.display = 'none';
 
         const canvas = await html2canvas(document.getElementById('pdf-template'), { scale: 2 });
         const pdf = new jsPDF('p', 'mm', 'a4'); pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
