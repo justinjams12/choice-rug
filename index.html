@@ -260,9 +260,9 @@
         <div style="float:right; text-align:right; width:250px; background:var(--choice-blue-light); padding:20px; border-radius:10px;">
             <div style="font-size:24px; font-weight:900; color:var(--choice-blue);" id="pdf-total-display"></div>
         </div>
-        <div style="margin-top:100px; border-bottom:2px solid #000; width:300px; position:relative; padding-bottom: 30px;">
-            <img id="pdf-sig-img" style="position:absolute; bottom:35px; left:10px; max-height:80px; width: auto; display: none;">
-            <p style="margin-top:35px; font-size:10px; font-weight:800; color:#64748b;">CUSTOMER SIGNATURE</p>
+        <div style="margin-top:100px; border-bottom:2px solid #000; width:300px; position:relative;">
+            <img id="pdf-sig-img" style="position:absolute; bottom:5px; left:10px; max-height:80px; width: auto; display: none;">
+            <p style="margin-top:5px; font-size:10px; font-weight:800; color:#64748b; position: absolute; top: 100%;">CUSTOMER SIGNATURE</p>
         </div>
     </div>
 </div>
@@ -273,6 +273,7 @@
     let currentTaxRate = 0.00;
     let signaturePad;
     let editingRugIndex = null;
+    let currentJobId = null; // Track if we are editing an existing job
     let currentShape = 'rect';
     let currentHelperType = '';
 
@@ -443,20 +444,32 @@
             };
             
             const rugClone = currentRugs.map(r => ({...r}));
+            const signatureData = signaturePad.isEmpty() ? null : signaturePad.toDataURL();
+
             const job = { 
-                id: Date.now(), 
+                id: currentJobId || Date.now(), 
                 client: client, 
                 rugs: rugClone, 
+                signature: signatureData,
                 delivery: document.getElementById('delv').value || 0, 
                 install: document.getElementById('inst').value || 0, 
                 total: document.getElementById('displayTotal').innerText || "$0.00", 
                 date: new Date().toLocaleDateString() 
             };
 
-            savedJobs.unshift(job); 
+            if (currentJobId) {
+                // Find and replace existing job
+                const index = savedJobs.findIndex(j => j.id === currentJobId);
+                if (index !== -1) savedJobs[index] = job;
+            } else {
+                // New save
+                savedJobs.unshift(job);
+            }
+
             localStorage.setItem('rugJobsMaster', JSON.stringify(savedJobs));
             renderHistory();
-            alert("Order successfully saved to history.");
+            alert(currentJobId ? "Order updated successfully." : "Order successfully saved to history.");
+            currentJobId = job.id; // Mark as saved so further clicks override
         } catch (err) {
             console.error("Save Error:", err);
             alert("Error: " + err.message);
@@ -488,6 +501,7 @@
 
     function viewJob(id) {
         const job = savedJobs.find(j => j.id === id); if(!job) return;
+        currentJobId = job.id; // Set currentJobId so save override works
         document.getElementById('custFirst').value = job.client.first || ""; 
         document.getElementById('custLast').value = job.client.last || "";
         document.getElementById('custPhone').value = job.client.phone || ""; 
@@ -499,6 +513,16 @@
         currentRugs = [...(job.rugs || [])]; 
         document.getElementById('delv').value = job.delivery || 0; 
         document.getElementById('inst').value = job.install || 0;
+        
+        // Handle stored signature
+        if (job.signature) {
+            document.getElementById('useSig').checked = true;
+            toggleSigPad();
+            setTimeout(() => {
+                signaturePad.fromDataURL(job.signature);
+            }, 100);
+        }
+
         renderRugs(); lookupTax(); switchTab('workspace');
     }
 
@@ -515,7 +539,7 @@
                 const ratio = Math.max(window.devicePixelRatio || 1, 1);
                 canvas.width = canvas.offsetWidth * ratio; canvas.height = canvas.offsetHeight * ratio;
                 canvas.getContext("2d").scale(ratio, ratio);
-                signaturePad.clear();
+                // Only clear if empty, otherwise keep loaded sig
             }, 50);
         }
     }
