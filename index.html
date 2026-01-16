@@ -83,7 +83,7 @@
         .pdf-body { padding: 40px 60px; }
         .pdf-table { width: 100%; border-collapse: collapse; margin: 25px 0; }
         .pdf-table th { text-align: left; padding: 14px; background: #f8fafc; border-bottom: 2px solid #e2e8f0; font-size: 11px; text-transform: uppercase; color: #64748b; }
-        .pdf-table td { padding: 14px; border-bottom: 1px solid #f1f5f9; font-size: 13px; }
+        .pdf-table td { padding: 14px; border-bottom: 1px solid #f1f5f9; font-size: 13px; vertical-align: top; }
     </style>
 </head>
 <body>
@@ -254,15 +254,15 @@
             <div id="pdf-client-email"></div>
         </div>
         <table class="pdf-table">
-            <thead><tr><th>Room</th><th>Dimensions</th><th>Finishing Specs</th><th style="text-align:right">Total</th></tr></thead>
+            <thead><tr><th>Room</th><th>Dimensions</th><th>Finishing & Materials</th><th style="text-align:right">Total</th></tr></thead>
             <tbody id="pdf-item-rows"></tbody>
         </table>
         <div style="float:right; text-align:right; width:250px; background:var(--choice-blue-light); padding:20px; border-radius:10px;">
             <div style="font-size:24px; font-weight:900; color:var(--choice-blue);" id="pdf-total-display"></div>
         </div>
-        <div style="margin-top:100px; border-bottom:2px solid #000; width:300px; position:relative;">
-            <img id="pdf-sig-img" style="position:absolute; bottom:5px; left:10px; max-height:80px; width: auto; display: none;">
-            <p style="margin-top:5px; font-size:10px; font-weight:800;">CUSTOMER SIGNATURE</p>
+        <div style="margin-top:100px; border-bottom:2px solid #000; width:300px; position:relative; padding-bottom: 30px;">
+            <img id="pdf-sig-img" style="position:absolute; bottom:35px; left:10px; max-height:80px; width: auto; display: none;">
+            <p style="margin-top:35px; font-size:10px; font-weight:800; color:#64748b;">CUSTOMER SIGNATURE</p>
         </div>
     </div>
 </div>
@@ -534,10 +534,23 @@
         document.getElementById('pdf-date').innerText = new Date().toLocaleDateString();
         document.getElementById('pdf-total-display').innerText = `Total: ${document.getElementById('displayTotal').innerText}`;
         
-        let rowsHtml = currentRugs.map(r => `<tr><td>${r.name}</td><td>${r.shape==='rect' ? r.w+'\' x '+r.l+'\'' : r.sqft+' SF'}</td><td>Edge: ${r.edge}<br>Backing: ${r.backing !== 'None' ? r.backing : r.pad}</td><td style="text-align:right">$${(r.cost || 0).toFixed(2)}</td></tr>`).join('');
+        let rowsHtml = currentRugs.map(r => `
+            <tr>
+                <td style="font-weight: bold; color: var(--choice-blue);">${r.name}</td>
+                <td>${r.shape==='rect' ? r.w+'\' x '+r.l+'\'' : r.sqft+' SF'}<br><small style="color: #64748b;">${r.shape==='rect' ? r.sides : 'Irregular Shape'}</small></td>
+                <td>
+                    <div style="font-size: 11px; line-height: 1.4;">
+                        <b>Edge:</b> ${r.edge}<br>
+                        <b>Backing:</b> ${r.backing !== 'None' ? r.backing : 'N/A'}<br>
+                        <b>Pad:</b> ${r.pad !== 'No Pad' ? r.pad : 'None'}
+                    </div>
+                </td>
+                <td style="text-align:right">$${(r.cost || 0).toFixed(2)}</td>
+            </tr>`).join('');
+            
         const d = parseFloat(document.getElementById('delv').value), i = parseFloat(document.getElementById('inst').value);
-        if(d > 0) rowsHtml += `<tr><td>Delivery</td><td>-</td><td>Standard</td><td style="text-align:right">$${d.toFixed(2)}</td></tr>`;
-        if(i > 0) rowsHtml += `<tr><td>Installation</td><td>-</td><td>Pro</td><td style="text-align:right">$${i.toFixed(2)}</td></tr>`;
+        if(d > 0) rowsHtml += `<tr><td style="font-weight:bold;">Delivery</td><td>-</td><td>Standard Service</td><td style="text-align:right">$${d.toFixed(2)}</td></tr>`;
+        if(i > 0) rowsHtml += `<tr><td style="font-weight:bold;">Installation</td><td>-</td><td>Professional Install</td><td style="text-align:right">$${i.toFixed(2)}</td></tr>`;
         document.getElementById('pdf-item-rows').innerHTML = rowsHtml;
 
         const sigImg = document.getElementById('pdf-sig-img'); 
