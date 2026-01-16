@@ -68,6 +68,7 @@
         .calc-helper { background: #f8fafc; border: 1px solid var(--choice-blue); border-radius: 12px; padding: 15px; margin-bottom: 15px; display: none; }
         .shape-quick-select { display: flex; gap: 5px; margin-bottom: 12px; flex-wrap: wrap; }
         .quick-chip { background: white; border: 1px solid #cbd5e1; padding: 5px 10px; border-radius: 20px; font-size: 0.65rem; font-weight: 700; cursor: pointer; }
+        .quick-chip.active { background: var(--choice-blue); color: white; border-color: var(--choice-blue); }
 
         .sig-container { display: none; border: 2px dashed #cbd5e1; border-radius: 10px; background: #fff; margin-top: 10px; overflow: hidden; }
         .signature-pad { width: 100%; height: 140px; }
@@ -161,10 +162,10 @@
 
             <div id="irregularInputs" style="display:none;">
                 <div class="shape-quick-select">
-                    <div class="quick-chip" onclick="showHelper('circle')">Circle</div>
-                    <div class="quick-chip" onclick="showHelper('lshape')">L-Shape</div>
-                    <div class="quick-chip" onclick="showHelper('oval')">Oval</div>
-                    <div class="quick-chip" onclick="showHelper('octagon')">Octagon</div>
+                    <div id="chip-circle" class="quick-chip" onclick="showHelper('circle')">Circle</div>
+                    <div id="chip-lshape" class="quick-chip" onclick="showHelper('lshape')">L-Shape</div>
+                    <div id="chip-oval" class="quick-chip" onclick="showHelper('oval')">Oval</div>
+                    <div id="chip-octagon" class="quick-chip" onclick="showHelper('octagon')">Octagon</div>
                 </div>
                 <div id="helperPanel" class="calc-helper">
                     <div id="helperInputs" class="grid-2"></div>
@@ -181,20 +182,21 @@
                     <option value="2.50">Binding ($2.50)</option>
                     <option value="6.00">Serging ($6.00)</option>
                 </select></div>
-                <div><label>Backing</label><select id="backingStyle" onchange="handleMutualExclusion('backing')">
+                <div><label>Attached Backing</label><select id="backingStyle" onchange="handleMutualExclusion('backing')">
                     <option value="0">None</option>
                     <option value="1.50">Soft Felt ($1.50)</option>
                     <option value="2.25">Teebaud ($2.25)</option>
+                    <option value="1.85">Quad Back ($1.85)</option>
                 </select></div>
             </div>
-            <label>Loose Pad</label>
+            <label>Area Rug Pad (Loose)</label>
             <select id="padStyle" onchange="handleMutualExclusion('pad')">
                 <option value="0" data-limit="999">No Pad</option>
                 <option value="1.15" data-limit="12.0">Value Hold (12' limit)</option>
                 <option value="2.35" data-limit="12.0">Double Grip (12' limit)</option>
                 <option value="3.00" data-limit="9.0">Teebaud (9' limit)</option>
             </select>
-            <div id="padError" class="error-msg">⚠️ Too wide for this pad type.</div>
+            <div id="padError" class="error-msg">⚠️ Width exceeds roll limit for this pad type.</div>
             
             <button class="btn btn-add" id="btnAddRug" disabled onclick="addRug()">+ Add to Quote</button>
             <button class="btn btn-add" id="btnCancelEdit" style="display:none; background:#94a3b8; margin-top:8px;" onclick="cancelEdit()">Cancel Edit</button>
@@ -299,6 +301,9 @@
 
     function showHelper(type) {
         currentHelperType = type;
+        document.querySelectorAll('.quick-chip').forEach(c => c.classList.remove('active'));
+        document.getElementById('chip-' + type).classList.add('active');
+        
         const panel = document.getElementById('helperPanel');
         const inputs = document.getElementById('helperInputs');
         panel.style.display = 'block'; inputs.innerHTML = '';
@@ -321,8 +326,12 @@
     }
 
     function handleMutualExclusion(trigger) {
-        if (trigger === 'backing' && document.getElementById('backingStyle').value !== "0") document.getElementById('padStyle').value = "0";
-        if (trigger === 'pad' && document.getElementById('padStyle').value !== "0") document.getElementById('backingStyle').value = "0";
+        if (trigger === 'backing' && document.getElementById('backingStyle').value !== "0") {
+            document.getElementById('padStyle').value = "0";
+        }
+        if (trigger === 'pad' && document.getElementById('padStyle').value !== "0") {
+            document.getElementById('backingStyle').value = "0";
+        }
         validateInputs();
     }
 
@@ -391,7 +400,7 @@
                 <b>${r.name}</b> ($${r.cost.toFixed(2)})<br>
                 <small>${r.shape === 'rect' ? r.w+'x'+r.l : 'Irregular Shape'}</small>
                 <div class="room-tag-btns">
-                    <button class="btn-inline btn-edit" onclick="editRug(${i})">Edit</button>
+                    <button class="btn-inline btn-edit" onclick="editRug(${i})">Edit Room</button>
                     <button class="btn-inline btn-remove" onclick="removeRug(${i})">Delete</button>
                 </div>
             </div>`).join('');
@@ -404,8 +413,15 @@
         document.getElementById('roomName').value = r.name; setShape(r.shape);
         if(r.shape === 'rect') { document.getElementById('wA').value = r.w; document.getElementById('lB').value = r.l; }
         else { document.getElementById('manualSqft').value = r.sqft; document.getElementById('manualLft').value = r.lft; }
-        document.getElementById('btnAddRug').innerText = "Update Room";
+        
+        // Match selection lists
+        Array.from(document.getElementById('edgeStyle').options).forEach(opt => opt.selected = opt.text === r.edge);
+        Array.from(document.getElementById('backingStyle').options).forEach(opt => opt.selected = opt.text === r.backing);
+        Array.from(document.getElementById('padStyle').options).forEach(opt => opt.selected = opt.text === r.pad);
+
+        document.getElementById('btnAddRug').innerText = "Update Room Details";
         document.getElementById('btnCancelEdit').style.display = 'block';
+        window.scrollTo({top: 0, behavior: 'smooth'});
     }
 
     function removeRug(i) { currentRugs.splice(i,1); renderRugs(); }
@@ -430,7 +446,7 @@
             </div>`).join('');
     }
 
-    function deleteHistory(id) { if(confirm("Delete this record?")) { savedJobs = savedJobs.filter(j => j.id !== id); localStorage.setItem('rugJobsMaster', JSON.stringify(savedJobs)); renderHistory(); } }
+    function deleteHistory(id) { if(confirm("Delete this permanent record?")) { savedJobs = savedJobs.filter(j => j.id !== id); localStorage.setItem('rugJobsMaster', JSON.stringify(savedJobs)); renderHistory(); } }
 
     function viewJob(id) {
         const job = savedJobs.find(j => j.id === id); if(!job) return;
@@ -446,7 +462,7 @@
     function handleZipChange() { if(document.getElementById('custZip').value.length === 5) lookupTax(); validateInputs(); }
     function toggleSigPad() { document.getElementById('sig-pad-container').style.display = document.getElementById('useSig').checked ? 'block' : 'none'; }
     function clearSig() { signaturePad.clear(); }
-    function newQuote() { if(confirm("Clear builder?")) location.reload(); }
+    function newQuote() { if(confirm("Clear current builder?")) location.reload(); }
     function autoCap(el) { el.value = el.value.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '); }
     function formatPhoneNumber(el) { let v = el.value.replace(/\D/g,''); if(v.length > 6) el.value = `(${v.slice(0,3)}) ${v.slice(3,6)}-${v.slice(6,10)}`; }
 
@@ -459,7 +475,7 @@
         document.getElementById('pdf-date').innerText = new Date().toLocaleDateString();
         document.getElementById('pdf-total-display').innerText = `Total: ${document.getElementById('displayTotal').innerText}`;
         
-        let rowsHtml = currentRugs.map(r => `<tr><td>${r.name}</td><td>${r.shape==='rect' ? r.w+'\' x '+r.l+'\'' : r.sqft+' SF'}</td><td>Edge: ${r.edge}<br>Backing/Pad: ${r.backing !== 'None' ? r.backing : r.pad}</td><td style="text-align:right">$${r.cost.toFixed(2)}</td></tr>`).join('');
+        let rowsHtml = currentRugs.map(r => `<tr><td>${r.name}</td><td>${r.shape==='rect' ? r.w+'\' x '+r.l+'\'' : r.sqft+' SF'}</td><td>Edge: ${r.edge}<br>Backing: ${r.backing !== 'None' ? r.backing : r.pad}</td><td style="text-align:right">$${r.cost.toFixed(2)}</td></tr>`).join('');
         const d = parseFloat(document.getElementById('delv').value), i = parseFloat(document.getElementById('inst').value);
         if(d > 0) rowsHtml += `<tr><td>Delivery</td><td>-</td><td>Standard</td><td style="text-align:right">$${d.toFixed(2)}</td></tr>`;
         if(i > 0) rowsHtml += `<tr><td>Installation</td><td>-</td><td>Pro</td><td style="text-align:right">$${i.toFixed(2)}</td></tr>`;
