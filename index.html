@@ -139,8 +139,8 @@
                 <input type="text" id="custZip" placeholder="Zip *" maxlength="5" oninput="handleZipChange()">
             </div>
             <div>
-                <label>Tax Rate (%)</label>
-                <input type="number" id="manualTax" step="0.01" placeholder="Override Tax Rate (e.g. 6.5)" oninput="updateLiveTotals()">
+                <label>Tax Rate (%) *</label>
+                <input type="number" id="manualTax" step="0.01" placeholder="Enter Tax Rate (e.g. 6.5) *" oninput="updateLiveTotals()">
             </div>
         </div>
 
@@ -369,6 +369,8 @@
         const manualTaxInput = document.getElementById('manualTax').value;
         if (manualTaxInput !== "") {
             currentTaxRate = parseFloat(manualTaxInput) / 100;
+        } else {
+            currentTaxRate = 0;
         }
 
         const eR = parseFloat(document.getElementById('edgeStyle').value), bR = parseFloat(document.getElementById('backingStyle').value), pR = parseFloat(document.getElementById('padStyle').value);
@@ -439,6 +441,9 @@
     function cancelEdit() { clearRugForm(); }
 
     function saveJob() {
+        if (document.getElementById('manualTax').value === "") {
+            alert("Tax Rate (%) must be added before continuing."); return;
+        }
         try {
             if (!currentRugs || currentRugs.length === 0) {
                 alert("Error: Add at least one room before saving."); return;
@@ -471,18 +476,16 @@
             };
 
             if (currentJobId) {
-                // Find and replace existing job
                 const index = savedJobs.findIndex(j => j.id === currentJobId);
                 if (index !== -1) savedJobs[index] = job;
             } else {
-                // New save
                 savedJobs.unshift(job);
             }
 
             localStorage.setItem('rugJobsMaster', JSON.stringify(savedJobs));
             renderHistory();
             alert(currentJobId ? "Order updated successfully." : "Order successfully saved to history.");
-            currentJobId = job.id; // Mark as saved so further clicks override
+            currentJobId = job.id;
         } catch (err) {
             console.error("Save Error:", err);
             alert("Error: " + err.message);
@@ -514,7 +517,7 @@
 
     function viewJob(id) {
         const job = savedJobs.find(j => j.id === id); if(!job) return;
-        currentJobId = job.id; // Set currentJobId so save override works
+        currentJobId = job.id;
         document.getElementById('custFirst').value = job.client.first || ""; 
         document.getElementById('custLast').value = job.client.last || "";
         document.getElementById('custPhone').value = job.client.phone || ""; 
@@ -528,7 +531,6 @@
         document.getElementById('delv').value = job.delivery || 0; 
         document.getElementById('inst').value = job.install || 0;
         
-        // Handle stored signature
         if (job.signature) {
             document.getElementById('useSig').checked = true;
             toggleSigPad();
@@ -568,6 +570,9 @@
     function formatPhoneNumber(el) { let v = el.value.replace(/\D/g,''); if(v.length > 6) el.value = `(${v.slice(0,3)}) ${v.slice(3,6)}-${v.slice(6,10)}`; }
 
     async function generatePDF() {
+        if (document.getElementById('manualTax').value === "") {
+            alert("Tax Rate (%) must be added before continuing."); return;
+        }
         const { jsPDF } = window.jspdf;
         document.getElementById('pdf-client-name').innerText = `${document.getElementById('custFirst').value} ${document.getElementById('custLast').value}`;
         document.getElementById('pdf-client-address').innerText = `${document.getElementById('custStreet').value}, ${document.getElementById('custCity').value}, ${document.getElementById('custState').value} ${document.getElementById('custZip').value}`;
