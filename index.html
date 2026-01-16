@@ -286,6 +286,7 @@
         if(currentShape === 'rect') {
             const w = parseFloat(document.getElementById('wA').value) || 0;
             const l = parseFloat(document.getElementById('lB').value) || 0;
+            // Check the smaller of the two dimensions for roll limits
             widthCheck = Math.min(w, l); 
             subValid = w > 0 && l > 0;
         } else {
@@ -297,13 +298,13 @@
         const padSelect = document.getElementById('padStyle');
         const padLimit = parseFloat(padSelect.options[padSelect.selectedIndex].getAttribute('data-limit'));
         
-        // Critical Logic: Check if width is over limit for selected pad
+        // Critical Width Check
         const isPadTooBig = (padSelect.value !== "0") && (widthCheck > padLimit);
         
         document.getElementById('padError').style.display = isPadTooBig ? 'block' : 'none';
         const allFieldsFilled = fields.every(id => document.getElementById(id).value.trim() !== "");
         
-        // Lock button if limit exceeded
+        // Lock button if width is over limit OR fields are missing
         document.getElementById('btnAddRug').disabled = !allFieldsFilled || !subValid || isPadTooBig;
         updateLiveTotals();
     }
@@ -387,7 +388,7 @@
         savedJobs.unshift(job); 
         localStorage.setItem('rugJobsMaster', JSON.stringify(savedJobs));
         alert("Success: Order saved to History tab."); 
-        renderHistory();
+        renderHistory(); // Refresh the list immediately
     }
 
     function renderHistory() {
