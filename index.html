@@ -104,7 +104,7 @@
         <button class="btn" style="background: #e2e8f0; color: #475569; margin-bottom: 15px; padding: 10px; font-size: 0.7rem;" onclick="newQuote()">↺ Reset Builder</button>
 
         <div class="card">
-            <div class="section-title">Client Details</div>
+            <div class="section-title">Customer Contact Information</div>
             <div class="grid-2">
                 <input type="text" id="custFirst" placeholder="First Name *" oninput="autoCap(this); validateInputs()">
                 <input type="text" id="custLast" placeholder="Last Name *" oninput="autoCap(this); validateInputs()">
@@ -118,8 +118,19 @@
                 <input type="text" id="custCity" placeholder="City *" oninput="autoCap(this); validateInputs()">
                 <select id="custState" onchange="lookupTax(); validateInputs()">
                     <option value="" disabled selected>ST *</option>
-                    <option value="PA">PA</option><option value="DE">DE</option><option value="MD">MD</option><option value="NJ">NJ</option>
-                    <option value="VA">VA</option><option value="NY">NY</option>
+                    <option value="AL">AL</option><option value="AK">AK</option><option value="AZ">AZ</option><option value="AR">AR</option>
+                    <option value="CA">CA</option><option value="CO">CO</option><option value="CT">CT</option><option value="DE">DE</option>
+                    <option value="FL">FL</option><option value="GA">GA</option><option value="HI">HI</option><option value="ID">ID</option>
+                    <option value="IL">IL</option><option value="IN">IN</option><option value="IA">IA</option><option value="KS">KS</option>
+                    <option value="KY">KY</option><option value="LA">LA</option><option value="ME">ME</option><option value="MD">MD</option>
+                    <option value="MA">MA</option><option value="MI">MI</option><option value="MN">MN</option><option value="MS">MS</option>
+                    <option value="MO">MO</option><option value="MT">MT</option><option value="NE">NE</option><option value="NV">NV</option>
+                    <option value="NH">NH</option><option value="NJ">NJ</option><option value="NM">NM</option><option value="NY">NY</option>
+                    <option value="NC">NC</option><option value="ND">ND</option><option value="OH">OH</option><option value="OK">OK</option>
+                    <option value="OR">OR</option><option value="PA">PA</option><option value="RI">RI</option><option value="SC">SC</option>
+                    <option value="SD">SD</option><option value="TN">TN</option><option value="TX">TX</option><option value="UT">UT</option>
+                    <option value="VT">VT</option><option value="VA">VA</option><option value="WA">WA</option><option value="WV">WV</option>
+                    <option value="WI">WI</option><option value="WY">WY</option>
                 </select>
                 <input type="text" id="custZip" placeholder="Zip *" maxlength="5" oninput="handleZipChange()">
             </div>
@@ -225,12 +236,16 @@
 <div id="pdf-template">
     <div class="pdf-header">
         <img src="choice-floors-logo.png" style="height:80px;">
-        <div style="text-align:right"><h1 style="color:var(--choice-blue); margin:0;">Rug Fabrication Quote</h1><p>Date: <span id="pdf-date"></span></p></div>
+        <div style="text-align:right"><h1 style="color:var(--choice-blue); margin:0;">Choice Floors Rug Estimate</h1><p>Date: <span id="pdf-date"></span></p></div>
     </div>
     <div class="pdf-wave"><svg viewBox="0 0 850 80" xmlns="http://www.w3.org/2000/svg"><path d="M0,40 C200,80 400,0 600,40 C800,80 850,50 850,50 L850,80 L0,80 Z" fill="#9dbb4c"/><path d="M0,50 C200,10 400,90 600,50 C800,10 850,40 850,40 L850,80 L0,80 Z" fill="#2b6291"/></svg></div>
     <div class="pdf-body">
         <h2 id="pdf-client-name"></h2>
-        <p id="pdf-client-address"></p>
+        <div id="pdf-client-contact-block" style="font-size: 13px; line-height: 1.5; color: #475569; margin-bottom: 20px;">
+            <div id="pdf-client-address"></div>
+            <div id="pdf-client-phone"></div>
+            <div id="pdf-client-email"></div>
+        </div>
         <table class="pdf-table">
             <thead><tr><th>Room</th><th>Dimensions</th><th>Finishing Specs</th><th style="text-align:right">Total</th></tr></thead>
             <tbody id="pdf-item-rows"></tbody>
@@ -438,7 +453,9 @@
     async function generatePDF() {
         const { jsPDF } = window.jspdf;
         document.getElementById('pdf-client-name').innerText = `${document.getElementById('custFirst').value} ${document.getElementById('custLast').value}`;
-        document.getElementById('pdf-client-address').innerText = `${document.getElementById('custStreet').value}, ${document.getElementById('custCity').value}, ${document.getElementById('custState').value}`;
+        document.getElementById('pdf-client-address').innerText = `${document.getElementById('custStreet').value}, ${document.getElementById('custCity').value}, ${document.getElementById('custState').value} ${document.getElementById('custZip').value}`;
+        document.getElementById('pdf-client-phone').innerText = `Phone: ${document.getElementById('custPhone').value}`;
+        document.getElementById('pdf-client-email').innerText = `Email: ${document.getElementById('custEmail').value}`;
         document.getElementById('pdf-date').innerText = new Date().toLocaleDateString();
         document.getElementById('pdf-total-display').innerText = `Total: ${document.getElementById('displayTotal').innerText}`;
         
@@ -451,7 +468,7 @@
         const sigImg = document.getElementById('pdf-sig-img'); if (!signaturePad.isEmpty()) sigImg.src = signaturePad.toDataURL();
         const canvas = await html2canvas(document.getElementById('pdf-template'), { scale: 2 });
         const pdf = new jsPDF('p', 'mm', 'a4'); pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
-        pdf.save(`Estimate_${document.getElementById('custLast').value}.pdf`);
+        pdf.save(`Choice_Floors_Estimate_${document.getElementById('custLast').value}.pdf`);
     }
 </script>
 </body>
