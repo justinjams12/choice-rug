@@ -70,8 +70,8 @@
         .quick-chip { background: white; border: 1px solid #cbd5e1; padding: 5px 10px; border-radius: 20px; font-size: 0.65rem; font-weight: 700; cursor: pointer; }
         .quick-chip.active { background: var(--choice-blue); color: white; border-color: var(--choice-blue); }
 
-        .sig-container { display: none; border: 2px dashed #cbd5e1; border-radius: 10px; background: #fff; margin-top: 10px; overflow: hidden; }
-        .signature-pad { width: 100%; height: 140px; }
+        .sig-container { display: none; border: 2px dashed #cbd5e1; border-radius: 10px; background: #fff; margin-top: 10px; margin-bottom: 15px; overflow: hidden; touch-action: none; }
+        .signature-pad { width: 100%; height: 160px; background: #fff; cursor: crosshair; }
 
         /* PDF Styles */
         #pdf-template { position: absolute; left: -9999px; width: 850px; background: #fff; color: #1e293b; }
@@ -221,7 +221,9 @@
 
             <div id="sig-pad-container" class="sig-container">
                 <canvas id="sig-pad" class="signature-pad"></canvas>
-                <button onclick="clearSig()" style="padding:10px; color:var(--danger); border:none; background:none; font-weight:800; cursor:pointer;">Clear</button>
+                <div style="text-align: right; padding: 5px;">
+                    <button onclick="clearSig()" style="padding:10px; color:var(--danger); border:none; background:none; font-weight:800; cursor:pointer;">Clear Signature</button>
+                </div>
             </div>
 
             <button class="btn btn-save" onclick="saveJob()">Save Order History</button>
@@ -256,7 +258,7 @@
             <div style="font-size:24px; font-weight:900; color:var(--choice-blue);" id="pdf-total-display"></div>
         </div>
         <div style="margin-top:100px; border-bottom:2px solid #000; width:300px; position:relative;">
-            <img id="pdf-sig-img" style="position:absolute; bottom:5px; left:10px; max-height:60px;">
+            <img id="pdf-sig-img" style="position:absolute; bottom:5px; left:10px; max-height:80px; width: auto;">
             <p style="margin-top:5px; font-size:10px; font-weight:800;">CUSTOMER SIGNATURE</p>
         </div>
     </div>
@@ -274,13 +276,6 @@
     window.onload = () => {
         const canvas = document.getElementById('sig-pad');
         signaturePad = new SignaturePad(canvas, { penColor: "rgb(0, 0, 0)" });
-        function resizeCanvas() {
-            const ratio = Math.max(window.devicePixelRatio || 1, 1);
-            canvas.width = canvas.offsetWidth * ratio;
-            canvas.height = canvas.offsetHeight * ratio;
-            canvas.getContext("2d").scale(ratio, ratio);
-        }
-        window.onresize = resizeCanvas; resizeCanvas();
         renderHistory();
     };
 
@@ -479,7 +474,7 @@
         savedJobs.unshift(job); 
         localStorage.setItem('rugJobsMaster', JSON.stringify(savedJobs));
         renderHistory();
-        alert("Order successfully saved to history. You can continue editing or generate the PDF.");
+        alert("Order successfully saved to history.");
     }
 
     function renderHistory() {
@@ -513,7 +508,21 @@
 
     function lookupTax() { const r = {"PA":0.06, "DE":0.00, "MD":0.06, "NJ":0.066, "VA":0.053, "NY":0.088}; currentTaxRate = r[document.getElementById('custState').value] || 0; updateLiveTotals(); }
     function handleZipChange() { if(document.getElementById('custZip').value.length === 5) lookupTax(); validateInputs(); }
-    function toggleSigPad() { document.getElementById('sig-pad-container').style.display = document.getElementById('useSig').checked ? 'block' : 'none'; }
+    
+    function toggleSigPad() { 
+        const container = document.getElementById('sig-pad-container');
+        const isChecked = document.getElementById('useSig').checked;
+        container.style.display = isChecked ? 'block' : 'none';
+        if(isChecked) {
+            const canvas = document.getElementById('sig-pad');
+            const ratio = Math.max(window.devicePixelRatio || 1, 1);
+            canvas.width = canvas.offsetWidth * ratio;
+            canvas.height = canvas.offsetHeight * ratio;
+            canvas.getContext("2d").scale(ratio, ratio);
+            signaturePad.clear();
+        }
+    }
+
     function clearSig() { signaturePad.clear(); }
     function newQuote() { if(confirm("Clear current builder?")) location.reload(); }
     function autoCap(el) { el.value = el.value.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '); }
@@ -534,7 +543,14 @@
         if(i > 0) rowsHtml += `<tr><td>Installation</td><td>-</td><td>Pro</td><td style="text-align:right">$${i.toFixed(2)}</td></tr>`;
         document.getElementById('pdf-item-rows').innerHTML = rowsHtml;
 
-        const sigImg = document.getElementById('pdf-sig-img'); if (!signaturePad.isEmpty()) sigImg.src = signaturePad.toDataURL();
+        const sigImg = document.getElementById('pdf-sig-img'); 
+        if (!signaturePad.isEmpty()) {
+            sigImg.src = signaturePad.toDataURL();
+            sigImg.style.display = 'block';
+        } else {
+            sigImg.style.display = 'none';
+        }
+
         const canvas = await html2canvas(document.getElementById('pdf-template'), { scale: 2 });
         const pdf = new jsPDF('p', 'mm', 'a4'); pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
         pdf.save(`Choice_Floors_Estimate_${document.getElementById('custLast').value}.pdf`);
