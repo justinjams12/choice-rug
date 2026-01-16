@@ -18,7 +18,6 @@
         body { font-family: 'Inter', system-ui, sans-serif; margin: 0; background: #f1f5f9; color: var(--text); padding-bottom: 60px; }
         .app-shell { width: 100%; max-width: 480px; margin: auto; padding: 15px; box-sizing: border-box; }
         
-        /* Tabs */
         .tabs { display: flex; background: var(--choice-blue); padding: 6px; border-radius: 12px; margin-bottom: 20px; }
         .tab-btn { flex: 1; padding: 12px; border: none; background: none; color: white; font-weight: 700; cursor: pointer; border-radius: 8px; opacity: 0.7; transition: all 0.2s; }
         .tab-btn.active { background: var(--choice-green); opacity: 1; color: white; }
@@ -26,7 +25,6 @@
         .view { display: none; }
         .view.active { display: block; }
 
-        /* UI Cards */
         .live-result { background: var(--choice-blue); color: white; border-radius: 18px; padding: 25px; text-align: center; margin-bottom: 15px; position: relative; overflow: hidden; }
         .live-result::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 5px; background: var(--choice-green); }
         
@@ -45,6 +43,7 @@
         .side-option input { width: auto; margin: 0; }
 
         .btn { width: 100%; padding: 16px; border-radius: 10px; border: none; font-weight: 800; cursor: pointer; transition: all 0.2s; }
+        .btn:active { transform: scale(0.98); opacity: 0.9; }
         .btn-add { background: var(--choice-blue); color: white; }
         .btn-add:disabled { background: #cbd5e1; cursor: not-allowed; opacity: 0.6; }
         .btn-save { background: var(--choice-green); color: white; margin-top: 10px; }
@@ -73,7 +72,6 @@
         .sig-container { display: none; border: 2px dashed #cbd5e1; border-radius: 10px; background: #fff; margin-top: 10px; margin-bottom: 15px; overflow: hidden; touch-action: none; }
         .signature-pad { width: 100%; height: 160px; background: #fff; cursor: crosshair; }
 
-        /* PDF Styles */
         #pdf-template { position: absolute; left: -9999px; width: 850px; background: #fff; color: #1e293b; }
         .pdf-header { background: white; padding: 40px 60px 0 60px; display: flex; justify-content: space-between; align-items: flex-end; }
         .pdf-wave { line-height: 0; width: 100%; }
@@ -226,7 +224,7 @@
                 </div>
             </div>
 
-            <button class="btn btn-save" onclick="saveJob()">Save Order History</button>
+            <button class="btn btn-save" id="btn-save-job" onclick="saveJob()">Save Order History</button>
             <button class="btn btn-pdf" onclick="generatePDF()">Download Professional PDF</button>
         </div>
     </div>
@@ -258,7 +256,7 @@
             <div style="font-size:24px; font-weight:900; color:var(--choice-blue);" id="pdf-total-display"></div>
         </div>
         <div style="margin-top:100px; border-bottom:2px solid #000; width:300px; position:relative;">
-            <img id="pdf-sig-img" style="position:absolute; bottom:5px; left:10px; max-height:80px; width: auto;">
+            <img id="pdf-sig-img" style="position:absolute; bottom:5px; left:10px; max-height:80px; width: auto; display: none;">
             <p style="margin-top:5px; font-size:10px; font-weight:800;">CUSTOMER SIGNATURE</p>
         </div>
     </div>
@@ -298,7 +296,6 @@
         currentHelperType = type;
         document.querySelectorAll('.quick-chip').forEach(c => c.classList.remove('active'));
         document.getElementById('chip-' + type).classList.add('active');
-        
         const panel = document.getElementById('helperPanel');
         const inputs = document.getElementById('helperInputs');
         panel.style.display = 'block'; inputs.innerHTML = '';
@@ -321,12 +318,8 @@
     }
 
     function handleMutualExclusion(trigger) {
-        if (trigger === 'backing' && document.getElementById('backingStyle').value !== "0") {
-            document.getElementById('padStyle').value = "0";
-        }
-        if (trigger === 'pad' && document.getElementById('padStyle').value !== "0") {
-            document.getElementById('backingStyle').value = "0";
-        }
+        if (trigger === 'backing' && document.getElementById('backingStyle').value !== "0") document.getElementById('padStyle').value = "0";
+        if (trigger === 'pad' && document.getElementById('padStyle').value !== "0") document.getElementById('backingStyle').value = "0";
         validateInputs();
     }
 
@@ -374,33 +367,24 @@
         if(currentShape === 'rect') {
             w = parseFloat(document.getElementById('wA').value); l = parseFloat(document.getElementById('lB').value); sqft = w * l; lft = 0;
             let sides = [];
-            sideStates.top = document.getElementById('sideTop').checked;
-            sideStates.bottom = document.getElementById('sideBottom').checked;
-            sideStates.left = document.getElementById('sideLeft').checked;
-            sideStates.right = document.getElementById('sideRight').checked;
+            sideStates.top = document.getElementById('sideTop').checked; sideStates.bottom = document.getElementById('sideBottom').checked;
+            sideStates.left = document.getElementById('sideLeft').checked; sideStates.right = document.getElementById('sideRight').checked;
             if(sideStates.top) { lft += w; sides.push("Top"); }
             if(sideStates.bottom) { lft += w; sides.push("Bottom"); }
             if(sideStates.left) { lft += l; sides.push("Left"); }
             if(sideStates.right) { lft += l; sides.push("Right"); }
             sidesText = sides.join(", ");
         } else { sqft = parseFloat(document.getElementById('manualSqft').value); lft = parseFloat(document.getElementById('manualLft').value); w = "Irreg"; l = "Irreg"; }
-        
         const cost = (lft * parseFloat(e.value)) + (sqft * parseFloat(b.value)) + (sqft * parseFloat(p.value));
-        const rug = { name: document.getElementById('roomName').value, w, l, lft, sqft, edge: e.options[e.selectedIndex].text, backing: b.options[b.selectedIndex].text, pad: p.options[p.selectedIndex].text, cost, shape: currentShape, sides: sidesText, sideStates: sideStates };
-        
+        const rug = { name: document.getElementById('roomName').value || "Unnamed Room", w, l, lft, sqft, edge: e.options[e.selectedIndex].text, backing: b.options[b.selectedIndex].text, pad: p.options[p.selectedIndex].text, cost, shape: currentShape, sides: sidesText, sideStates: sideStates };
         if(editingRugIndex !== null) currentRugs[editingRugIndex] = rug; else currentRugs.push(rug);
         clearRugForm();
     }
 
     function clearRugForm() {
-        editingRugIndex = null;
-        ['roomName','wA','lB','manualSqft','manualLft'].forEach(id => document.getElementById(id).value = "");
-        document.getElementById('sideTop').checked = true;
-        document.getElementById('sideBottom').checked = true;
-        document.getElementById('sideLeft').checked = true;
-        document.getElementById('sideRight').checked = true;
-        document.getElementById('btnAddRug').innerText = "+ Add to Quote";
-        document.getElementById('btnCancelEdit').style.display = 'none';
+        editingRugIndex = null; ['roomName','wA','lB','manualSqft','manualLft'].forEach(id => document.getElementById(id).value = "");
+        document.getElementById('sideTop').checked = true; document.getElementById('sideBottom').checked = true; document.getElementById('sideLeft').checked = true; document.getElementById('sideRight').checked = true;
+        document.getElementById('btnAddRug').innerText = "+ Add to Quote"; document.getElementById('btnCancelEdit').style.display = 'none';
         renderRugs();
     }
 
@@ -422,64 +406,56 @@
         editingRugIndex = i; const r = currentRugs[i];
         document.getElementById('roomName').value = r.name; setShape(r.shape);
         if(r.shape === 'rect') { 
-            document.getElementById('wA').value = r.w; 
-            document.getElementById('lB').value = r.l;
-            document.getElementById('sideTop').checked = r.sideStates.top;
-            document.getElementById('sideBottom').checked = r.sideStates.bottom;
-            document.getElementById('sideLeft').checked = r.sideStates.left;
-            document.getElementById('sideRight').checked = r.sideStates.right;
-        } else { 
-            document.getElementById('manualSqft').value = r.sqft; 
-            document.getElementById('manualLft').value = r.lft; 
-        }
-        
+            document.getElementById('wA').value = r.w; document.getElementById('lB').value = r.l;
+            document.getElementById('sideTop').checked = r.sideStates.top; document.getElementById('sideBottom').checked = r.sideStates.bottom;
+            document.getElementById('sideLeft').checked = r.sideStates.left; document.getElementById('sideRight').checked = r.sideStates.right;
+        } else { document.getElementById('manualSqft').value = r.sqft; document.getElementById('manualLft').value = r.lft; }
         Array.from(document.getElementById('edgeStyle').options).forEach(opt => opt.selected = opt.text === r.edge);
         Array.from(document.getElementById('backingStyle').options).forEach(opt => opt.selected = opt.text === r.backing);
         Array.from(document.getElementById('padStyle').options).forEach(opt => opt.selected = opt.text === r.pad);
-
-        document.getElementById('btnAddRug').innerText = "Update Room Details";
-        document.getElementById('btnCancelEdit').style.display = 'block';
-        window.scrollTo({top: 0, behavior: 'smooth'});
-        validateInputs();
+        document.getElementById('btnAddRug').innerText = "Update Room Details"; document.getElementById('btnCancelEdit').style.display = 'block';
+        window.scrollTo({top: 0, behavior: 'smooth'}); validateInputs();
     }
 
     function removeRug(i) { currentRugs.splice(i,1); renderRugs(); }
-    
-    function cancelEdit() { 
-        clearRugForm(); 
-    }
+    function cancelEdit() { clearRugForm(); }
 
     function saveJob() {
-        const client = {
-            first: document.getElementById('custFirst').value,
-            last: document.getElementById('custLast').value,
-            phone: document.getElementById('custPhone').value,
-            email: document.getElementById('custEmail').value,
-            street: document.getElementById('custStreet').value,
-            city: document.getElementById('custCity').value,
-            state: document.getElementById('custState').value,
-            zip: document.getElementById('custZip').value
-        };
+        try {
+            const client = {
+                first: document.getElementById('custFirst').value || "N/A", 
+                last: document.getElementById('custLast').value || "N/A",
+                phone: document.getElementById('custPhone').value || "N/A", 
+                email: document.getElementById('custEmail').value || "N/A",
+                street: document.getElementById('custStreet').value || "N/A", 
+                city: document.getElementById('custCity').value || "N/A",
+                state: document.getElementById('custState').value || "N/A", 
+                zip: document.getElementById('custZip').value || "N/A"
+            };
+            
+            const job = { 
+                id: Date.now(), 
+                client: client, 
+                rugs: JSON.parse(JSON.stringify(currentRugs)), 
+                delivery: document.getElementById('delv').value || 0, 
+                install: document.getElementById('inst').value || 0, 
+                total: document.getElementById('displayTotal').innerText || "$0.00", 
+                date: new Date().toLocaleDateString() 
+            };
 
-        const job = { 
-            id: Date.now(), 
-            client: client, 
-            rugs: [...currentRugs], 
-            delivery: document.getElementById('delv').value, 
-            install: document.getElementById('inst').value, 
-            total: document.getElementById('displayTotal').innerText, 
-            date: new Date().toLocaleDateString() 
-        };
-
-        savedJobs.unshift(job); 
-        localStorage.setItem('rugJobsMaster', JSON.stringify(savedJobs));
-        renderHistory();
-        alert("Order successfully saved to history.");
+            savedJobs.unshift(job); 
+            localStorage.setItem('rugJobsMaster', JSON.stringify(savedJobs));
+            renderHistory();
+            alert("Order successfully saved to history.");
+        } catch (err) {
+            console.error("Save failed:", err);
+            alert("Error saving: Please ensure at least one room is added.");
+        }
     }
 
     function renderHistory() {
         const search = document.getElementById('jobSearch').value.toLowerCase();
-        const filtered = savedJobs.filter(j => j.client.last.toLowerCase().includes(search));
+        const filtered = savedJobs.filter(j => (j.client.last || "").toLowerCase().includes(search));
         document.getElementById('historyList').innerHTML = filtered.map(j => {
             const rugSummary = j.rugs.map(r => `${r.name}: ${r.shape === 'rect' ? r.w + 'x' + r.l : r.sqft + 'sf'}`).join(', ');
             return `
@@ -514,12 +490,13 @@
         const isChecked = document.getElementById('useSig').checked;
         container.style.display = isChecked ? 'block' : 'none';
         if(isChecked) {
-            const canvas = document.getElementById('sig-pad');
-            const ratio = Math.max(window.devicePixelRatio || 1, 1);
-            canvas.width = canvas.offsetWidth * ratio;
-            canvas.height = canvas.offsetHeight * ratio;
-            canvas.getContext("2d").scale(ratio, ratio);
-            signaturePad.clear();
+            setTimeout(() => {
+                const canvas = document.getElementById('sig-pad');
+                const ratio = Math.max(window.devicePixelRatio || 1, 1);
+                canvas.width = canvas.offsetWidth * ratio; canvas.height = canvas.offsetHeight * ratio;
+                canvas.getContext("2d").scale(ratio, ratio);
+                signaturePad.clear();
+            }, 50);
         }
     }
 
