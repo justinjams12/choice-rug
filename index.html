@@ -455,7 +455,6 @@
     }
 
     function saveJob() {
-        // Collect customer data
         const client = {
             first: document.getElementById('custFirst').value,
             last: document.getElementById('custLast').value,
@@ -467,7 +466,6 @@
             zip: document.getElementById('custZip').value
         };
 
-        // Create the job object
         const job = { 
             id: Date.now(), 
             client: client, 
@@ -478,38 +476,27 @@
             date: new Date().toLocaleDateString() 
         };
 
-        // Push and Save to LocalStorage
         savedJobs.unshift(job); 
         localStorage.setItem('rugJobsMaster', JSON.stringify(savedJobs));
-        
-        // Reset Builder State
-        currentRugs = [];
-        renderRugs();
-        
-        // Clear customer form fields
-        ['custFirst','custLast','custPhone','custEmail','custStreet','custCity','custState','custZip'].forEach(id => {
-            document.getElementById(id).value = "";
-        });
-        
-        // Refresh History and Switch Tab
         renderHistory();
-        switchTab('history');
-        window.scrollTo({top: 0, behavior: 'smooth'});
-        
-        alert("Order Saved Successfully!");
+        alert("Order successfully saved to history. You can continue editing or generate the PDF.");
     }
 
     function renderHistory() {
         const search = document.getElementById('jobSearch').value.toLowerCase();
         const filtered = savedJobs.filter(j => j.client.last.toLowerCase().includes(search));
-        document.getElementById('historyList').innerHTML = filtered.map(j => `
+        document.getElementById('historyList').innerHTML = filtered.map(j => {
+            const rugSummary = j.rugs.map(r => `${r.name}: ${r.shape === 'rect' ? r.w + 'x' + r.l : r.sqft + 'sf'}`).join(', ');
+            return `
             <div class="history-item">
                 <div style="flex-grow:1" onclick="viewJob(${j.id})">
                     <b>${j.client.last}, ${j.client.first}</b><br>
+                    <small style="color: var(--choice-blue); font-weight: 600;">${rugSummary}</small><br>
                     <small>${j.date} — ${j.total}</small>
                 </div>
                 <button class="btn-del-history" onclick="deleteHistory(${j.id})">X</button>
-            </div>`).join('');
+            </div>`;
+        }).join('');
     }
 
     function deleteHistory(id) { if(confirm("Delete this permanent record?")) { savedJobs = savedJobs.filter(j => j.id !== id); localStorage.setItem('rugJobsMaster', JSON.stringify(savedJobs)); renderHistory(); } }
