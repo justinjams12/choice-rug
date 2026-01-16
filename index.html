@@ -380,13 +380,15 @@
         document.getElementById('taxInfo').innerText = `Subtotal: $${subtotal.toFixed(2)} | Tax (${(currentTaxRate * 100).toFixed(2)}%): $${(subtotal * currentTaxRate).toFixed(2)}`;
     }
 
+    // This utility function strictly removes any pricing like " ($2.50)" from strings
+    function stripPricing(text) {
+        return text.split(' ($')[0].trim();
+    }
+
     function addRug() {
         let w, l, lft, sqft, sidesText = "Custom Perimeter";
         let sideStates = { top: true, bottom: true, left: true, right: true };
         const e = document.getElementById('edgeStyle'), b = document.getElementById('backingStyle'), p = document.getElementById('padStyle');
-        
-        // Use regex to clean pricing from names for the PDF view
-        const cleanName = (text) => text.replace(/\s*\(\$.*?\)/g, '');
         
         if(currentShape === 'rect') {
             w = parseFloat(document.getElementById('wA').value); l = parseFloat(document.getElementById('lB').value); sqft = w * l; lft = 0;
@@ -401,7 +403,20 @@
         } else { sqft = parseFloat(document.getElementById('manualSqft').value); lft = parseFloat(document.getElementById('manualLft').value); w = "Irreg"; l = "Irreg"; }
         
         const cost = (lft * parseFloat(e.value)) + (sqft * parseFloat(b.value)) + (sqft * parseFloat(p.value));
-        const rug = { name: document.getElementById('roomName').value || "Unnamed Room", w, l, lft, sqft, edge: cleanName(e.options[e.selectedIndex].text), backing: cleanName(b.options[b.selectedIndex].text), pad: cleanName(p.options[p.selectedIndex].text), cost, shape: currentShape, sides: sidesText, sideStates: sideStates };
+        
+        // Save the cleaned text directly to the rug object
+        const rug = { 
+            name: document.getElementById('roomName').value || "Unnamed Room", 
+            w, l, lft, sqft, 
+            edge: stripPricing(e.options[e.selectedIndex].text), 
+            backing: stripPricing(b.options[b.selectedIndex].text), 
+            pad: stripPricing(p.options[p.selectedIndex].text), 
+            cost, 
+            shape: currentShape, 
+            sides: sidesText, 
+            sideStates: sideStates 
+        };
+
         if(editingRugIndex !== null) currentRugs[editingRugIndex] = rug; else currentRugs.push(rug);
         clearRugForm();
     }
@@ -436,7 +451,7 @@
             document.getElementById('sideLeft').checked = r.sideStates.left; document.getElementById('sideRight').checked = r.sideStates.right;
         } else { document.getElementById('manualSqft').value = r.sqft; document.getElementById('manualLft').value = r.lft; }
         
-        // Match selection using text inclusion
+        // Find option that contains the saved (cleaned) text
         Array.from(document.getElementById('edgeStyle').options).forEach(opt => opt.selected = opt.text.includes(r.edge));
         Array.from(document.getElementById('backingStyle').options).forEach(opt => opt.selected = opt.text.includes(r.backing));
         Array.from(document.getElementById('padStyle').options).forEach(opt => opt.selected = opt.text.includes(r.pad));
@@ -605,9 +620,9 @@
                 <td>${r.shape==='rect' ? r.w+'\' x '+r.l+'\'' : r.sqft+' SF'}<br><small style="color: #64748b;">${r.shape==='rect' ? r.sides : 'Irregular Shape'}</small></td>
                 <td>
                     <div style="font-size: 11px; line-height: 1.4;">
-                        <b>Edge:</b> ${r.edge}<br>
-                        <b>Backing:</b> ${r.backing !== 'None' ? r.backing : 'N/A'}<br>
-                        <b>Pad:</b> ${r.pad !== 'No Pad' ? r.pad : 'None'}
+                        <b>Edge:</b> ${stripPricing(r.edge)}<br>
+                        <b>Backing:</b> ${r.backing !== 'None' ? stripPricing(r.backing) : 'N/A'}<br>
+                        <b>Pad:</b> ${r.pad !== 'No Pad' ? stripPricing(r.pad) : 'None'}
                     </div>
                 </td>
                 <td style="text-align:right">$${(r.cost || 0).toFixed(2)}</td>
