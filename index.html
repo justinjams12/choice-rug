@@ -44,11 +44,11 @@
 
         .btn { width: 100%; padding: 16px; border-radius: 10px; border: none; font-weight: 800; cursor: pointer; transition: all 0.2s; }
         .btn-add { background: var(--choice-blue); color: white; }
-        .btn-add:disabled { background: #cbd5e1; cursor: not-allowed; opacity: 0.6; }
+        .btn-add:disabled { background: #cbd5e1 !important; cursor: not-allowed; opacity: 0.6; }
         .btn-save { background: var(--choice-green); color: white; margin-top: 10px; }
         .btn-pdf { background: #334155; color: white; margin-top: 10px; }
 
-        .error-msg { color: var(--danger); font-size: 0.7rem; font-weight: bold; margin-bottom: 10px; display: none; }
+        .error-msg { color: var(--danger); font-size: 0.75rem; font-weight: 900; margin: 5px 0 15px 0; display: none; padding: 10px; background: #fee2e2; border-radius: 8px; text-align: center; }
 
         .room-tag { background: var(--choice-blue-light); padding: 12px; border-radius: 10px; margin-bottom: 8px; border-left: 4px solid var(--choice-green); }
         .room-tag-btns { display: flex; gap: 10px; margin-top: 5px; }
@@ -64,11 +64,6 @@
         .shape-toggle { display: flex; background: #f1f5f9; padding: 4px; border-radius: 8px; margin-bottom: 12px; }
         .shape-btn { flex: 1; padding: 8px; border: none; background: none; font-size: 0.7rem; font-weight: 800; cursor: pointer; border-radius: 6px; color: #64748b; }
         .shape-btn.active { background: white; color: var(--choice-blue); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-
-        .calc-helper { background: #f8fafc; border: 1px solid var(--choice-blue); border-radius: 12px; padding: 15px; margin-bottom: 15px; display: none; }
-        .shape-quick-select { display: flex; gap: 5px; margin-bottom: 12px; flex-wrap: wrap; }
-        .quick-chip { background: white; border: 1px solid #cbd5e1; padding: 5px 10px; border-radius: 20px; font-size: 0.65rem; font-weight: 700; cursor: pointer; }
-        .quick-chip.active { background: var(--choice-blue); color: white; border-color: var(--choice-blue); }
 
         .sig-container { display: none; border: 2px dashed #cbd5e1; border-radius: 10px; background: #fff; margin-top: 10px; overflow: hidden; }
         .signature-pad { width: 100%; height: 140px; }
@@ -118,19 +113,8 @@
                 <input type="text" id="custCity" placeholder="City *" oninput="autoCap(this); validateInputs()">
                 <select id="custState" onchange="lookupTax(); validateInputs()">
                     <option value="" disabled selected>ST *</option>
-                    <option value="AL">AL</option><option value="AK">AK</option><option value="AZ">AZ</option><option value="AR">AR</option>
-                    <option value="CA">CA</option><option value="CO">CO</option><option value="CT">CT</option><option value="DE">DE</option>
-                    <option value="FL">FL</option><option value="GA">GA</option><option value="HI">HI</option><option value="ID">ID</option>
-                    <option value="IL">IL</option><option value="IN">IN</option><option value="IA">IA</option><option value="KS">KS</option>
-                    <option value="KY">KY</option><option value="LA">LA</option><option value="ME">ME</option><option value="MD">MD</option>
-                    <option value="MA">MA</option><option value="MI">MI</option><option value="MN">MN</option><option value="MS">MS</option>
-                    <option value="MO">MO</option><option value="MT">MT</option><option value="NE">NE</option><option value="NV">NV</option>
-                    <option value="NH">NH</option><option value="NJ">NJ</option><option value="NM">NM</option><option value="NY">NY</option>
-                    <option value="NC">NC</option><option value="ND">ND</option><option value="OH">OH</option><option value="OK">OK</option>
-                    <option value="OR">OR</option><option value="PA">PA</option><option value="RI">RI</option><option value="SC">SC</option>
-                    <option value="SD">SD</option><option value="TN">TN</option><option value="TX">TX</option><option value="UT">UT</option>
-                    <option value="VT">VT</option><option value="VA">VA</option><option value="WA">WA</option><option value="WV">WV</option>
-                    <option value="WI">WI</option><option value="WY">WY</option>
+                    <option value="PA">PA</option><option value="DE">DE</option><option value="MD">MD</option>
+                    <option value="NJ">NJ</option><option value="VA">VA</option><option value="NY">NY</option>
                 </select>
                 <input type="text" id="custZip" placeholder="Zip *" maxlength="5" oninput="handleZipChange()">
             </div>
@@ -143,7 +127,7 @@
                 <button id="shapeIrreg" class="shape-btn" onclick="setShape('irreg')">Custom/Irreg</button>
             </div>
 
-            <input type="text" id="roomName" placeholder="Room Name (e.g. Living Room) *" oninput="autoCap(this); validateInputs()">
+            <input type="text" id="roomName" placeholder="Room Name *" oninput="autoCap(this); validateInputs()">
             
             <div id="standardInputs">
                 <div class="grid-2">
@@ -160,16 +144,6 @@
             </div>
 
             <div id="irregularInputs" style="display:none;">
-                <div class="shape-quick-select">
-                    <div id="chip-circle" class="quick-chip" onclick="showHelper('circle')">Circle</div>
-                    <div id="chip-lshape" class="quick-chip" onclick="showHelper('lshape')">L-Shape</div>
-                    <div id="chip-oval" class="quick-chip" onclick="showHelper('oval')">Oval</div>
-                    <div id="chip-octagon" class="quick-chip" onclick="showHelper('octagon')">Octagon</div>
-                </div>
-                <div id="helperPanel" class="calc-helper">
-                    <div id="helperInputs" class="grid-2"></div>
-                    <button class="btn" style="padding:8px; font-size:0.7rem; background:var(--choice-blue); color:white; margin-top:10px;" onclick="calculateHelper()">Auto-Fill</button>
-                </div>
                 <div class="grid-2">
                     <div><label>Total Area (SF)</label><input type="number" id="manualSqft" oninput="validateInputs()"></div>
                     <div><label>Perimeter (LF)</label><input type="number" id="manualLft" oninput="validateInputs()"></div>
@@ -181,13 +155,14 @@
                     <option value="2.50">Binding ($2.50)</option>
                     <option value="6.00">Serging ($6.00)</option>
                 </select></div>
-                <div><label>Attached Backing</label><select id="backingStyle" onchange="handleMutualExclusion('backing')">
+                <div><label>Backing</label><select id="backingStyle" onchange="handleMutualExclusion('backing')">
                     <option value="0">None</option>
                     <option value="1.50">Soft Felt ($1.50)</option>
                     <option value="2.25">Teebaud ($2.25)</option>
                     <option value="1.85">Quad Back ($1.85)</option>
                 </select></div>
             </div>
+            
             <label>Area Rug Pad (Loose)</label>
             <select id="padStyle" onchange="handleMutualExclusion('pad')">
                 <option value="0" data-limit="999">No Pad</option>
@@ -268,7 +243,6 @@
     let signaturePad;
     let editingRugIndex = null;
     let currentShape = 'rect';
-    let currentHelperType = '';
 
     window.onload = () => {
         const canvas = document.getElementById('sig-pad');
@@ -299,31 +273,6 @@
         validateInputs();
     }
 
-    function showHelper(type) {
-        currentHelperType = type;
-        document.querySelectorAll('.quick-chip').forEach(c => c.classList.remove('active'));
-        document.getElementById('chip-' + type).classList.add('active');
-        const panel = document.getElementById('helperPanel');
-        const inputs = document.getElementById('helperInputs');
-        panel.style.display = 'block'; inputs.innerHTML = '';
-        if(type === 'circle') inputs.innerHTML = '<div><label>Diameter</label><input type="number" id="h1"></div>';
-        else if(type === 'lshape') inputs.innerHTML = '<div><label>W</label><input type="number" id="h1"></div><div><label>L</label><input type="number" id="h2"></div>';
-        else if(type === 'oval') inputs.innerHTML = '<div><label>Max W</label><input type="number" id="h1"></div><div><label>Max L</label><input type="number" id="h2"></div>';
-        else if(type === 'octagon') inputs.innerHTML = '<div><label>Width</label><input type="number" id="h1"></div>';
-    }
-
-    function calculateHelper() {
-        const h1 = parseFloat(document.getElementById('h1').value) || 0, h2 = parseFloat(document.getElementById('h2')?.value) || 0;
-        let sqft = 0, lft = 0;
-        if(currentHelperType === 'circle') { sqft = Math.PI * Math.pow(h1/2,2); lft = Math.PI * h1; }
-        else if(currentHelperType === 'lshape') { sqft = (h1*h2)*0.75; lft = (h1+h2)*2; }
-        else if(currentHelperType === 'oval') { sqft = Math.PI*(h1/2)*(h2/2); lft = Math.PI*(h1+h2)/2; }
-        else if(currentHelperType === 'octagon') { sqft = 0.828*Math.pow(h1,2); lft = h1*3.31; }
-        document.getElementById('manualSqft').value = sqft.toFixed(2);
-        document.getElementById('manualLft').value = lft.toFixed(2);
-        document.getElementById('helperPanel').style.display = 'none'; validateInputs();
-    }
-
     function handleMutualExclusion(trigger) {
         if (trigger === 'backing' && document.getElementById('backingStyle').value !== "0") {
             document.getElementById('padStyle').value = "0";
@@ -337,12 +286,16 @@
     function validateInputs() {
         const fields = ['custFirst','custLast','custPhone','custEmail','custStreet','custCity','custState','custZip','roomName'];
         let subValid = false, widthCheck = 0;
+        
         if(currentShape === 'rect') {
-            const w = parseFloat(document.getElementById('wA').value) || 0, l = parseFloat(document.getElementById('lB').value) || 0;
-            widthCheck = Math.min(w, l); subValid = w > 0 && l > 0;
+            const w = parseFloat(document.getElementById('wA').value) || 0;
+            const l = parseFloat(document.getElementById('lB').value) || 0;
+            widthCheck = Math.min(w, l); 
+            subValid = w > 0 && l > 0;
         } else {
             const s = parseFloat(document.getElementById('manualSqft').value) || 0;
-            widthCheck = Math.sqrt(s); subValid = s > 0;
+            widthCheck = Math.sqrt(s); 
+            subValid = s > 0;
         }
 
         const padSelect = document.getElementById('padStyle');
@@ -351,6 +304,7 @@
         
         document.getElementById('padError').style.display = isPadTooBig ? 'block' : 'none';
         const allFieldsFilled = fields.every(id => document.getElementById(id).value.trim() !== "");
+        
         document.getElementById('btnAddRug').disabled = !allFieldsFilled || !subValid || isPadTooBig;
         updateLiveTotals();
     }
@@ -410,26 +364,29 @@
         updateLiveTotals();
     }
 
-    function editRug(i) {
-        editingRugIndex = i; const r = currentRugs[i];
-        document.getElementById('roomName').value = r.name; setShape(r.shape);
-        if(r.shape === 'rect') { document.getElementById('wA').value = r.w; document.getElementById('lB').value = r.l; }
-        else { document.getElementById('manualSqft').value = r.sqft; document.getElementById('manualLft').value = r.lft; }
-        Array.from(document.getElementById('edgeStyle').options).forEach(opt => opt.selected = opt.text === r.edge);
-        Array.from(document.getElementById('backingStyle').options).forEach(opt => opt.selected = opt.text === r.backing);
-        Array.from(document.getElementById('padStyle').options).forEach(opt => opt.selected = opt.text === r.pad);
-        document.getElementById('btnAddRug').innerText = "Update Room Details";
-        document.getElementById('btnCancelEdit').style.display = 'block';
-        window.scrollTo({top: 0, behavior: 'smooth'});
-    }
-
-    function removeRug(i) { currentRugs.splice(i,1); renderRugs(); }
-    function cancelEdit() { editingRugIndex = null; addRug(); }
-
     function saveJob() {
-        const job = { id: Date.now(), client: { first: document.getElementById('custFirst').value, last: document.getElementById('custLast').value, phone: document.getElementById('custPhone').value, email: document.getElementById('custEmail').value, street: document.getElementById('custStreet').value, city: document.getElementById('custCity').value, state: document.getElementById('custState').value, zip: document.getElementById('custZip').value }, rugs: [...currentRugs], delivery: document.getElementById('delv').value, install: document.getElementById('inst').value, total: document.getElementById('displayTotal').innerText, date: new Date().toLocaleDateString() };
-        savedJobs.unshift(job); localStorage.setItem('rugJobsMaster', JSON.stringify(savedJobs));
-        alert("Quote Saved to History"); renderHistory();
+        const job = { 
+            id: Date.now(), 
+            client: { 
+                first: document.getElementById('custFirst').value, 
+                last: document.getElementById('custLast').value, 
+                phone: document.getElementById('custPhone').value, 
+                email: document.getElementById('custEmail').value, 
+                street: document.getElementById('custStreet').value, 
+                city: document.getElementById('custCity').value, 
+                state: document.getElementById('custState').value, 
+                zip: document.getElementById('custZip').value 
+            }, 
+            rugs: [...currentRugs], 
+            delivery: document.getElementById('delv').value, 
+            install: document.getElementById('inst').value, 
+            total: document.getElementById('displayTotal').innerText, 
+            date: new Date().toLocaleDateString() 
+        };
+        savedJobs.unshift(job); 
+        localStorage.setItem('rugJobsMaster', JSON.stringify(savedJobs));
+        alert("Quote Saved to History"); 
+        renderHistory();
     }
 
     function renderHistory() {
@@ -448,8 +405,6 @@
             </div>`).join('');
     }
 
-    function deleteHistory(id) { if(confirm("Delete this permanent record?")) { savedJobs = savedJobs.filter(j => j.id !== id); localStorage.setItem('rugJobsMaster', JSON.stringify(savedJobs)); renderHistory(); } }
-
     function viewJob(id) {
         const job = savedJobs.find(j => j.id === id); if(!job) return;
         document.getElementById('custFirst').value = job.client.first; document.getElementById('custLast').value = job.client.last;
@@ -460,6 +415,29 @@
         renderRugs(); lookupTax(); switchTab('workspace');
     }
 
+    function deleteHistory(id) { 
+        if(confirm("Delete this permanent record?")) { 
+            savedJobs = savedJobs.filter(j => j.id !== id); 
+            localStorage.setItem('rugJobsMaster', JSON.stringify(savedJobs)); 
+            renderHistory(); 
+        } 
+    }
+
+    function editRug(i) {
+        editingRugIndex = i; const r = currentRugs[i];
+        document.getElementById('roomName').value = r.name; setShape(r.shape);
+        if(r.shape === 'rect') { document.getElementById('wA').value = r.w; document.getElementById('lB').value = r.l; }
+        else { document.getElementById('manualSqft').value = r.sqft; document.getElementById('manualLft').value = r.lft; }
+        Array.from(document.getElementById('edgeStyle').options).forEach(opt => opt.selected = opt.text === r.edge);
+        Array.from(document.getElementById('backingStyle').options).forEach(opt => opt.selected = opt.text === r.backing);
+        Array.from(document.getElementById('padStyle').options).forEach(opt => opt.selected = opt.text === r.pad);
+        document.getElementById('btnAddRug').innerText = "Update Room Details";
+        document.getElementById('btnCancelEdit').style.display = 'block';
+        window.scrollTo({top: 0, behavior: 'smooth'});
+    }
+
+    function removeRug(i) { currentRugs.splice(i,1); renderRugs(); }
+    function cancelEdit() { editingRugIndex = null; addRug(); }
     function lookupTax() { const r = {"PA":0.06, "DE":0.00, "MD":0.06, "NJ":0.066, "VA":0.053, "NY":0.088}; currentTaxRate = r[document.getElementById('custState').value] || 0; updateLiveTotals(); }
     function handleZipChange() { if(document.getElementById('custZip').value.length === 5) lookupTax(); validateInputs(); }
     function toggleSigPad() { document.getElementById('sig-pad-container').style.display = document.getElementById('useSig').checked ? 'block' : 'none'; }
