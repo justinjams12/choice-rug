@@ -18,6 +18,10 @@
         body { font-family: 'Inter', system-ui, sans-serif; margin: 0; background: #f1f5f9; color: var(--text); padding-bottom: 60px; }
         .app-shell { width: 100%; max-width: 480px; margin: auto; padding: 15px; box-sizing: border-box; }
         
+        /* Updated App Header Branding */
+        .app-header { text-align: center; padding: 20px 0 25px 0; }
+        .app-header img { max-height: 85px; width: auto; }
+
         /* Tabs */
         .tabs { display: flex; background: var(--choice-blue); padding: 6px; border-radius: 12px; margin-bottom: 20px; }
         .tab-btn { flex: 1; padding: 12px; border: none; background: none; color: white; font-weight: 700; cursor: pointer; border-radius: 8px; opacity: 0.7; transition: all 0.2s; }
@@ -89,8 +93,8 @@
 <body>
 
 <div class="app-shell">
-    <header style="text-align:center; padding: 10px 0;">
-        <img src="choice-floors-logo.png" style="max-height: 55px;" alt="Choice Floors">
+    <header class="app-header">
+        <img src="choice-floors-logo.png" alt="Choice Floors">
     </header>
 
     <div class="tabs">
@@ -246,7 +250,7 @@
 
 <div id="pdf-template">
     <div class="pdf-header">
-        <img src="choice-floors-logo.png" style="height:140px;">
+        <img src="choice-floors-logo.png" style="height:180px;">
         <div style="text-align:right"><h1 style="color:var(--choice-blue); margin:0;">Choice Floors Rug Estimate</h1><p>Date: <span id="pdf-date"></span></p></div>
     </div>
     <div class="pdf-wave"><svg viewBox="0 0 850 80" xmlns="http://www.w3.org/2000/svg"><path d="M0,40 C200,80 400,0 600,40 C800,80 850,50 850,50 L850,80 L0,80 Z" fill="#9dbb4c"/><path d="M0,50 C200,10 400,90 600,50 C800,10 850,40 850,40 L850,80 L0,80 Z" fill="#2b6291"/></svg></div>
