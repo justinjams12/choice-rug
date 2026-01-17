@@ -291,6 +291,7 @@
         document.querySelectorAll('.view, .tab-btn').forEach(el => el.classList.remove('active'));
         document.getElementById(t).classList.add('active');
         document.getElementById('tab-btn-' + t).classList.add('active');
+        if(t === 'history') renderHistory();
     }
 
     function setShape(type) {
@@ -471,30 +472,44 @@
         try {
             if (!currentRugs.length) { alert("Error: Add at least one room before saving."); return; }
             const client = {
-                first: document.getElementById('custFirst').value, last: document.getElementById('custLast').value,
-                phone: document.getElementById('custPhone').value, email: document.getElementById('custEmail').value,
-                street: document.getElementById('custStreet').value, city: document.getElementById('custCity').value,
-                state: document.getElementById('custState').value, zip: document.getElementById('custZip').value,
+                first: document.getElementById('custFirst').value, 
+                last: document.getElementById('custLast').value,
+                phone: document.getElementById('custPhone').value, 
+                email: document.getElementById('custEmail').value,
+                street: document.getElementById('custStreet').value, 
+                city: document.getElementById('custCity').value,
+                state: document.getElementById('custState').value, 
+                zip: document.getElementById('custZip').value,
                 taxRate: document.getElementById('manualTax').value
             };
             const job = { 
-                id: currentJobId || Date.now(), client, rugs: currentRugs.map(r => ({...r})), 
+                id: currentJobId || Date.now(), 
+                client: client, 
+                rugs: currentRugs.map(r => ({...r})), 
                 signature: signaturePad.isEmpty() ? null : signaturePad.toDataURL(),
-                delivery: document.getElementById('delv').value, install: document.getElementById('inst').value, 
-                total: document.getElementById('displayTotal').innerText, date: new Date().toLocaleDateString() 
+                delivery: document.getElementById('delv').value, 
+                install: document.getElementById('inst').value, 
+                total: document.getElementById('displayTotal').innerText, 
+                date: new Date().toLocaleDateString() 
             };
             if (currentJobId) {
                 const idx = savedJobs.findIndex(j => j.id === currentJobId);
                 if (idx !== -1) savedJobs[idx] = job;
-            } else savedJobs.unshift(job);
+            } else {
+                savedJobs.unshift(job);
+            }
             localStorage.setItem('rugJobsMaster', JSON.stringify(savedJobs));
-            renderHistory(); alert("Order successfully saved."); currentJobId = job.id;
-        } catch (err) { alert("Error: " + err.message); }
+            renderHistory(); 
+            alert("Order successfully saved."); 
+            currentJobId = job.id;
+        } catch (err) { alert("Error saving: " + err.message); }
     }
 
     function renderHistory() {
-        const search = (document.getElementById('jobSearch')?.value || "").toLowerCase();
-        const filtered = savedJobs.filter(j => j.client.last.toLowerCase().includes(search));
+        const searchInput = document.getElementById('jobSearch');
+        const search = (searchInput ? searchInput.value : "").toLowerCase();
+        const filtered = savedJobs.filter(j => j && j.client && j.client.last && j.client.last.toLowerCase().includes(search));
+        
         document.getElementById('historyList').innerHTML = filtered.map(j => `
             <div class="history-item">
                 <div style="flex-grow:1" onclick="viewJob(${j.id})">
@@ -514,10 +529,34 @@
     function viewJob(id) {
         const job = savedJobs.find(j => j.id === id); if(!job) return;
         currentJobId = job.id;
-        ['custFirst','custLast','custPhone','custEmail','custStreet','custCity','custState','custZip','manualTax'].forEach(f => document.getElementById(f).value = job.client[f === 'manualTax' ? 'taxRate' : f.replace('cust', '').toLowerCase()] || job.client[f] || "");
-        currentRugs = [...job.rugs]; document.getElementById('delv').value = job.delivery; document.getElementById('inst').value = job.install;
-        if (job.signature) { document.getElementById('useSig').checked = true; toggleSigPad(); setTimeout(() => signaturePad.fromDataURL(job.signature), 100); }
-        renderRugs(); lookupTax(); switchTab('workspace');
+        
+        // Correctly mapping client fields back to inputs
+        document.getElementById('custFirst').value = job.client.first || "";
+        document.getElementById('custLast').value = job.client.last || "";
+        document.getElementById('custPhone').value = job.client.phone || "";
+        document.getElementById('custEmail').value = job.client.email || "";
+        document.getElementById('custStreet').value = job.client.street || "";
+        document.getElementById('custCity').value = job.client.city || "";
+        document.getElementById('custState').value = job.client.state || "";
+        document.getElementById('custZip').value = job.client.zip || "";
+        document.getElementById('manualTax').value = job.client.taxRate || "";
+        
+        currentRugs = [...job.rugs]; 
+        document.getElementById('delv').value = job.delivery; 
+        document.getElementById('inst').value = job.install;
+        
+        if (job.signature) { 
+            document.getElementById('useSig').checked = true; 
+            toggleSigPad(); 
+            setTimeout(() => signaturePad.fromDataURL(job.signature), 100); 
+        } else {
+            document.getElementById('useSig').checked = false;
+            toggleSigPad();
+        }
+        
+        renderRugs(); 
+        lookupTax(); 
+        switchTab('workspace');
     }
 
     function lookupTax() { 
