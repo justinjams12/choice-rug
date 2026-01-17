@@ -315,17 +315,32 @@
         const panel = document.getElementById('helperPanel');
         const inputs = document.getElementById('helperInputs');
         panel.style.display = 'block'; inputs.innerHTML = '';
-        if(type === 'circle') inputs.innerHTML = '<div><label>Diameter</label><input type="number" id="h1"></div>';
-        else if(type === 'lshape') inputs.innerHTML = '<div><label>W</label><input type="number" id="h1"></div><div><label>L</label><input type="number" id="h2"></div>';
-        else if(type === 'oval') inputs.innerHTML = '<div><label>Max W</label><input type="number" id="h1"></div><div><label>Max L</label><input type="number" id="h2"></div>';
-        else if(type === 'octagon') inputs.innerHTML = '<div><label>Width</label><input type="number" id="h1"></div>';
+        if(type === 'circle') {
+            inputs.innerHTML = '<div><label>Diameter</label><input type="number" id="h1"></div>';
+        } else if(type === 'lshape') {
+            inputs.innerHTML = `
+                <div><label>Leg 1 Width</label><input type="number" id="h1"></div>
+                <div><label>Leg 1 Length</label><input type="number" id="h2"></div>
+                <div><label>Leg 2 Width</label><input type="number" id="h3"></div>
+                <div><label>Leg 2 Length</label><input type="number" id="h4"></div>`;
+        } else if(type === 'oval') {
+            inputs.innerHTML = '<div><label>Max W</label><input type="number" id="h1"></div><div><label>Max L</label><input type="number" id="h2"></div>';
+        } else if(type === 'octagon') {
+            inputs.innerHTML = '<div><label>Width</label><input type="number" id="h1"></div>';
+        }
     }
 
     function calculateHelper() {
-        const h1 = parseFloat(document.getElementById('h1').value) || 0, h2 = parseFloat(document.getElementById('h2')?.value) || 0;
+        const h1 = parseFloat(document.getElementById('h1').value) || 0;
+        const h2 = parseFloat(document.getElementById('h2')?.value) || 0;
+        const h3 = parseFloat(document.getElementById('h3')?.value) || 0;
+        const h4 = parseFloat(document.getElementById('h4')?.value) || 0;
         let sqft = 0, lft = 0;
         if(currentHelperType === 'circle') { sqft = Math.PI * Math.pow(h1/2,2); lft = Math.PI * h1; }
-        else if(currentHelperType === 'lshape') { sqft = (h1*h2)*0.75; lft = (h1+h2)*2; }
+        else if(currentHelperType === 'lshape') { 
+            sqft = (h1 * h2) + (h3 * h4); 
+            lft = 2 * (Math.max(h1, h3) + Math.max(h2, h4)); 
+        }
         else if(currentHelperType === 'oval') { sqft = Math.PI*(h1/2)*(h2/2); lft = Math.PI*(h1+h2)/2; }
         else if(currentHelperType === 'octagon') { sqft = 0.828*Math.pow(h1,2); lft = h1*3.31; }
         document.getElementById('manualSqft').value = sqft.toFixed(2);
