@@ -148,7 +148,7 @@
             </div>
         </div>
 
-        <div class="card">
+        <div class="card" id="fabricationSection">
             <div class="section-title">Fabrication</div>
             <div class="shape-toggle">
                 <button id="shapeRect" class="shape-btn active" onclick="setShape('rect')">Rectangle</button>
@@ -499,7 +499,9 @@
         
         document.getElementById('btnAddRug').innerText = "Save Changes to Room"; 
         document.getElementById('btnCancelEdit').style.display = 'block';
-        window.scrollTo({top: 0, behavior: 'smooth'}); 
+        
+        // Target the Fabrication section card
+        document.getElementById('fabricationSection').scrollIntoView({ behavior: 'smooth' });
         validateInputs();
     }
 
