@@ -256,7 +256,7 @@
             <div id="pdf-client-email"></div>
         </div>
         <table class="pdf-table">
-            <thead><tr><th>Room</th><th>Dimensions</th><th>Finishing & Materials</th><th style="text-align:right">Total</th></tr></thead>
+            <thead><tr><th>Item/Room</th><th>Dimensions</th><th>Finishing & Materials</th><th style="text-align:right">Total</th></tr></thead>
             <tbody id="pdf-item-rows"></tbody>
         </table>
         <div style="float:right; text-align:right; width:250px; background:var(--choice-blue-light); padding:20px; border-radius:10px;">
@@ -368,7 +368,15 @@
     }
 
     function updateLiveTotals() {
-        const rugSub = currentRugs.reduce((a, b) => a + (b.cost || 0), 0);
+        // Calculate subtotal of existing rugs
+        let rugSub = 0;
+        currentRugs.forEach((r, idx) => {
+            // Fix: If we are editing, do NOT count the old version of the rug in the live total
+            if(editingRugIndex !== idx) {
+                rugSub += (r.cost || 0);
+            }
+        });
+
         let activeLft = 0, activeSqft = 0;
         if(currentShape === 'rect') {
             const w = parseFloat(document.getElementById('wA').value) || 0, l = parseFloat(document.getElementById('lB').value) || 0;
@@ -461,6 +469,7 @@
         document.getElementById('btnAddRug').innerText = "Save Changes to Room"; 
         document.getElementById('btnCancelEdit').style.display = 'block';
         document.getElementById('fabricationSection').scrollIntoView({ behavior: 'smooth' });
+        updateLiveTotals();
         validateInputs();
     }
 
@@ -510,18 +519,22 @@
         const search = (searchInput ? searchInput.value : "").toLowerCase();
         const filtered = savedJobs.filter(j => j && j.client && j.client.last && j.client.last.toLowerCase().includes(search));
         
-        document.getElementById('historyList').innerHTML = filtered.map(j => `
+        document.getElementById('historyList').innerHTML = filtered.map(j => {
+            // Fix: Create a list of room names for more detail
+            const roomNames = j.rugs.map(r => r.name).join(', ');
+            return `
             <div class="history-item">
                 <div style="flex-grow:1" onclick="viewJob(${j.id})">
                     <b>${j.client.last}, ${j.client.first}</b><br>
-                    <small style="color: var(--choice-blue); font-weight: 600;">${j.rugs.length} Rooms</small><br>
+                    <small style="color: var(--choice-blue); font-weight: 600;">${roomNames}</small><br>
                     <small>${j.date} — ${j.total}</small>
                 </div>
                 <div style="display: flex; gap: 8px;">
                     <button class="btn-del-history" style="background: var(--choice-blue);" onclick="viewJob(${j.id})">✎</button>
                     <button class="btn-del-history" onclick="deleteHistory(${j.id})">X</button>
                 </div>
-            </div>`).join('');
+            </div>`;
+        }).join('');
     }
 
     function deleteHistory(id) { if(confirm("Delete this permanent record?")) { savedJobs = savedJobs.filter(j => j.id !== id); localStorage.setItem('rugJobsMaster', JSON.stringify(savedJobs)); renderHistory(); } }
@@ -530,7 +543,6 @@
         const job = savedJobs.find(j => j.id === id); if(!job) return;
         currentJobId = job.id;
         
-        // Correctly mapping client fields back to inputs
         document.getElementById('custFirst').value = job.client.first || "";
         document.getElementById('custLast').value = job.client.last || "";
         document.getElementById('custPhone').value = job.client.phone || "";
@@ -542,8 +554,8 @@
         document.getElementById('manualTax').value = job.client.taxRate || "";
         
         currentRugs = [...job.rugs]; 
-        document.getElementById('delv').value = job.delivery; 
-        document.getElementById('inst').value = job.install;
+        document.getElementById('delv').value = job.delivery || "0"; 
+        document.getElementById('inst').value = job.install || "0";
         
         if (job.signature) { 
             document.getElementById('useSig').checked = true; 
@@ -593,14 +605,32 @@
         document.getElementById('pdf-client-phone').innerText = `Phone: ${document.getElementById('custPhone').value}`;
         document.getElementById('pdf-client-email').innerText = `Email: ${document.getElementById('custEmail').value}`;
         document.getElementById('pdf-date').innerText = new Date().toLocaleDateString();
-        const subtotal = currentRugs.reduce((a, b) => a + b.cost, 0) + parseFloat(document.getElementById('delv').value) + parseFloat(document.getElementById('inst').value);
+        
+        const deliveryVal = parseFloat(document.getElementById('delv').value) || 0;
+        const installVal = parseFloat(document.getElementById('inst').value) || 0;
+        const rugSub = currentRugs.reduce((a, b) => a + b.cost, 0);
+        const subtotal = rugSub + deliveryVal + installVal;
         const taxAmount = subtotal * currentTaxRate;
+        
         document.getElementById('pdf-subtotal-display').innerText = `Subtotal: $${subtotal.toFixed(2)}`;
         document.getElementById('pdf-tax-display').innerText = `Tax (${(currentTaxRate * 100).toFixed(2)}%): $${taxAmount.toFixed(2)}`;
         document.getElementById('pdf-total-display').innerText = `Total: $${(subtotal + taxAmount).toFixed(2)}`;
-        document.getElementById('pdf-item-rows').innerHTML = currentRugs.map(r => `
+        
+        // Generate Rug Rows
+        let tableHTML = currentRugs.map(r => `
             <tr><td style="font-weight: bold; color: var(--choice-blue);">${r.name}</td><td>${r.shape==='rect' ? r.w+'\' x '+r.l+'\'' : r.sqft+' SF'}</td>
             <td><b>Edge:</b> ${stripPricing(r.edge)}<br><b>Backing:</b> ${r.backing}<br><b>Pad:</b> ${r.pad}</td><td style="text-align:right">$${r.cost.toFixed(2)}</td></tr>`).join('');
+        
+        // Add Delivery/Install as line items if selected
+        if(deliveryVal > 0) {
+            tableHTML += `<tr><td style="font-weight: bold; color: var(--choice-blue);">Delivery Fee</td><td>--</td><td>Standard Delivery</td><td style="text-align:right">$${deliveryVal.toFixed(2)}</td></tr>`;
+        }
+        if(installVal > 0) {
+            tableHTML += `<tr><td style="font-weight: bold; color: var(--choice-blue);">Installation</td><td>--</td><td>Professional Installation</td><td style="text-align:right">$${installVal.toFixed(2)}</td></tr>`;
+        }
+        
+        document.getElementById('pdf-item-rows').innerHTML = tableHTML;
+        
         const sigImg = document.getElementById('pdf-sig-img'); 
         if (!signaturePad.isEmpty()) { sigImg.src = signaturePad.toDataURL(); sigImg.style.display = 'block'; }
         const canvas = await html2canvas(document.getElementById('pdf-template'), { scale: 2 });
